@@ -1,0 +1,13 @@
+# Node modules
+node_modules/
+
+# OS specific files
+.DS_Store
+
+# Build artifacts
+dist/
+*.js.map
+main.js
+
+# Obsidian specific
+.obsidian/

@@ -1,0 +1,360 @@
+/* SmartPick Styles */
+
+/* Toolbar Container */
+.smartpick-toolbar-container {
+  pointer-events: auto;
+}
+
+/* Toolbar */
+.smartpick-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.smartpick-toolbar-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Toolbar Button */
+.smartpick-toolbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.smartpick-toolbar-button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smartpick-toolbar-button:active {
+  background: var(--background-modifier-active-hover);
+}
+
+.smartpick-toolbar-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* AI Button indicator */
+.smartpick-toolbar-button-ai {
+  position: relative;
+}
+
+.smartpick-toolbar-button-ai::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  background: var(--interactive-accent);
+  border-radius: 50%;
+}
+
+/* Toolbar Separator */
+.smartpick-toolbar-separator {
+  width: 1px;
+  height: 18px;
+  background: var(--background-modifier-border);
+  margin: 0 2px;
+}
+
+/* Preview Modal */
+.smartpick-preview-modal {
+  padding: 20px;
+}
+
+.smartpick-preview-title {
+  margin: 0 0 8px 0;
+  font-size: 1.2em;
+}
+
+.smartpick-preview-template-name {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.smartpick-preview-content {
+  min-height: 100px;
+  max-height: 400px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: var(--font-text);
+  line-height: 1.6;
+}
+
+.smartpick-preview-error {
+  color: var(--text-error);
+}
+
+.smartpick-preview-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.smartpick-preview-buttons button {
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+/* Settings Styles */
+.smartpick-settings {
+  padding-bottom: 32px;
+}
+
+.smartpick-settings h1 {
+  margin-bottom: 24px;
+}
+
+/* Settings Tabs */
+.smartpick-settings-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 0;
+}
+
+.smartpick-settings-tab {
+  padding: 8px 16px;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  border-bottom: none;
+  margin-bottom: -1px;
+}
+
+.smartpick-settings-tab:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+.smartpick-settings-tab.active {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  border-color: var(--background-modifier-border);
+  border-bottom-color: var(--background-primary);
+}
+
+.smartpick-settings-tab-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.smartpick-settings h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-bottom: 0;
+  border-bottom: none;
+  font-size: 1.1em;
+}
+
+.smartpick-settings h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-size: 0.95em;
+  color: var(--text-muted);
+}
+
+/* Toolbar Group */
+.smartpick-toolbar-group {
+  margin-bottom: 16px;
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.smartpick-toolbar-group h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.smartpick-toolbar-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.smartpick-toolbar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.smartpick-toolbar-item:hover {
+  border-color: var(--interactive-accent);
+}
+
+.smartpick-toolbar-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.smartpick-toolbar-item-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.smartpick-toolbar-item-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.smartpick-toolbar-item-badge {
+  padding: 2px 6px;
+  font-size: 0.75em;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.smartpick-toolbar-item-delete {
+  display: flex;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.15s ease;
+}
+
+.smartpick-toolbar-item:hover .smartpick-toolbar-item-delete {
+  opacity: 1;
+}
+
+.smartpick-toolbar-item-delete:hover {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
+/* Template List */
+.smartpick-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.smartpick-template-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.smartpick-template-item:hover {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.smartpick-template-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.smartpick-template-name {
+  font-weight: 600;
+  font-size: 1.05em;
+}
+
+.smartpick-template-category {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.smartpick-template-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.smartpick-template-actions button {
+  display: flex;
+  padding: 6px;
+  background: var(--background-secondary);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smartpick-template-actions button:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  border-color: var(--background-modifier-border);
+}
+
+/* AI Settings */
+.smartpick-ai-status {
+  margin-left: 8px;
+  font-size: 0.9em;
+}
+
+.smartpick-ai-status.success {
+  color: var(--text-success);
+}
+
+.smartpick-ai-status.error {
+  color: var(--text-error);
+}
