@@ -5,6 +5,6 @@
   "minAppVersion": "1.0.0",
   "description": "选中文本自动弹出工具栏，支持自定义命令和AI功能 / Smart text selection toolbar with custom commands and AI features",
   "author": "BCS",
-  "authorUrl": "",
+  "authorUrl": "https://github.com/BCS1037",
   "isDesktopOnly": true
 }
