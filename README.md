@@ -2,8 +2,8 @@
 
 **SmartPick** is a smart text selection toolbar for Obsidian, designed to enhance your workflow with custom commands and powerful AI capabilities.
 
-![Demo](https://raw.githubusercontent.com/your-repo/demo.gif)
-*(Please replace with an actual demo image or gif)*
+<img width="1128" height="394" alt="image" src="https://github.com/user-attachments/assets/faae75a0-664d-4ed6-bffe-7acb9fab8d0f" />
+
 
 ## ✨ Features
 
