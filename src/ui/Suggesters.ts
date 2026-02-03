@@ -1,5 +1,5 @@
 import { App, FuzzySuggestModal, Command, setIcon } from 'obsidian';
-import { getIconIds } from 'obsidian';
+import { getIconIds, FuzzyMatch } from 'obsidian';
 
 export class CommandSuggester extends FuzzySuggestModal<Command> {
   private onChoose: (command: Command) => void;
@@ -40,7 +40,7 @@ export class IconSuggester extends FuzzySuggestModal<string> {
     return item;
   }
 
-  renderSuggestion(item: { item: string, match: any }, el: HTMLElement) {
+  renderSuggestion(item: FuzzyMatch<string>, el: HTMLElement) {
     el.addClass('smartpick-icon-suggestion');
     const iconEl = el.createSpan('smartpick-suggestion-icon');
     setIcon(iconEl, item.item);

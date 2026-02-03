@@ -86,7 +86,7 @@ export class OllamaProvider implements AIProvider {
         headers: {
           'Content-Type': 'application/json',
         },
-      }, (res: any) => {
+      }, (res: http.IncomingMessage) => {
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
            let errorBody = '';
            res.on('data', (chunk: any) => errorBody += chunk);
@@ -97,7 +97,7 @@ export class OllamaProvider implements AIProvider {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        res.on('data', (chunk: any) => {
+        res.on('data', (chunk: Buffer) => {
           const chunkText = decoder.decode(chunk, { stream: true });
           buffer += chunkText;
           
@@ -119,10 +119,10 @@ export class OllamaProvider implements AIProvider {
         });
 
         res.on('end', () => resolve());
-        res.on('error', (err: any) => reject(err));
+        res.on('error', (err: Error) => reject(err));
       });
 
-      req.on('error', (err: any) => reject(err));
+      req.on('error', (err: Error) => reject(err));
 
       req.write(JSON.stringify({
         model: useModel,

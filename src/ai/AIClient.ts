@@ -73,11 +73,7 @@ export function parsePromptTemplate(
     selection = String(selection || '');
   }
   
-  console.log('SmartPick Debug - parsePromptTemplate:', {
-    templatePrompt: template.prompt,
-    selection: selection,
-    selectionLength: selection.length
-  });
+
 
   prompt = prompt.replace(/\{\{selection\}\}/g, selection);
   prompt = prompt.replace(/\{\{title\}\}/g, context.title || '');

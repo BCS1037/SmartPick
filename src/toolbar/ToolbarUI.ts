@@ -1,6 +1,6 @@
 // SmartPick Toolbar UI - DOM rendering and button handling
 
-import { setIcon } from 'obsidian';
+import { setIcon, MarkdownView } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import type { Toolbar } from './Toolbar';
 import { ToolbarItem } from '../settings';
@@ -31,10 +31,7 @@ export class ToolbarUI {
   }
 
   private render(left: number, top: number): void {
-    // Get active markdown view
-    const view = this.plugin.app.workspace.getActiveViewOfType(
-      require('obsidian').MarkdownView
-    );
+    const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) return;
 
     // Remove any existing toolbars in this view to prevent duplicates
@@ -44,10 +41,10 @@ export class ToolbarUI {
     // Create container
     this.containerEl = document.createElement('div');
     this.containerEl.className = 'smartpick-toolbar-container';
-    this.containerEl.style.position = 'absolute';
+    // this.containerEl.style.position = 'absolute'; // Moved to CSS
     this.containerEl.style.left = `${Math.max(10, left)}px`;
     this.containerEl.style.top = `${Math.max(10, top)}px`;
-    this.containerEl.style.zIndex = '1000';
+    // this.containerEl.style.zIndex = '1000'; // Moved to CSS
 
     // Create toolbar
     this.toolbarEl = document.createElement('div');
@@ -138,11 +135,7 @@ export class ToolbarUI {
   }
 
   private async executeAICommand(templateId: string, selection: string): Promise<void> {
-    console.log('SmartPick Debug - ToolbarUI.executeAICommand:', {
-      templateId,
-      selectionLength: selection?.length,
-      selectionPreview: selection?.substring(0, 20)
-    });
+
 
     const template = this.plugin.settings.promptTemplates.find(
       t => t.id === templateId

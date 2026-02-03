@@ -38,11 +38,7 @@ export class PreviewModal extends Modal {
     this.selectedText = selection;
     this.editor = editor;
 
-    console.log('SmartPick Debug - PreviewModal constructor:', {
-      selectionArg: selection,
-      typeofSelection: typeof selection,
-      templateName: template.name
-    });
+
   }
 
   onOpen(): void {
@@ -137,7 +133,7 @@ export class PreviewModal extends Modal {
       messages.push({ role: 'user', content: prompt });
 
       // Stream response
-      console.log('SmartPick Debug - Calling chatStream...');
+
       
       let lastRender = 0;
       let isRendering = false;
@@ -158,7 +154,7 @@ export class PreviewModal extends Modal {
             
             try {
               // Render partial response
-              console.log('SmartPick Debug - Starting partial render. Length:', this.response.length);
+
               this.responseEl.empty();
               await MarkdownRenderer.render(
                 this.app,
@@ -167,12 +163,12 @@ export class PreviewModal extends Modal {
                 '',
                 this.plugin
               );
-              console.log('SmartPick Debug - Partial render success');
+
               
               // Scroll to bottom
               this.responseEl.scrollTop = this.responseEl.scrollHeight;
             } catch (e) {
-              console.debug('SmartPick - Partial render skipped:', e);
+              // console.debug('SmartPick - Partial render skipped:', e);
             } finally {
               isRendering = false;
             }
@@ -180,11 +176,11 @@ export class PreviewModal extends Modal {
         },
         this.template.model || aiConfig.defaultModel
       );
-      console.log('SmartPick Debug - chatStream returned. Response length:', this.response.length);
+
 
       // Render Markdown after streaming completes
       if (this.responseEl) {
-        console.log('SmartPick Debug - Starting Markdown rendering...');
+
         try {
           this.responseEl.empty();
           await MarkdownRenderer.render(
@@ -194,9 +190,9 @@ export class PreviewModal extends Modal {
             '',
             this.plugin
           );
-          console.log('SmartPick Debug - Markdown rendering complete');
+
         } catch (renderError) {
-          console.error('SmartPick Debug - Markdown rendering failed:', renderError);
+          console.error('Markdown rendering failed:', renderError);
           // Fallback to text if rendering fails
           this.responseEl.setText(this.response);
         }

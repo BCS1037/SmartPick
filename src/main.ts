@@ -14,7 +14,7 @@ export default class SmartPickPlugin extends Plugin {
   private commandManager: CommandManager | null = null;
 
   async onload(): Promise<void> {
-    console.log('Loading SmartPick plugin');
+
 
     // Load settings
     await this.loadSettings();
@@ -41,7 +41,7 @@ export default class SmartPickPlugin extends Plugin {
   }
 
   onunload(): void {
-    console.log('Unloading SmartPick plugin');
+
     
     if (this.toolbar) {
       this.toolbar.destroy();

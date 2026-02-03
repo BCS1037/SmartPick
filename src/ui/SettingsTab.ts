@@ -9,11 +9,12 @@ import {
   generateId,
   AIProvider
 } from '../settings';
-import { t } from '../i18n';
+import { t, detectLanguage, setLanguage } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
 import { AddCommandModal, AddAICommandModal, AddGroupModal, EditTemplateModal } from './Modals';
+import { ConfirmModal } from './ConfirmModal';
 
 type TabId = 'toolbar' | 'ai' | 'templates';
 
@@ -32,7 +33,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
     containerEl.addClass('smartpick-settings');
 
     // Title
-    containerEl.createEl('h1', { text: t('settingsTitle') });
+    new Setting(containerEl)
+        .setName(t('settingsTitle'))
+        .setHeading();
 
     // Render Tabs
     const tabsContainer = containerEl.createDiv('smartpick-settings-tabs');
@@ -83,8 +86,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
             this.plugin.settings.language = value as 'auto' | 'zh' | 'en';
             await this.plugin.saveSettings();
             // Reload i18n
-            const lang = value === 'auto' ? require('../i18n').detectLanguage() : value;
-            require('../i18n').setLanguage(lang);
+            const lang = value === 'auto' ? detectLanguage() : value;
+            setLanguage(lang as 'en' | 'zh');
             // Refresh settings
             this.display();
           });
@@ -165,9 +168,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
     // Buttons
     const buttonsContainer = containerEl.createDiv('smartpick-settings-buttons');
-    buttonsContainer.style.marginTop = '24px';
-    buttonsContainer.style.display = 'flex';
-    buttonsContainer.style.gap = '12px';
 
     new Setting(buttonsContainer)
       .addButton(button => {
@@ -208,9 +208,15 @@ export class SmartPickSettingTab extends PluginSettingTab {
         deleteBtn.setAttribute('aria-label', 'Delete Group');
         deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (confirm(`Delete group "${group.name}"? Items will be moved to Ungrouped.`)) {
-                await this.removeGroup(group.id);
-            }
+            new ConfirmModal(
+                this.plugin.app,
+                'Delete Group',
+                `Delete group "${group.name}"? Items will be moved to Ungrouped.`,
+                async () => {
+                    await this.removeGroup(group.id);
+                },
+                'Delete'
+            ).open();
         });
     }
 
@@ -689,13 +695,19 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private removeTemplate(id: string): void {
-    if (confirm(t('deleteTemplate') + '?')) {
-        this.plugin.settings.promptTemplates = this.plugin.settings.promptTemplates.filter(
-        t => t.id !== id
-        );
-        this.plugin.saveSettings();
-        this.display();
-    }
+    new ConfirmModal(
+        this.plugin.app,
+        t('deleteTemplate'),
+        t('deleteTemplate') + '?',
+        () => {
+            this.plugin.settings.promptTemplates = this.plugin.settings.promptTemplates.filter(
+                t => t.id !== id
+            );
+            this.plugin.saveSettings();
+            this.display();
+        },
+        'Delete'
+    ).open();
   }
 
   private async removeGroup(groupId: string): Promise<void> {

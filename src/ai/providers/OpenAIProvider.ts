@@ -98,7 +98,7 @@ export class OpenAIProvider implements AIProvider {
     const requestModule = isHttps ? https : http;
     
     return new Promise((resolve, reject) => {
-      console.log('SmartPick Debug - Starting Node.js stream request to:', urlObj.toString());
+      // console.debug('Start request to:', urlObj.toString());
       
       const req = requestModule.request(urlObj, {
         method: 'POST',
@@ -106,13 +106,13 @@ export class OpenAIProvider implements AIProvider {
           'Authorization': `Bearer ${config.apiKey}`,
           'Content-Type': 'application/json',
         },
-      }, (res: any) => {
-        console.log('SmartPick Debug - Response received. Status:', res.statusCode);
+      }, (res: http.IncomingMessage) => {
+        // console.debug('Response received:', res.statusCode);
         
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
            // Read error body
            let errorBody = '';
-           res.on('data', (chunk: any) => errorBody += chunk);
+           res.on('data', (chunk: Buffer) => errorBody += chunk.toString());
            res.on('end', () => {
              const errorMsg = `HTTP error! status: ${res.statusCode}, body: ${errorBody}`;
              console.error('SmartPick Debug - ' + errorMsg);
@@ -124,7 +124,7 @@ export class OpenAIProvider implements AIProvider {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        res.on('data', (chunk: any) => {
+        res.on('data', (chunk: Buffer) => {
           const chunkText = decoder.decode(chunk, { stream: true });
           buffer += chunkText;
           
@@ -150,20 +150,16 @@ export class OpenAIProvider implements AIProvider {
         });
 
         res.on('end', () => {
-          console.log('SmartPick Debug - Response ended');
           resolve();
         });
         
         res.on('error', (err: any) => {
-          console.error('SmartPick Debug - Response stream error:', err);
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         });
       });
 
       req.on('error', (err: any) => {
-        console.error('SmartPick Debug - Request error:', err);
-        // Fallback or reject
-        reject(err);
+        reject(err instanceof Error ? err : new Error(String(err)));
       });
 
       req.write(JSON.stringify({

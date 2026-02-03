@@ -458,3 +458,23 @@
 .smartpick-group-title {
   margin: 0 !important;
 }
+
+/* Phase 2 Refactoring Styles */
+.smartpick-settings-buttons {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.smartpick-confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Phase 2: Toolbar Container Positioning */
+.smartpick-toolbar-container {
+  position: absolute;
+  z-index: 1000;
+}

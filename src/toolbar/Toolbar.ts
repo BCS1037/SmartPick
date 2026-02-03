@@ -81,7 +81,7 @@ export class Toolbar {
     const selection = editor.getSelection();
 
     if (selection && selection.toString().trim().length > 0) {
-      console.log('SmartPick Debug - Toolbar.checkSelection captured:', selection.toString().substring(0, 20) + '...');
+
       this.currentEditor = editor;
       this.currentSelection = selection.toString();
       this.show(editor, view);
