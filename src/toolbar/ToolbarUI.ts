@@ -4,7 +4,7 @@ import { setIcon, MarkdownView } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import type { Toolbar } from './Toolbar';
 import { ToolbarItem } from '../settings';
-import { t } from '../i18n';
+import { t, I18nStrings } from '../i18n';
 
 export class ToolbarUI {
   private plugin: SmartPickPlugin;
@@ -85,8 +85,16 @@ export class ToolbarUI {
 
     const button = document.createElement('button');
     button.className = 'smartpick-toolbar-button';
-    button.setAttribute('aria-label', item.tooltip);
-    button.title = item.tooltip;
+    
+    let tooltip = item.tooltip;
+    if (['bold', 'italic', 'highlight'].includes(item.id)) {
+      tooltip = t(('command_' + item.id) as keyof I18nStrings);
+    } else if (['ai-translate', 'ai-summarize', 'ai-explain'].includes(item.id)) {
+      tooltip = t(('command_' + item.id.replace('-', '_')) as keyof I18nStrings);
+    }
+    
+    button.setAttribute('aria-label', tooltip);
+    button.title = tooltip;
 
     // Set icon
     if (item.icon) {

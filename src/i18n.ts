@@ -95,6 +95,28 @@ export interface I18nStrings {
   modelRequired: string;
   error: string;
   success: string;
+
+  // Built-in Commands & Groups
+  command_bold: string;
+  command_italic: string;
+  command_highlight: string;
+  command_ai_translate: string;
+  command_ai_summarize: string;
+  command_ai_explain: string;
+  
+  group_format: string;
+  group_ai: string;
+  group_ungrouped_name: string;
+  
+  // Built-in Templates
+  template_translate_en: string;
+  template_translate_zh: string;
+  template_summarize: string;
+  template_explain: string;
+  template_improve_writing: string;
+  template_fix_grammar: string;
+  template_expand: string;
+  template_simplify: string;
 }
 
 const zh: I18nStrings = {
@@ -189,6 +211,28 @@ const zh: I18nStrings = {
   modelRequired: '请先选择模型',
   error: '错误',
   success: '成功',
+
+  // Built-in Commands & Groups
+  command_bold: '加粗',
+  command_italic: '斜体',
+  command_highlight: '高亮',
+  command_ai_translate: '翻译',
+  command_ai_summarize: '总结',
+  command_ai_explain: '解释',
+  
+  group_format: '格式',
+  group_ai: 'AI',
+  group_ungrouped_name: '未分组',
+  
+  // Built-in Templates
+  template_translate_en: '翻译为英文',
+  template_translate_zh: '翻译为中文',
+  template_summarize: '总结',
+  template_explain: '解释',
+  template_improve_writing: '改进写作',
+  template_fix_grammar: '修正语法',
+  template_expand: '扩展内容',
+  template_simplify: '简化',
 };
 
 const en: I18nStrings = {
@@ -283,6 +327,28 @@ const en: I18nStrings = {
   modelRequired: 'Please select a model first',
   error: 'Error',
   success: 'Success',
+
+  // Built-in Commands & Groups
+  command_bold: 'Bold',
+  command_italic: 'Italic',
+  command_highlight: 'Highlight',
+  command_ai_translate: 'Translate',
+  command_ai_summarize: 'Summarize',
+  command_ai_explain: 'Explain',
+  
+  group_format: 'Format',
+  group_ai: 'AI',
+  group_ungrouped_name: 'Ungrouped',
+  
+  // Built-in Templates
+  template_translate_en: 'Translate to English',
+  template_translate_zh: 'Translate to Chinese',
+  template_summarize: 'Summarize',
+  template_explain: 'Explain',
+  template_improve_writing: 'Improve Writing',
+  template_fix_grammar: 'Fix Grammar',
+  template_expand: 'Expand',
+  template_simplify: 'Simplify',
 };
 
 const translations: Record<Language, I18nStrings> = { zh, en };

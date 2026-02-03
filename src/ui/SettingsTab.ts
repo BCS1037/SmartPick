@@ -9,7 +9,7 @@ import {
   generateId,
   AIProvider
 } from '../settings';
-import { t, detectLanguage, setLanguage } from '../i18n';
+import { t, detectLanguage, setLanguage, I18nStrings } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
@@ -162,7 +162,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     const ungroupedItems = groups.get('ungrouped') || [];
     this.renderToolbarGroup(
       itemsContainer, 
-      { id: 'ungrouped', name: t('ungrouped'), order: 999 },
+      { id: 'ungrouped', name: t('group_ungrouped_name'), order: 999 },
       ungroupedItems
     );
 
@@ -200,7 +200,10 @@ export class SmartPickSettingTab extends PluginSettingTab {
     header.style.justifyContent = 'space-between';
     header.style.alignItems = 'center';
     
-    header.createEl('h4', { text: group.name, cls: 'smartpick-group-title' });
+    const isBuiltinGroup = ['format', 'ai', 'ungrouped'].includes(group.id);
+    const groupName = isBuiltinGroup ? t(('group_' + group.id) as keyof I18nStrings) || group.name : group.name;
+    
+    header.createEl('h4', { text: groupName, cls: 'smartpick-group-title' });
 
     if (group.id !== 'ungrouped' && group.id !== 'format' && group.id !== 'ai') {
         const deleteBtn = header.createEl('button', { cls: 'smartpick-group-delete' });
@@ -338,7 +341,17 @@ export class SmartPickSettingTab extends PluginSettingTab {
       }
 
       // Name
-      itemEl.createSpan({ text: item.tooltip, cls: 'smartpick-toolbar-item-name' });
+      let tooltip = item.tooltip;
+      // Identify built-in commands by ID pattern or hardcoded check
+      // Commands: bold, italic, highlight
+      // AI: ai-translate, ai-summarize, ai-explain
+      if (['bold', 'italic', 'highlight'].includes(item.id)) {
+        tooltip = t(('command_' + item.id) as keyof I18nStrings);
+      } else if (['ai-translate', 'ai-summarize', 'ai-explain'].includes(item.id)) {
+        tooltip = t(('command_' + item.id.replace('-', '_')) as keyof I18nStrings);
+      }
+
+      itemEl.createSpan({ text: tooltip, cls: 'smartpick-toolbar-item-name' });
 
       // Type badge
       if (item.type === 'ai') {
@@ -561,7 +574,16 @@ export class SmartPickSettingTab extends PluginSettingTab {
     
     // Name and category
     const infoEl = itemEl.createDiv('smartpick-template-info');
-    infoEl.createSpan({ text: template.name, cls: 'smartpick-template-name' });
+    
+    let templateName = template.name;
+    if (template.isBuiltin) {
+        // Map template ID to translation key
+        // IDs: translate-en, translate-zh, summarize, explain, improve-writing, fix-grammar, expand, simplify
+        const key = 'template_' + template.id.replace(/-/g, '_');
+        templateName = t(key as keyof I18nStrings) || template.name;
+    }
+
+    infoEl.createSpan({ text: templateName, cls: 'smartpick-template-name' });
     infoEl.createSpan({ text: template.category, cls: 'smartpick-template-category' });
 
     // Actions
