@@ -4,6 +4,7 @@
 
 <img width="1128" height="394" alt="image" src="https://github.com/user-attachments/assets/1b8a089a-9061-4114-a577-c6ff1d263b4e" />
 
+
 ## ✨ Features
 
 - **Smart Toolbar**: Automatically appears when you select text.
