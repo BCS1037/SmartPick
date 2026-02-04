@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.4] - 2026-02-04
+
+### Fixed
+- Addressed code review feedback (replaced inline styles with CSS classes, cleaned up manifest description).
+
 ## [0.2.3] - 2026-02-04
 
 ### Added
