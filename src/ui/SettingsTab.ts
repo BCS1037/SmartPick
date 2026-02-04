@@ -208,9 +208,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
   ): void {
     const groupEl = container.createDiv('smartpick-toolbar-group');
     const header = groupEl.createDiv('smartpick-toolbar-group-header');
-    header.style.display = 'flex';
-    header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
     
     const isBuiltinGroup = ['format', 'ai', 'ungrouped'].includes(group.id);
     const groupName = isBuiltinGroup ? t(('group_' + group.id) as keyof I18nStrings) || group.name : group.name;
@@ -516,7 +513,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
 
     // Parameters
-    containerEl.createEl('h3', { text: 'Parameters' });
+    new Setting(containerEl)
+        .setName('Parameters')
+        .setHeading();
     
     new Setting(containerEl)
     new Setting(containerEl)
@@ -561,7 +560,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
       });
 
     // Built-in templates
-    containerEl.createEl('h3', { text: t('defaultTemplates') });
+    new Setting(containerEl)
+        .setName(t('defaultTemplates'))
+        .setHeading();
     const builtinList = containerEl.createDiv('smartpick-template-list');
     
     for (const template of this.plugin.settings.promptTemplates.filter(t => t.isBuiltin)) {
@@ -569,7 +570,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
 
     // Custom templates
-    containerEl.createEl('h3', { text: t('customTemplates') });
+    new Setting(containerEl)
+        .setName(t('customTemplates'))
+        .setHeading();
     const customList = containerEl.createDiv('smartpick-template-list');
     
     for (const template of this.plugin.settings.promptTemplates.filter(t => !t.isBuiltin)) {

@@ -473,8 +473,19 @@
   margin-top: 20px;
 }
 
-/* Phase 2: Toolbar Container Positioning */
-.smartpick-toolbar-container {
-  position: absolute;
-  z-index: 1000;
+/* Utility Classes for Refactoring */
+.smartpick-full-width {
+  width: 100%;
+}
+
+.smartpick-icon-preview {
+  margin-left: 10px;
+  display: flex;
+  align-self: center;
+}
+
+.smartpick-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

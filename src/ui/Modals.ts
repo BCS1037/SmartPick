@@ -53,7 +53,7 @@ export class EditTemplateModal extends Modal {
           .setPlaceholder('{{selection}}')
           .onChange(value => this.resultPrompt = value);
         text.inputEl.rows = 6;
-        text.inputEl.style.width = '100%';
+        text.inputEl.addClass('smartpick-full-width');
       });
 
     // Buttons
@@ -158,9 +158,7 @@ export class AddCommandModal extends Modal {
         
     // Add icon preview
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview.style.marginLeft = '10px';
-    iconPreview.style.display = 'flex';
-    iconPreview.style.alignSelf = 'center';
+    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
@@ -251,9 +249,7 @@ export class AddAICommandModal extends Modal {
         }));
     
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview.style.marginLeft = '10px';
-    iconPreview.style.display = 'flex';
-    iconPreview.style.alignSelf = 'center';
+    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
@@ -360,7 +356,7 @@ export class AddUrlCommandModal extends Modal {
       .addText(text => {
         text.setPlaceholder('https://... or shortcuts://...')
             .onChange(value => this.resultUrl = value);
-        text.inputEl.style.width = '100%';
+        text.inputEl.addClass('smartpick-full-width');
       });
 
     // Icon Input
@@ -389,9 +385,7 @@ export class AddUrlCommandModal extends Modal {
         }));
         
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview.style.marginLeft = '10px';
-    iconPreview.style.display = 'flex';
-    iconPreview.style.alignSelf = 'center';
+    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
@@ -454,7 +448,7 @@ export class AddShortcutModal extends Modal {
             .setValue(this.resultKeys)
             .onChange(value => this.resultKeys = value);
         
-        text.inputEl.style.width = '100%';
+        text.inputEl.addClass('smartpick-full-width');
         
         text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
           e.preventDefault();
@@ -514,9 +508,7 @@ export class AddShortcutModal extends Modal {
         }));
         
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview.style.marginLeft = '10px';
-    iconPreview.style.display = 'flex';
-    iconPreview.style.alignSelf = 'center';
+    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
