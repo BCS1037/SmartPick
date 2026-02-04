@@ -29,6 +29,8 @@ export interface I18nStrings {
   toolbarHorizontalOffsetDesc: string;
   addCommand: string;
   addAICommand: string;
+  addUrlCommand: string;
+  addShortcutCommand: string;
   removeCommand: string;
   commandGroup: string;
   newGroup: string;
@@ -37,6 +39,9 @@ export interface I18nStrings {
   commandNotFound: string;
   enterTooltip: string;
   enterIconName: string;
+  enterUrl: string;
+  enterShortcut: string;
+  enterName: string;
   selectTemplateId: string;
   templateNotFound: string;
   enterGroupName: string;
@@ -106,6 +111,8 @@ export interface I18nStrings {
   
   group_format: string;
   group_ai: string;
+  group_link: string;
+  group_shortcut: string;
   group_ungrouped_name: string;
   
   // Built-in Templates
@@ -145,6 +152,8 @@ const zh: I18nStrings = {
   toolbarHorizontalOffsetDesc: '水平偏移距离（像素）',
   addCommand: '添加命令',
   addAICommand: '添加 AI 命令',
+  addUrlCommand: '添加链接/快捷指令',
+  addShortcutCommand: '添加键盘快捷键',
   removeCommand: '移除命令',
   commandGroup: '命令分组',
   newGroup: '新建分组',
@@ -153,6 +162,9 @@ const zh: I18nStrings = {
   commandNotFound: '未找到命令',
   enterTooltip: '输入提示文本:',
   enterIconName: '输入图标名称 (lucide):',
+  enterUrl: '输入链接或 URL Scheme:',
+  enterShortcut: '输入快捷键 (例如: Cmd+Shift+S):',
+  enterName: '输入名称:',
   selectTemplateId: '选择模板 ID:',
   templateNotFound: '未找到模板',
   enterGroupName: '输入分组名称:',
@@ -222,6 +234,8 @@ const zh: I18nStrings = {
   
   group_format: '格式',
   group_ai: 'AI',
+  group_link: '链接',
+  group_shortcut: '快捷键',
   group_ungrouped_name: '未分组',
   
   // Built-in Templates
@@ -261,6 +275,8 @@ const en: I18nStrings = {
   toolbarHorizontalOffsetDesc: 'Horizontal shift (pixels)',
   addCommand: 'Add command',
   addAICommand: 'Add AI command',
+  addUrlCommand: 'Add Link/Shortcut',
+  addShortcutCommand: 'Add Keyboard Shortcut',
   removeCommand: 'Remove Command',
   commandGroup: 'Command group',
   newGroup: 'New group',
@@ -269,6 +285,9 @@ const en: I18nStrings = {
   commandNotFound: 'Command not found',
   enterTooltip: 'Enter tooltip:',
   enterIconName: 'Enter icon name (lucide):',
+  enterUrl: 'Enter Link or URL Scheme:',
+  enterShortcut: 'Enter Shortcut (e.g., Cmd+Shift+S):',
+  enterName: 'Enter name:',
   selectTemplateId: 'Select template ID:',
   templateNotFound: 'Template not found',
   enterGroupName: 'Enter group name:',
@@ -338,6 +357,8 @@ const en: I18nStrings = {
   
   group_format: 'Format',
   group_ai: 'AI',
+  group_link: 'Links',
+  group_shortcut: 'Shortcuts',
   group_ungrouped_name: 'Ungrouped',
   
   // Built-in Templates

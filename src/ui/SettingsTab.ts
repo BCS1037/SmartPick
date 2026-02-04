@@ -13,7 +13,7 @@ import { t, detectLanguage, setLanguage, I18nStrings } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
-import { AddCommandModal, AddAICommandModal, AddGroupModal, EditTemplateModal } from './Modals';
+import { AddCommandModal, AddAICommandModal, AddGroupModal, EditTemplateModal, AddUrlCommandModal, AddShortcutModal } from './Modals';
 import { ConfirmModal } from './ConfirmModal';
 
 type TabId = 'toolbar' | 'ai' | 'templates';
@@ -180,6 +180,18 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .addButton(button => {
         button.setButtonText(t('addAICommand'));
         button.onClick(() => this.showAddAICommandModal());
+      });
+
+    new Setting(buttonsContainer)
+      .addButton(button => {
+        button.setButtonText(t('addUrlCommand'));
+        button.onClick(() => this.showAddUrlCommandModal());
+      });
+
+    new Setting(buttonsContainer)
+      .addButton(button => {
+        button.setButtonText(t('addShortcutCommand'));
+        button.onClick(() => this.showAddShortcutModal());
       });
 
     new Setting(buttonsContainer)
@@ -654,6 +666,42 @@ export class SmartPickSettingTab extends PluginSettingTab {
         tooltip: template.name,
         promptTemplateId: templateId,
         group: 'ai',
+        order: this.plugin.settings.toolbarItems.length,
+      };
+
+      this.plugin.settings.toolbarItems.push(newItem);
+      this.plugin.saveSettings();
+      this.display();
+    }).open();
+  }
+
+  private showAddUrlCommandModal(): void {
+    new AddUrlCommandModal(this.plugin.app, (name, url, icon) => {
+      const newItem: ToolbarItem = {
+        id: generateId(),
+        type: 'url',
+        icon: icon || 'link',
+        tooltip: name,
+        url: url,
+        group: 'ungrouped',
+        order: this.plugin.settings.toolbarItems.length,
+      };
+
+      this.plugin.settings.toolbarItems.push(newItem);
+      this.plugin.saveSettings();
+      this.display();
+    }).open();
+  }
+
+  private showAddShortcutModal(): void {
+    new AddShortcutModal(this.plugin.app, (name, keys, icon) => {
+      const newItem: ToolbarItem = {
+        id: generateId(),
+        type: 'shortcut',
+        icon: icon || 'keyboard',
+        tooltip: name,
+        shortcutKeys: keys,
+        group: 'ungrouped',
         order: this.plugin.settings.toolbarItems.length,
       };
 

@@ -138,7 +138,17 @@ export class ToolbarUI {
       this.toolbar.hide();
     } else if (item.type === 'ai' && item.promptTemplateId) {
       // Execute AI command
+      // Handle toolbar hide inside executeAICommand or here? Original code didn't hide here, but executeAICommand had this.toolbar.hide() call at the end.
       await this.executeAICommand(item.promptTemplateId, selection);
+    } else if (item.type === 'url' && item.url) {
+      // Execute URL command
+      const url = item.url.replace(/{{selection}}/g, encodeURIComponent(selection));
+      window.open(url);
+      this.toolbar.hide();
+    } else if (item.type === 'shortcut' && item.shortcutKeys) {
+      // Execute Shortcut
+      this.plugin.commandManager?.executeShortcut(item.shortcutKeys);
+      this.toolbar.hide();
     }
   }
 

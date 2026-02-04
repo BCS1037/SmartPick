@@ -330,3 +330,220 @@ export class AddGroupModal extends Modal {
     contentEl.empty();
   }
 }
+
+export class AddUrlCommandModal extends Modal {
+  private resultName: string = '';
+  private resultUrl: string = '';
+  private resultIcon: string = 'link';
+  private onSubmit: (name: string, url: string, icon: string) => void;
+
+  constructor(app: App, onSubmit: (name: string, url: string, icon: string) => void) {
+    super(app);
+    this.onSubmit = onSubmit;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl('h2', { text: t('addUrlCommand') });
+
+    // Name Input
+    new Setting(contentEl)
+      .setName(t('enterName'))
+      .addText(text => text
+        .setPlaceholder('Google / Shortcut Name')
+        .onChange(value => this.resultName = value));
+
+    // URL Input
+    new Setting(contentEl)
+      .setName(t('enterUrl'))
+      .addText(text => {
+        text.setPlaceholder('https://... or shortcuts://...')
+            .onChange(value => this.resultUrl = value);
+        text.inputEl.style.width = '100%';
+      });
+
+    // Icon Input
+    let iconText: TextComponent;
+    let iconPreview: HTMLElement;
+    
+    const iconSetting = new Setting(contentEl)
+      .setName(t('enterIconName'))
+      .addText(text => {
+        iconText = text;
+        text.setValue('link')
+            .setPlaceholder('link')
+            .onChange(value => {
+              this.resultIcon = value;
+              updateIconPreview(value);
+            });
+      })
+      .addButton(btn => btn
+        .setButtonText(t('selectIcon'))
+        .onClick(() => {
+          new IconSuggester(this.app, (icon) => {
+            this.resultIcon = icon;
+            iconText.setValue(icon);
+            updateIconPreview(icon);
+          }).open();
+        }));
+        
+    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
+    iconPreview.style.marginLeft = '10px';
+    iconPreview.style.display = 'flex';
+    iconPreview.style.alignSelf = 'center';
+    
+    const updateIconPreview = (icon: string) => {
+      iconPreview.empty();
+      setIcon(iconPreview, icon);
+    };
+    updateIconPreview('link');
+
+    // Buttons
+    new Setting(contentEl)
+      .addButton(btn => btn
+        .setButtonText(t('cancel'))
+        .onClick(() => this.close()))
+      .addButton(btn => btn
+        .setButtonText(t('addCommand'))
+        .setCta()
+        .onClick(() => {
+          if (!this.resultName || !this.resultUrl) {
+            new Notice('Name and URL are required');
+            return;
+          }
+          this.close();
+          this.onSubmit(this.resultName, this.resultUrl, this.resultIcon);
+        }));
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+}
+
+export class AddShortcutModal extends Modal {
+  private resultName: string = '';
+  private resultKeys: string = '';
+  private resultIcon: string = 'keyboard';
+  private onSubmit: (name: string, keys: string, icon: string) => void;
+
+  constructor(app: App, onSubmit: (name: string, keys: string, icon: string) => void) {
+    super(app);
+    this.onSubmit = onSubmit;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl('h2', { text: t('addShortcutCommand') });
+
+    // Name Input
+    new Setting(contentEl)
+      .setName(t('enterName'))
+      .addText(text => text
+        .setPlaceholder('Screenshot / App Name')
+        .onChange(value => this.resultName = value));
+
+    // Shortcut Input
+    new Setting(contentEl)
+      .setName(t('enterShortcut'))
+      .addText(text => {
+        text.setPlaceholder('Press keys (e.g. Cmd+Shift+S)')
+            .setValue(this.resultKeys)
+            .onChange(value => this.resultKeys = value);
+        
+        text.inputEl.style.width = '100%';
+        
+        text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const modifiers: string[] = [];
+          if (e.metaKey) modifiers.push('Cmd');
+          if (e.ctrlKey) modifiers.push('Ctrl');
+          if (e.altKey) modifiers.push('Opt');
+          if (e.shiftKey) modifiers.push('Shift');
+
+          let key = e.key.toUpperCase();
+          
+          // Handle special keys
+          if (key === 'CONTROL' || key === 'META' || key === 'ALT' || key === 'SHIFT') {
+            // Just modifiers pressed
+            text.setValue(modifiers.join('+'));
+            return;
+          }
+
+          // Map arrow keys and others if needed, using e.code or e.key
+          if (e.code.startsWith('Key')) key = e.code.slice(3);
+          else if (e.code.startsWith('Digit')) key = e.code.slice(5);
+          else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Backspace', 'Tab', 'Space'].includes(e.code)) {
+             key = e.code;
+          }
+
+          const shortcut = [...modifiers, key].join('+');
+          this.resultKeys = shortcut;
+          text.setValue(shortcut);
+        });
+      });
+
+    // Icon Input
+    let iconText: TextComponent;
+    let iconPreview: HTMLElement;
+    
+    const iconSetting = new Setting(contentEl)
+      .setName(t('enterIconName'))
+      .addText(text => {
+        iconText = text;
+        text.setValue('keyboard')
+            .setPlaceholder('keyboard')
+            .onChange(value => {
+              this.resultIcon = value;
+              updateIconPreview(value);
+            });
+      })
+      .addButton(btn => btn
+        .setButtonText(t('selectIcon'))
+        .onClick(() => {
+          new IconSuggester(this.app, (icon) => {
+            this.resultIcon = icon;
+            iconText.setValue(icon);
+            updateIconPreview(icon);
+          }).open();
+        }));
+        
+    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
+    iconPreview.style.marginLeft = '10px';
+    iconPreview.style.display = 'flex';
+    iconPreview.style.alignSelf = 'center';
+    
+    const updateIconPreview = (icon: string) => {
+      iconPreview.empty();
+      setIcon(iconPreview, icon);
+    };
+    updateIconPreview('keyboard');
+
+    // Buttons
+    new Setting(contentEl)
+      .addButton(btn => btn
+        .setButtonText(t('cancel'))
+        .onClick(() => this.close()))
+      .addButton(btn => btn
+        .setButtonText(t('addCommand'))
+        .setCta()
+        .onClick(() => {
+          if (!this.resultName || !this.resultKeys) {
+            new Notice('Name and Shortcut keys are required');
+            return;
+          }
+          this.close();
+          this.onSubmit(this.resultName, this.resultKeys, this.resultIcon);
+        }));
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+}

@@ -6,12 +6,14 @@ export type OutputAction = 'replace' | 'insert' | 'clipboard';
 
 export interface ToolbarItem {
   id: string;
-  type: 'command' | 'ai' | 'separator';
+  type: 'command' | 'ai' | 'separator' | 'url' | 'shortcut';
   icon: string;
   tooltip: string;
   hotkey?: string;
   commandId?: string;           // For Obsidian commands
   promptTemplateId?: string;    // For AI commands
+  url?: string;                 // For URL/URI commands
+  shortcutKeys?: string;        // For Keyboard Shortcuts
   group: string;
   order: number;
 }
@@ -199,11 +201,112 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     group: 'ai',
     order: 6,
   },
+  {
+    id: 'link-google',
+    type: 'url',
+    icon: 'search',
+    tooltip: 'Google',
+    url: 'https://www.google.com/search?q={{selection}}',
+    group: 'link',
+    order: 0,
+  },
+  {
+    id: 'link-google-scholar',
+    type: 'url',
+    icon: 'graduation-cap',
+    tooltip: 'Google Scholar',
+    url: 'https://scholar.google.com/scholar?q={{selection}}',
+    group: 'link',
+    order: 1,
+  },
+  {
+    id: 'link-baidu',
+    type: 'url',
+    icon: 'search',
+    tooltip: 'Baidu',
+    url: 'https://www.baidu.com/s?wd={{selection}}',
+    group: 'link',
+    order: 2,
+  },
+  {
+    id: 'link-wechat',
+    type: 'url',
+    icon: 'message-circle',
+    tooltip: 'WeChat',
+    url: 'https://weixin.sogou.com/weixin?type=2&query={{selection}}',
+    group: 'link',
+    order: 3,
+  },
+  {
+    id: 'link-chatgpt',
+    type: 'url',
+    icon: 'bot',
+    tooltip: 'ChatGPT',
+    url: 'https://chatgpt.com/?q={{selection}}',
+    group: 'link',
+    order: 4,
+  },
+  {
+    id: 'link-gemini',
+    type: 'url',
+    icon: 'sparkles',
+    tooltip: 'Gemini',
+    url: 'https://gemini.google.com/app?text={{selection}}',
+    group: 'link',
+    order: 5,
+  },
+  {
+    id: 'link-doubao',
+    type: 'url',
+    icon: 'message-square',
+    tooltip: 'Doubao',
+    url: 'https://www.doubao.com/chat/?q={{selection}}',
+    group: 'link',
+    order: 6,
+  },
+  {
+    id: 'link-qianwen',
+    type: 'url',
+    icon: 'message-square',
+    tooltip: 'Qianwen',
+    url: 'https://tongyi.aliyun.com/qianwen/?q={{selection}}',
+    group: 'link',
+    order: 7,
+  },
+  {
+    id: 'link-deepseek',
+    type: 'url',
+    icon: 'search',
+    tooltip: 'DeepSeek',
+    url: 'https://chat.deepseek.com/?q={{selection}}',
+    group: 'link',
+    order: 8,
+  },
+  {
+    id: 'shortcut-todo',
+    type: 'command',
+    icon: 'check-square',
+    tooltip: 'Toggle Todo',
+    commandId: 'editor:toggle-checklist-status',
+    group: 'shortcut',
+    order: 0,
+  },
+  {
+    id: 'shortcut-find',
+    type: 'shortcut',
+    icon: 'search',
+    tooltip: 'Find',
+    shortcutKeys: 'Cmd+F',
+    group: 'shortcut',
+    order: 1,
+  },
 ];
 
 const DEFAULT_GROUPS: CommandGroup[] = [
   { id: 'format', name: '格式', order: 0 },
   { id: 'ai', name: 'AI', order: 1 },
+  { id: 'link', name: '链接', order: 2 },
+  { id: 'shortcut', name: '快捷键', order: 3 },
 ];
 
 export const DEFAULT_SETTINGS: SmartPickSettings = {

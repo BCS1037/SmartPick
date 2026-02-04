@@ -9,6 +9,8 @@
 - **Smart Toolbar**: Automatically appears when you select text.
 - **AI Integration**: Seamlessly connect with AI models (OpenAI, Claude, etc.) to process selected text. Summarize, translate, or explain with a single click.
 - **Custom Commands**: Bind your favorite Obsidian commands to the toolbar.
+- **Shortcuts & Links**: Trigger system shortcuts or open external links (Google, DeepSeek, etc.) directly.
+- **Group Organization**: Organize your commands into groups for easier access.
 - **Drag & Drop Customization**: Easily rearrange toolbar items using drag and drop.
 - **Bilingual Support**: Fully localized in English and Chinese.
 - **Markdown Rendering**: AI responses are rendered in rich Markdown format.

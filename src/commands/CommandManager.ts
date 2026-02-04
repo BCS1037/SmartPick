@@ -2,6 +2,7 @@
 
 import type SmartPickPlugin from '../main';
 import { ToolbarItem } from '../settings';
+import { exec } from 'child_process';
 
 export class CommandManager {
   private plugin: SmartPickPlugin;
@@ -29,6 +30,11 @@ export class CommandManager {
               (this.plugin.app as any).commands.executeCommandById(item.commandId);
             } else if (item.type === 'ai' && item.promptTemplateId) {
               this.executeAICommand(item.promptTemplateId, selection, editor);
+            } else if (item.type === 'url' && item.url) {
+              const url = item.url.replace(/{{selection}}/g, encodeURIComponent(selection));
+              window.open(url);
+            } else if (item.type === 'shortcut' && item.shortcutKeys) {
+              this.executeShortcut(item.shortcutKeys);
             }
           },
         });
@@ -59,6 +65,37 @@ export class CommandManager {
       editor
     );
     modal.open();
+  }
+
+  public executeShortcut(keys: string): void {
+    if (process.platform !== 'darwin') {
+      console.warn('Shortcuts are only supported on macOS');
+      return;
+    }
+
+    // Parse keys: "Cmd+Shift+S" -> keystroke "s" using {command down, shift down}
+    const parts = keys.split('+');
+    const key = parts.pop()?.toLowerCase();
+    
+    if (!key) return;
+
+    const modifiers: string[] = [];
+    parts.forEach(part => {
+      const p = part.toLowerCase();
+      if (p === 'cmd' || p === 'command' || p === 'meta') modifiers.push('command down');
+      if (p === 'ctrl' || p === 'control') modifiers.push('control down');
+      if (p === 'opt' || p === 'alt' || p === 'option') modifiers.push('option down');
+      if (p === 'shift') modifiers.push('shift down');
+    });
+
+    const usingClause = modifiers.length > 0 ? ` using {${modifiers.join(', ')}}` : '';
+    const script = `tell application "System Events" to keystroke "${key}"${usingClause}`;
+
+    exec(`osascript -e '${script}'`, (error) => {
+      if (error) {
+        console.error('Failed to execute shortcut:', error);
+      }
+    });
   }
 
   getAllObsidianCommands(): Array<{ id: string; name: string }> {

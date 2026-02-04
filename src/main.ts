@@ -11,7 +11,7 @@ import { CommandManager } from './commands/CommandManager';
 export default class SmartPickPlugin extends Plugin {
   settings: SmartPickSettings = DEFAULT_SETTINGS;
   private toolbar: Toolbar | null = null;
-  private commandManager: CommandManager | null = null;
+  public commandManager: CommandManager | null = null;
 
   async onload(): Promise<void> {
 
