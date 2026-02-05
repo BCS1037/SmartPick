@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.5] - 2026-02-05
+
+### Added
+- Feature: Added ability to edit existing toolbar items (commands, AI, urls, shortcuts).
+- Localization: Added comprehensive translations for edit modals.
+
+### Improved
+- UI: Added "Edit" button (pencil icon) to toolbar items in settings.
+- UX: Toolbar items in settings derived click-to-edit behavior.
+- UI: Improved delete icon positioning for command groups.
+
+### Fixed
+- Fixed layout alignment for default command groups (Link, Shortcut) to allow proper deletion and display.
+
 ## [0.2.4] - 2026-02-04
 
 ### Fixed

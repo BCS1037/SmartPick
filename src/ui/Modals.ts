@@ -80,31 +80,51 @@ export class EditTemplateModal extends Modal {
   }
 }
 
-export class AddCommandModal extends Modal {
+export interface CommandData {
+  id: string;
+  tooltip: string;
+  icon: string;
+}
+
+export class CommandModal extends Modal {
   private resultId: string = '';
   private resultTooltip: string = '';
   private resultIcon: string = 'command';
+  private isEditing: boolean = false;
   private onSubmit: (id: string, tooltip: string, icon: string) => void;
 
-  constructor(app: App, onSubmit: (id: string, tooltip: string, icon: string) => void) {
+  constructor(
+    app: App, 
+    initialData: CommandData | undefined,
+    onSubmit: (id: string, tooltip: string, icon: string) => void
+  ) {
     super(app);
     this.onSubmit = onSubmit;
+    if (initialData) {
+        this.isEditing = true;
+        this.resultId = initialData.id;
+        this.resultTooltip = initialData.tooltip;
+        this.resultIcon = initialData.icon;
+    }
   }
 
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl('h2', { text: t('addCommand') });
+    contentEl.createEl('h2', { text: this.isEditing ? t('editCommand') : t('addCommand') });
 
     // Command Selection
     let commandIdText: TextComponent;
     let tooltipText: TextComponent;
+    let iconText: TextComponent;
+    let iconPreview: HTMLElement;
     
     new Setting(contentEl)
       .setName(t('enterCommandId'))
       .addText(text => {
         commandIdText = text;
         text.setPlaceholder('editor:toggle-bold')
+            .setValue(this.resultId)
             .onChange(value => this.resultId = value);
       })
       .addButton(btn => btn
@@ -113,7 +133,7 @@ export class AddCommandModal extends Modal {
           new CommandSuggester(this.app, (command) => {
             this.resultId = command.id;
             this.resultTooltip = command.name;
-            this.resultIcon = (command as any).icon || 'command'; // Some commands have icons
+            this.resultIcon = (command as any).icon || 'command'; 
             
             // Update UI
             commandIdText.setValue(this.resultId);
@@ -128,18 +148,16 @@ export class AddCommandModal extends Modal {
       .setName(t('enterTooltip'))
       .addText(text => {
         tooltipText = text;
-        text.onChange(value => this.resultTooltip = value);
+        text.setValue(this.resultTooltip)
+            .onChange(value => this.resultTooltip = value);
       });
 
     // Icon Input
-    let iconText: TextComponent;
-    let iconPreview: HTMLElement;
-    
     const iconSetting = new Setting(contentEl)
       .setName(t('enterIconName'))
       .addText(text => {
         iconText = text;
-        text.setValue('command')
+        text.setValue(this.resultIcon)
             .setPlaceholder('command')
             .onChange(value => {
               this.resultIcon = value;
@@ -158,13 +176,12 @@ export class AddCommandModal extends Modal {
         
     // Add icon preview
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
       setIcon(iconPreview, icon);
     };
-    updateIconPreview('command');
+    updateIconPreview(this.resultIcon);
 
     // Buttons
     new Setting(contentEl)
@@ -172,7 +189,7 @@ export class AddCommandModal extends Modal {
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText(t('addCommand'))
+        .setButtonText(this.isEditing ? t('save') : t('addCommand'))
         .setCta()
         .onClick(() => {
           if (!this.resultId) {
@@ -190,17 +207,32 @@ export class AddCommandModal extends Modal {
   }
 }
 
-export class AddAICommandModal extends Modal {
+export interface AICommandData {
+  templateId: string;
+  icon: string;
+}
+
+export class AICommandModal extends Modal {
   private selectedTemplateId: string = '';
   private resultIcon: string = 'sparkles';
   private templates: PromptTemplate[];
+  private isEditing: boolean = false;
   private onSubmit: (templateId: string, icon: string) => void;
 
-  constructor(app: App, templates: PromptTemplate[], onSubmit: (templateId: string, icon: string) => void) {
+  constructor(
+    app: App, 
+    templates: PromptTemplate[], 
+    initialData: AICommandData | undefined, 
+    onSubmit: (templateId: string, icon: string) => void
+  ) {
     super(app);
     this.templates = templates;
     this.onSubmit = onSubmit;
-    if (templates.length > 0) {
+    if (initialData) {
+        this.isEditing = true;
+        this.selectedTemplateId = initialData.templateId;
+        this.resultIcon = initialData.icon;
+    } else if (templates.length > 0) {
       this.selectedTemplateId = templates[0].id;
     }
   }
@@ -208,7 +240,7 @@ export class AddAICommandModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl('h2', { text: t('addAICommand') });
+    contentEl.createEl('h2', { text: this.isEditing ? t('editAICommand') : t('addAICommand') });
 
     // Template Selection
     new Setting(contentEl)
@@ -231,7 +263,7 @@ export class AddAICommandModal extends Modal {
       .setName(t('enterIconName'))
       .addText(text => {
         iconText = text;
-        text.setValue('sparkles')
+        text.setValue(this.resultIcon)
             .setPlaceholder('sparkles')
             .onChange(value => {
               this.resultIcon = value;
@@ -249,13 +281,12 @@ export class AddAICommandModal extends Modal {
         }));
     
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
       setIcon(iconPreview, icon);
     };
-    updateIconPreview('sparkles');
+    updateIconPreview(this.resultIcon);
 
     // Buttons
     new Setting(contentEl)
@@ -263,7 +294,7 @@ export class AddAICommandModal extends Modal {
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText(t('addAICommand'))
+        .setButtonText(this.isEditing ? t('save') : t('addAICommand'))
         .setCta()
         .onClick(() => {
           if (!this.selectedTemplateId) {
@@ -327,26 +358,44 @@ export class AddGroupModal extends Modal {
   }
 }
 
-export class AddUrlCommandModal extends Modal {
+export interface UrlCommandData {
+  name: string;
+  url: string;
+  icon: string;
+}
+
+export class UrlCommandModal extends Modal {
   private resultName: string = '';
   private resultUrl: string = '';
   private resultIcon: string = 'link';
+  private isEditing: boolean = false;
   private onSubmit: (name: string, url: string, icon: string) => void;
 
-  constructor(app: App, onSubmit: (name: string, url: string, icon: string) => void) {
+  constructor(
+    app: App, 
+    initialData: UrlCommandData | undefined,
+    onSubmit: (name: string, url: string, icon: string) => void
+  ) {
     super(app);
     this.onSubmit = onSubmit;
+    if (initialData) {
+        this.isEditing = true;
+        this.resultName = initialData.name;
+        this.resultUrl = initialData.url;
+        this.resultIcon = initialData.icon;
+    }
   }
 
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl('h2', { text: t('addUrlCommand') });
+    contentEl.createEl('h2', { text: this.isEditing ? t('editUrlCommand') : t('addUrlCommand') });
 
     // Name Input
     new Setting(contentEl)
       .setName(t('enterName'))
       .addText(text => text
+        .setValue(this.resultName)
         .setPlaceholder('Google / Shortcut Name')
         .onChange(value => this.resultName = value));
 
@@ -354,7 +403,8 @@ export class AddUrlCommandModal extends Modal {
     new Setting(contentEl)
       .setName(t('enterUrl'))
       .addText(text => {
-        text.setPlaceholder('https://... or shortcuts://...')
+        text.setValue(this.resultUrl)
+            .setPlaceholder('https://... or shortcuts://...')
             .onChange(value => this.resultUrl = value);
         text.inputEl.addClass('smartpick-full-width');
       });
@@ -367,7 +417,7 @@ export class AddUrlCommandModal extends Modal {
       .setName(t('enterIconName'))
       .addText(text => {
         iconText = text;
-        text.setValue('link')
+        text.setValue(this.resultIcon)
             .setPlaceholder('link')
             .onChange(value => {
               this.resultIcon = value;
@@ -385,13 +435,12 @@ export class AddUrlCommandModal extends Modal {
         }));
         
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
       setIcon(iconPreview, icon);
     };
-    updateIconPreview('link');
+    updateIconPreview(this.resultIcon);
 
     // Buttons
     new Setting(contentEl)
@@ -399,7 +448,7 @@ export class AddUrlCommandModal extends Modal {
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText(t('addCommand'))
+        .setButtonText(this.isEditing ? t('save') : t('addCommand'))
         .setCta()
         .onClick(() => {
           if (!this.resultName || !this.resultUrl) {
@@ -417,26 +466,44 @@ export class AddUrlCommandModal extends Modal {
   }
 }
 
-export class AddShortcutModal extends Modal {
+export interface ShortcutData {
+  name: string;
+  keys: string;
+  icon: string;
+}
+
+export class ShortcutModal extends Modal {
   private resultName: string = '';
   private resultKeys: string = '';
   private resultIcon: string = 'keyboard';
+  private isEditing: boolean = false;
   private onSubmit: (name: string, keys: string, icon: string) => void;
 
-  constructor(app: App, onSubmit: (name: string, keys: string, icon: string) => void) {
+  constructor(
+    app: App, 
+    initialData: ShortcutData | undefined,
+    onSubmit: (name: string, keys: string, icon: string) => void
+  ) {
     super(app);
     this.onSubmit = onSubmit;
+    if (initialData) {
+        this.isEditing = true;
+        this.resultName = initialData.name;
+        this.resultKeys = initialData.keys;
+        this.resultIcon = initialData.icon;
+    }
   }
 
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl('h2', { text: t('addShortcutCommand') });
+    contentEl.createEl('h2', { text: this.isEditing ? t('editShortcutCommand') : t('addShortcutCommand') });
 
     // Name Input
     new Setting(contentEl)
       .setName(t('enterName'))
       .addText(text => text
+        .setValue(this.resultName)
         .setPlaceholder('Screenshot / App Name')
         .onChange(value => this.resultName = value));
 
@@ -490,7 +557,7 @@ export class AddShortcutModal extends Modal {
       .setName(t('enterIconName'))
       .addText(text => {
         iconText = text;
-        text.setValue('keyboard')
+        text.setValue(this.resultIcon)
             .setPlaceholder('keyboard')
             .onChange(value => {
               this.resultIcon = value;
@@ -508,13 +575,12 @@ export class AddShortcutModal extends Modal {
         }));
         
     iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
       setIcon(iconPreview, icon);
     };
-    updateIconPreview('keyboard');
+    updateIconPreview(this.resultIcon);
 
     // Buttons
     new Setting(contentEl)
@@ -522,7 +588,7 @@ export class AddShortcutModal extends Modal {
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText(t('addCommand'))
+        .setButtonText(this.isEditing ? t('save') : t('addCommand'))
         .setCta()
         .onClick(() => {
           if (!this.resultName || !this.resultKeys) {

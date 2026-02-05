@@ -13,7 +13,7 @@ import { t, detectLanguage, setLanguage, I18nStrings } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
-import { AddCommandModal, AddAICommandModal, AddGroupModal, EditTemplateModal, AddUrlCommandModal, AddShortcutModal } from './Modals';
+import { CommandModal, AICommandModal, AddGroupModal, EditTemplateModal, UrlCommandModal, ShortcutModal } from './Modals';
 import { ConfirmModal } from './ConfirmModal';
 
 type TabId = 'toolbar' | 'ai' | 'templates';
@@ -209,12 +209,12 @@ export class SmartPickSettingTab extends PluginSettingTab {
     const groupEl = container.createDiv('smartpick-toolbar-group');
     const header = groupEl.createDiv('smartpick-toolbar-group-header');
     
-    const isBuiltinGroup = ['format', 'ai', 'ungrouped'].includes(group.id);
+    const isBuiltinGroup = ['format', 'ai', 'ungrouped', 'link', 'shortcut'].includes(group.id);
     const groupName = isBuiltinGroup ? t(('group_' + group.id) as keyof I18nStrings) || group.name : group.name;
     
     header.createEl('h4', { text: groupName, cls: 'smartpick-group-title' });
 
-    if (group.id !== 'ungrouped' && group.id !== 'format' && group.id !== 'ai') {
+    if (group.id !== 'ungrouped') {
         const deleteBtn = header.createEl('button', { cls: 'smartpick-group-delete' });
         setIcon(deleteBtn, 'trash-2');
         deleteBtn.setAttribute('aria-label', 'Delete Group');
@@ -282,6 +282,12 @@ export class SmartPickSettingTab extends PluginSettingTab {
         itemEl.removeClass('smartpick-sortable-drag');
         itemEl.removeClass('smartpick-sortable-ghost');
         document.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
+      });
+      
+      // Click to Edit (ignore clicks on buttons)
+      itemEl.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('button')) return;
+        this.showEditToolbarItemModal(item);
       });
 
       // Drag Over (Item level)
@@ -367,10 +373,77 @@ export class SmartPickSettingTab extends PluginSettingTab {
         itemEl.createSpan({ text: 'AI', cls: 'smartpick-toolbar-item-badge' });
       }
 
+      // Action Buttons Container
+      const actionsEl = itemEl.createDiv('smartpick-item-actions');
+      actionsEl.style.display = 'flex';
+      actionsEl.style.gap = '4px';
+
+      // Edit Button
+      const editBtn = actionsEl.createEl('button', { cls: 'smartpick-toolbar-item-edit' });
+      setIcon(editBtn, 'pencil');
+      editBtn.setAttribute('aria-label', t('editCommand'));
+      editBtn.addEventListener('click', () => this.showEditToolbarItemModal(item));
+
       // Delete button
-      const deleteBtn = itemEl.createEl('button', { cls: 'smartpick-toolbar-item-delete' });
+      const deleteBtn = actionsEl.createEl('button', { cls: 'smartpick-toolbar-item-delete' });
       setIcon(deleteBtn, 'trash-2');
       deleteBtn.addEventListener('click', () => this.removeToolbarItem(item.id));
+    }
+  }
+
+  private showEditToolbarItemModal(item: ToolbarItem): void {
+    if (item.type === 'command') {
+      new CommandModal(
+        this.plugin.app,
+        { id: item.commandId || '', tooltip: item.tooltip, icon: item.icon },
+        (id, tooltip, icon) => {
+          item.commandId = id;
+          item.tooltip = tooltip;
+          item.icon = icon;
+          this.plugin.saveSettings();
+          this.display();
+        }
+      ).open();
+    } else if (item.type === 'ai') {
+      new AICommandModal(
+        this.plugin.app,
+        this.plugin.settings.promptTemplates,
+        { templateId: item.promptTemplateId || '', icon: item.icon },
+        (templateId, icon) => {
+            const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
+            if (template) {
+                item.promptTemplateId = templateId;
+                item.icon = icon;
+                item.tooltip = template.name;
+                this.plugin.saveSettings();
+                this.display();
+            }
+        }
+      ).open();
+    } else if (item.type === 'url') {
+      new UrlCommandModal(
+        this.plugin.app,
+        { name: item.tooltip, url: item.url || '', icon: item.icon },
+        (name, url, icon) => {
+          item.tooltip = name;
+          item.url = url;
+          item.icon = icon;
+          this.plugin.saveSettings();
+          this.display();
+        }
+      ).open();
+    } else if (item.type === 'shortcut') {
+      new ShortcutModal(
+        this.plugin.app,
+        { name: item.tooltip, keys: item.shortcutKeys || '', icon: item.icon },
+        (name, keys, icon) => {
+          item.tooltip = name;
+          item.shortcutKeys = keys;
+          item.icon = icon;
+          this.plugin.saveSettings();
+          this.display();
+        }
+      ).open();
     }
   }
 
@@ -630,19 +703,12 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private showAddCommandModal(): void {
-    new AddCommandModal(this.plugin.app, (id, tooltip, icon) => {
-      const commands = (this.plugin.app as any).commands.commands;
-      const command = commands[id];
-      if (!command) {
-        new Notice(t('commandNotFound'));
-        return;
-      }
-
+    new CommandModal(this.plugin.app, undefined, (id, tooltip, icon) => {
       const newItem: ToolbarItem = {
         id: generateId(),
         type: 'command',
         icon: icon || 'command',
-        tooltip: tooltip || command.name,
+        tooltip: tooltip,
         commandId: id,
         group: 'ungrouped',
         order: this.plugin.settings.toolbarItems.length,
@@ -655,7 +721,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private showAddAICommandModal(): void {
-    new AddAICommandModal(this.plugin.app, this.plugin.settings.promptTemplates, (templateId, icon) => {
+    new AICommandModal(this.plugin.app, this.plugin.settings.promptTemplates, undefined, (templateId, icon) => {
       const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
       if (!template) {
         new Notice(t('templateNotFound'));
@@ -679,7 +745,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private showAddUrlCommandModal(): void {
-    new AddUrlCommandModal(this.plugin.app, (name, url, icon) => {
+    new UrlCommandModal(this.plugin.app, undefined, (name, url, icon) => {
       const newItem: ToolbarItem = {
         id: generateId(),
         type: 'url',
@@ -697,7 +763,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private showAddShortcutModal(): void {
-    new AddShortcutModal(this.plugin.app, (name, keys, icon) => {
+    new ShortcutModal(this.plugin.app, undefined, (name, keys, icon) => {
       const newItem: ToolbarItem = {
         id: generateId(),
         type: 'shortcut',

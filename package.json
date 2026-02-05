@@ -1,6 +1,6 @@
 {
   "name": "smartpick",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Smart text selection toolbar for Obsidian",
   "author": "BCS",
   "main": "main.js",

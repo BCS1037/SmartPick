@@ -42,6 +42,11 @@ export interface I18nStrings {
   enterUrl: string;
   enterShortcut: string;
   enterName: string;
+  editCommand: string;
+  editAICommand: string;
+  editUrlCommand: string;
+  editShortcutCommand: string;
+  save: string;
   selectTemplateId: string;
   templateNotFound: string;
   enterGroupName: string;
@@ -165,6 +170,11 @@ const zh: I18nStrings = {
   enterUrl: '输入链接或 URL Scheme:',
   enterShortcut: '输入快捷键 (例如: Cmd+Shift+S):',
   enterName: '输入名称:',
+  editCommand: '编辑命令',
+  editAICommand: '编辑 AI 命令',
+  editUrlCommand: '编辑链接命令',
+  editShortcutCommand: '编辑快捷键',
+  save: '保存',
   selectTemplateId: '选择模板 ID:',
   templateNotFound: '未找到模板',
   enterGroupName: '输入分组名称:',
@@ -288,6 +298,11 @@ const en: I18nStrings = {
   enterUrl: 'Enter Link or URL Scheme:',
   enterShortcut: 'Enter Shortcut (e.g., Cmd+Shift+S):',
   enterName: 'Enter name:',
+  editCommand: 'Edit Command',
+  editAICommand: 'Edit AI Command',
+  editUrlCommand: 'Edit Link Command',
+  editShortcutCommand: 'Edit Shortcut',
+  save: 'Save',
   selectTemplateId: 'Select template ID:',
   templateNotFound: 'Template not found',
   enterGroupName: 'Enter group name:',
