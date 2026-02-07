@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.7] - 2026-02-07
+
+### Fixed
+- **Submission**: Addressed Obsidian plugin review feedback:
+    - Fixed unawaited promises and async/await usage.
+    - Improved type safety by removing explicit `any` types.
+    - Refactored Settings UI to use Obsidian's `Setting` API for headers.
+    - Moved inline styles to CSS classes.
+
 ## [0.2.6] - 2026-02-07
 
 ### Added
