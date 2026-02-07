@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.8] - 2026-02-08
+
+### Changed
+
+- **Command**: Renamed "Translate" command to "翻译" and restricted functionality to English-to-Chinese translation only.
+- **Data Migration**: Automatically migrate old translation template IDs to prevent conflicts.
+
+### Improved
+
+- **UI**: Optimized toolbar appearance by reducing overall size, removing button backgrounds, and eliminating separators for a cleaner look.
+
+### Fixed
+
+- **Layout**: Corrected toolbar alignment issue when selecting multi-line text.
+
 ## [0.2.7] - 2026-02-07
 
 ### Fixed

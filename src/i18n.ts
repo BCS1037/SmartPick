@@ -124,8 +124,7 @@ export interface I18nStrings {
   group_ungrouped_name: string;
   
   // Built-in Templates
-  template_translate_en: string;
-  template_translate_zh: string;
+  template_translate: string;
   template_summarize: string;
   template_explain: string;
   template_improve_writing: string;
@@ -255,8 +254,7 @@ const zh: I18nStrings = {
   group_ungrouped_name: '未分组',
   
   // Built-in Templates
-  template_translate_en: '翻译为英文',
-  template_translate_zh: '翻译为中文',
+  template_translate: '翻译',
   template_summarize: '总结',
   template_explain: '解释',
   template_improve_writing: '改进写作',
@@ -386,8 +384,7 @@ const en: I18nStrings = {
   group_ungrouped_name: 'Ungrouped',
   
   // Built-in Templates
-  template_translate_en: 'Translate to English',
-  template_translate_zh: 'Translate to Chinese',
+  template_translate: 'Translate',
   template_summarize: 'Summarize',
   template_explain: 'Explain',
   template_improve_writing: 'Improve Writing',

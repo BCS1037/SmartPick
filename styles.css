@@ -11,8 +11,8 @@
 .smartpick-toolbar {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
+  gap: 2px;
+  padding: 2px;
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -33,15 +33,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: none;
-  border-radius: 6px;
-  background: transparent;
+  border-radius: 4px;
+  background: transparent !important;
   color: var(--text-normal);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
+  box-shadow: none !important;
 }
 
 .smartpick-toolbar-button:hover {
@@ -53,8 +54,8 @@
 }
 
 .smartpick-toolbar-button svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 
 /* AI Button indicator */
@@ -67,48 +68,44 @@
   position: absolute;
   bottom: 2px;
   right: 2px;
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   background: var(--interactive-accent);
   border-radius: 50%;
 }
 
-/* Toolbar Separator */
+/* Toolbar Separator - Hidden */
 .smartpick-toolbar-separator {
-  width: 1px;
-  height: 18px;
-  background: var(--background-modifier-border);
-  margin: 0 2px;
+  display: none;
 }
 
 /* Preview Modal */
 .smartpick-preview-modal {
-  padding: 20px;
+  padding: 12px;
 }
 
 .smartpick-preview-title {
   margin: 0 0 8px 0;
-  font-size: 1.2em;
+  font-size: 1.1em;
+  padding-left: 4px;
 }
 
 .smartpick-preview-template-name {
-  font-size: 0.9em;
-  color: var(--text-muted);
-  margin-bottom: 16px;
+  display: none;
 }
 
 .smartpick-preview-content {
-  min-height: 80px;
+  min-height: 60px;
   max-height: 400px;
-  padding: 16px;
-  margin-bottom: 16px;
+  padding: 10px;
+  margin-bottom: 10px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   overflow-y: auto;
   font-family: var(--font-text);
   line-height: 1.5;
-  font-size: 0.95em;
+  font-size: 0.9em;
 }
 
 /* Markdown Typography Refinements */

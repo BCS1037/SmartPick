@@ -65,9 +65,10 @@ export class Toolbar {
       clearTimeout(this.debounceTimer);
     }
 
+    // Fixed 200ms delay as requested
     this.debounceTimer = setTimeout(() => {
       this.checkSelection();
-    }, this.plugin.settings.toolbarDelay);
+    }, 200);
   };
 
   private checkSelection(): void {
@@ -81,7 +82,6 @@ export class Toolbar {
     const selection = editor.getSelection();
 
     if (selection && selection.toString().trim().length > 0) {
-
       this.currentEditor = editor;
       this.currentSelection = selection.toString();
       this.show(editor, view);
@@ -91,11 +91,10 @@ export class Toolbar {
   }
 
   private show(editor: Editor, view: MarkdownView): void {
-    const from = editor.getCursor('from');
-    const coords = this.getCoords(editor, from, view);
+    const pos = this.getSelectionCoords(editor, view);
     
-    if (coords) {
-      this.ui.show(coords.left, coords.top, this.currentSelection);
+    if (pos) {
+      this.ui.show(pos);
       this.isVisible = true;
     }
   }
@@ -107,27 +106,38 @@ export class Toolbar {
     }
   }
 
-  private getCoords(
+  private getSelectionCoords(
     editor: Editor, 
-    pos: EditorPosition,
     view: MarkdownView
-  ): { left: number; top: number } | null {
+  ): { left: number; top: number; right: number; bottom: number, width: number } | null {
     try {
-      // Get the CodeMirror editor
       // @ts-ignore - accessing internal CM6 editor
       const cmEditor = (editor as any).cm;
       if (!cmEditor) return null;
 
-      const offset = editor.posToOffset(pos);
-      const coords = cmEditor.coordsAtPos(offset);
+      const selection = editor.listSelections()[0];
+      if (!selection) return null;
+
+      const headOffset = editor.posToOffset(selection.head);
+      const anchorOffset = editor.posToOffset(selection.anchor);
       
-      if (!coords) return null;
+      const startOffset = Math.min(headOffset, anchorOffset);
+      const endOffset = Math.max(headOffset, anchorOffset);
+
+      const startCoords = cmEditor.coordsAtPos(startOffset);
+      const endCoords = cmEditor.coordsAtPos(endOffset, -1);
+      
+      if (!startCoords || !endCoords) return null;
 
       const containerRect = view.contentEl.getBoundingClientRect();
       
+      // Calculate relative coordinates
       return {
-        left: coords.left - containerRect.left + this.plugin.settings.toolbarOffsetLeft,
-        top: coords.top - containerRect.top - this.plugin.settings.toolbarOffsetTop,
+        left: startCoords.left - containerRect.left,
+        top: startCoords.top - containerRect.top,
+        right: endCoords.right - containerRect.left,
+        bottom: endCoords.bottom - containerRect.top,
+        width: containerRect.width
       };
     } catch {
       return null;

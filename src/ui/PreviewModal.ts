@@ -46,15 +46,19 @@ export class PreviewModal extends Modal {
     contentEl.empty();
     contentEl.addClass('smartpick-preview-modal');
 
-    // Title
-    const titleEl = contentEl.createEl('h2', { text: t('previewTitle') });
-    titleEl.addClass('smartpick-preview-title');
+    // Title - Use localized template name for built-in templates, or stored name for custom ones
+    let titleText = this.template.name;
+    if (this.template.isBuiltin) {
+      const i18nKey = `template_${this.template.id.replace(/-/g, '_')}`;
+      // @ts-ignore
+      const localizedName = t(i18nKey);
+      if (localizedName && localizedName !== i18nKey) {
+        titleText = localizedName;
+      }
+    }
 
-    // Template name
-    contentEl.createEl('div', { 
-      text: this.template.name,
-      cls: 'smartpick-preview-template-name'
-    });
+    const titleEl = contentEl.createEl('h2', { text: titleText });
+    titleEl.addClass('smartpick-preview-title');
 
     // Response container
     this.responseEl = contentEl.createDiv('smartpick-preview-content');

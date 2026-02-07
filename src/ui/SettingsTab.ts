@@ -93,51 +93,23 @@ export class SmartPickSettingTab extends PluginSettingTab {
           });
       });
 
-    // Toolbar delay setting
-    new Setting(containerEl)
-      .setName(t('toolbarDelay'))
-      .setDesc(t('toolbarDelayDesc'))
-      .addSlider(slider => slider
-        .setLimits(0, 1000, 50)
-        .setValue(this.plugin.settings.toolbarDelay)
-        .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.plugin.settings.toolbarDelay = value;
-          await this.plugin.saveSettings();
-        })
-      );
-
-    // Toolbar Vertical Offset
-    // Toolbar Vertical Offset
+    // Toolbar delay setting - Removed (Hardcoded to 200ms)
+    
     // Toolbar Vertical Offset
     new Setting(containerEl)
       .setName(t('toolbarVerticalOffset'))
       .setDesc(t('toolbarVerticalOffsetDesc'))
       .addSlider(slider => slider
         .setLimits(0, 100, 1)
-        .setValue(this.plugin.settings.toolbarOffsetTop)
+        .setValue(this.plugin.settings.toolbarVerticalOffset)
         .setDynamicTooltip()
         .onChange(async (value) => {
-          this.plugin.settings.toolbarOffsetTop = value;
+          this.plugin.settings.toolbarVerticalOffset = value;
           await this.plugin.saveSettings();
         })
       );
 
-    // Toolbar Horizontal Offset
-    // Toolbar Horizontal Offset
-    // Toolbar Horizontal Offset
-    new Setting(containerEl)
-      .setName(t('toolbarHorizontalOffset'))
-      .setDesc(t('toolbarHorizontalOffsetDesc'))
-      .addSlider(slider => slider
-        .setLimits(-100, 100, 1)
-        .setValue(this.plugin.settings.toolbarOffsetLeft)
-        .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.plugin.settings.toolbarOffsetLeft = value;
-          await this.plugin.saveSettings();
-        })
-      );
+    // Toolbar Horizontal Offset - Removed (Smart positioning)
 
     // Buttons
     const buttonsContainer = containerEl.createDiv('smartpick-settings-buttons');
@@ -673,7 +645,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     let templateName = template.name;
     if (template.isBuiltin) {
         // Map template ID to translation key
-        // IDs: translate-en, translate-zh, summarize, explain, improve-writing, fix-grammar, expand, simplify
+        // IDs: translate, summarize, explain, improve-writing, fix-grammar, expand, simplify
         const key = 'template_' + template.id.replace(/-/g, '_');
         templateName = t(key as keyof I18nStrings) || template.name;
     }

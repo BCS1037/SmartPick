@@ -51,9 +51,7 @@ export interface SmartPickSettings {
   toolbarItems: ToolbarItem[];
   commandGroups: CommandGroup[];
   toolbarPosition: 'above' | 'below';
-  toolbarDelay: number;
-  toolbarOffsetTop: number;
-  toolbarOffsetLeft: number;
+  toolbarVerticalOffset: number;
   
   // AI
   aiConfig: AIConfig;
@@ -72,16 +70,8 @@ export interface SmartPickSettings {
 // Default built-in prompt templates
 const DEFAULT_TEMPLATES: PromptTemplate[] = [
   {
-    id: 'translate-en',
-    name: '翻译为英文',
-    category: '翻译',
-    prompt: '请将以下文本翻译成英文，只返回翻译结果，不要有任何解释：\n\n{{selection}}',
-    outputAction: 'replace',
-    isBuiltin: true,
-  },
-  {
-    id: 'translate-zh',
-    name: '翻译为中文',
+    id: 'translate',
+    name: '翻译',
     category: '翻译',
     prompt: 'Please translate the following text into Chinese, return only the translation without any explanation:\n\n{{selection}}',
     outputAction: 'replace',
@@ -179,7 +169,7 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     type: 'ai',
     icon: 'languages',
     tooltip: '翻译',
-    promptTemplateId: 'translate-en',
+    promptTemplateId: 'translate',
     group: 'ai',
     order: 4,
   },
@@ -228,15 +218,7 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     group: 'link',
     order: 2,
   },
-  {
-    id: 'link-wechat',
-    type: 'url',
-    icon: 'message-circle',
-    tooltip: 'WeChat',
-    url: 'https://weixin.sogou.com/weixin?type=2&query={{selection}}',
-    group: 'link',
-    order: 3,
-  },
+
   {
     id: 'link-chatgpt',
     type: 'url',
@@ -255,24 +237,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     group: 'link',
     order: 5,
   },
-  {
-    id: 'link-doubao',
-    type: 'url',
-    icon: 'message-square',
-    tooltip: 'Doubao',
-    url: 'https://www.doubao.com/chat/?q={{selection}}',
-    group: 'link',
-    order: 6,
-  },
-  {
-    id: 'link-qianwen',
-    type: 'url',
-    icon: 'message-square',
-    tooltip: 'Qianwen',
-    url: 'https://tongyi.aliyun.com/qianwen/?q={{selection}}',
-    group: 'link',
-    order: 7,
-  },
+
+
   {
     id: 'link-deepseek',
     type: 'url',
@@ -313,9 +279,7 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   toolbarItems: DEFAULT_TOOLBAR_ITEMS,
   commandGroups: DEFAULT_GROUPS,
   toolbarPosition: 'above',
-  toolbarDelay: 200,
-  toolbarOffsetTop: 28,
-  toolbarOffsetLeft: 0,
+  toolbarVerticalOffset: 26,
   
   aiConfig: {
     provider: 'openai',

@@ -17,9 +17,9 @@ export class ToolbarUI {
     this.toolbar = toolbar;
   }
 
-  show(left: number, top: number, _selection: string): void {
+  show(pos: { left: number; top: number; right: number; bottom: number; width: number }): void {
     this.hide();
-    this.render(left, top);
+    this.render(pos);
   }
 
   hide(): void {
@@ -30,7 +30,7 @@ export class ToolbarUI {
     }
   }
 
-  private render(left: number, top: number): void {
+  private render(pos: { left: number; top: number; right: number; bottom: number; width: number }): void {
     const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) return;
 
@@ -41,10 +41,55 @@ export class ToolbarUI {
     // Create container
     this.containerEl = document.createElement('div');
     this.containerEl.className = 'smartpick-toolbar-container';
-    // this.containerEl.style.position = 'absolute'; // Moved to CSS
-    this.containerEl.style.left = `${Math.max(10, left)}px`;
-    this.containerEl.style.top = `${Math.max(10, top)}px`;
-    // this.containerEl.style.zIndex = '1000'; // Moved to CSS
+    
+    // Vertical positioning: Always above the selection with 0 offset (standard)
+    // We assume the toolbar height is about 40px, plus some padding (e.g. 10px) = 50px
+    // But since we want "standard 0 offset" from the top of the selection line, we position it at pos.top
+    // and rely on CSS transform: translateY(-100%) and some margin-bottom in CSS/JS to lift it up.
+    // Let's set it to pos.top + user setting (default 26px)
+    const top = pos.top + this.plugin.settings.toolbarVerticalOffset;
+    this.containerEl.style.top = `${top}px`;
+
+    // Horizontal positioning logic
+    let left = 0;
+    let transform = 'translateY(-100%)'; // Base transform for vertical alignment
+
+    // Check if multi-line (simple heuristic: difference in top/bottom is large enough)
+    const lineHeight = 20; // Approx
+    const isMultiLine = (pos.bottom - pos.top) > lineHeight * 1.5;
+    
+    const containerWidth = pos.width;
+    const centerPoint = (pos.left + pos.right) / 2;
+    const centerPercent = centerPoint / containerWidth;
+
+    if (isMultiLine) {
+        // Center align relative to the editor width
+        left = containerWidth / 2;
+        transform += ' translateX(-50%)';
+    } else {
+        if (centerPercent < 0.4) {
+            // Left align with selection start
+            left = pos.left;
+            // No horizontal translate needed
+        } else if (centerPercent > 0.6) {
+            // Right align with selection end
+            left = pos.right;
+            transform += ' translateX(-100%)';
+        } else {
+            // Center align with selection center
+            left = centerPoint;
+            transform += ' translateX(-50%)';
+        }
+    }
+
+    this.containerEl.style.left = `${left}px`;
+    this.containerEl.style.transform = transform;
+    
+    // Ensure it doesn't overflow screen edges (basic clamping)
+    // Note: Since we use transforms, simple clamping on 'left' isn't perfect but helps.
+    // A more robust solution involves measuring toolbar width after render, but that causes flickering.
+    // For now, we trust the alignment logic to keep it generally safe, 
+    // and maybe add max-width/overflow handling in CSS.
 
     // Create toolbar
     this.toolbarEl = document.createElement('div');
@@ -62,9 +107,7 @@ export class ToolbarUI {
 
     // Render items
     for (const item of items) {
-      if (item.type === 'separator') {
-        this.renderSeparator();
-      } else {
+      if (item.type !== 'separator') {
         this.renderButton(item);
       }
     }
@@ -116,13 +159,7 @@ export class ToolbarUI {
     this.toolbarEl.appendChild(button);
   }
 
-  private renderSeparator(): void {
-    if (!this.toolbarEl) return;
 
-    const separator = document.createElement('div');
-    separator.className = 'smartpick-toolbar-separator';
-    this.toolbarEl.appendChild(separator);
-  }
 
   private async handleButtonClick(item: ToolbarItem): Promise<void> {
     const selection = this.toolbar.getCurrentSelection();

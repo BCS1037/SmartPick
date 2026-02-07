@@ -52,6 +52,36 @@ export default class SmartPickPlugin extends Plugin {
   async loadSettings(): Promise<void> {
     const data = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+
+    // Migration: Remove old translation templates and items
+    const templatesToRemove = ['translate-en', 'translate-zh'];
+    
+    // 1. Remove old templates
+    this.settings.promptTemplates = this.settings.promptTemplates.filter(t => !templatesToRemove.includes(t.id));
+
+    // 2. Ensure new translate template exists if it's missing (it should be in DEFAULT_SETTINGS but might be overwritten by data)
+    // Actually, Object.assign might not merge arrays deep enough if they exist in data.
+    // If user has customized templates, 'data.promptTemplates' will overwrite 'DEFAULT_SETTINGS.promptTemplates'.
+    // So we need to ensure 'translate' is there if we just removed the old ones, BUT only if it doesn't already exist.
+    if (!this.settings.promptTemplates.find(t => t.id === 'translate')) {
+         const defaultTranslate = DEFAULT_SETTINGS.promptTemplates.find(t => t.id === 'translate');
+         if (defaultTranslate) {
+             this.settings.promptTemplates.push(defaultTranslate);
+         }
+    }
+
+    // 3. Migrate toolbar items
+    this.settings.toolbarItems.forEach(item => {
+        if (item.type === 'ai' && templatesToRemove.includes(item.promptTemplateId || '')) {
+            item.promptTemplateId = 'translate';
+        }
+    });
+
+    // 4. Save immediately to persist migration
+    if (data && (data.promptTemplates?.some((t: any) => templatesToRemove.includes(t.id)) || 
+                 data.toolbarItems?.some((t: any) => templatesToRemove.includes(t.promptTemplateId)))) {
+        await this.saveSettings();
+    }
   }
 
   async saveSettings(): Promise<void> {

@@ -2,7 +2,7 @@
 
 **SmartPick** is a smart text selection toolbar for Obsidian, designed to enhance your workflow with custom commands and powerful AI capabilities.
 
-![展示](2026-02-06%2019.25.58.gif)
+![demo](images/demo.gif)
 
 ## ✨ Features
 
@@ -13,7 +13,7 @@
 - **Group Organization**: Organize your commands into groups for easier access.
 - **Drag & Drop Customization**: Easily rearrange toolbar items using drag and drop.
 - **Custom Prompts**: Create and manage your own prompt templates for AI commands.
-- **URL Scheme Support**: Add and execute URL Scheme commands (e.g., `obsidian://`, `shortcuts://`) directly from the toolbar.
+- **URL Scheme Support**: Add and execute URL Scheme commands directly from the toolbar.
 - **Bilingual Support**: Fully localized in English and Chinese.
 - **Markdown Rendering**: AI responses are rendered in rich Markdown format.
 
@@ -27,6 +27,7 @@
 4. Click "Add Plugin", then enable "SmartPick" in the Community Plugins list.
 
 ### Manual Installation
+
 1. Download the latest release from the [Releases](https://github.com/bcs/SmartPick/releases) page.
 2. Extract the files into your Obsidian vault's plugins folder: `.obsidian/plugins/smartpick/`.
 3. Reload Obsidian and enable the plugin in Settings.
