@@ -1,6 +1,6 @@
 // SmartPick Toolbar - Main toolbar controller
 
-import { Editor, EditorPosition, MarkdownView } from 'obsidian';
+import { Editor, MarkdownView } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { ToolbarUI } from './ToolbarUI';
 
@@ -111,8 +111,14 @@ export class Toolbar {
     view: MarkdownView
   ): { left: number; top: number; right: number; bottom: number, width: number } | null {
     try {
-      // @ts-ignore - accessing internal CM6 editor
-      const cmEditor = (editor as any).cm;
+      // Interface for accessing internal CodeMirror 6 editor
+      interface EditorWithCM {
+        cm?: {
+          coordsAtPos(pos: number, bias?: number): { left: number; right: number; top: number; bottom: number } | null;
+        };
+      }
+      const cmEditor = (editor as unknown as EditorWithCM).cm;
+      
       if (!cmEditor) return null;
 
       const selection = editor.listSelections()[0];

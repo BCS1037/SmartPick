@@ -82,14 +82,16 @@ export class SmartPickSettingTab extends PluginSettingTab {
           .addOption('zh', t('zh'))
           .addOption('en', t('en'))
           .setValue(this.plugin.settings.language)
-          .onChange(async (value) => {
-            this.plugin.settings.language = value as 'auto' | 'zh' | 'en';
-            await this.plugin.saveSettings();
-            // Reload i18n
-            const lang = value === 'auto' ? detectLanguage() : value;
-            setLanguage(lang as 'en' | 'zh');
-            // Refresh settings
-            this.display();
+          .onChange((value) => {
+            void (async () => {
+              this.plugin.settings.language = value as 'auto' | 'zh' | 'en';
+              await this.plugin.saveSettings();
+              // Reload i18n
+              const lang = value === 'auto' ? detectLanguage() : value;
+              setLanguage(lang as 'en' | 'zh');
+              // Refresh settings
+              this.display();
+            })();
           });
       });
 
@@ -103,9 +105,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
         .setLimits(0, 100, 1)
         .setValue(this.plugin.settings.toolbarVerticalOffset)
         .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.plugin.settings.toolbarVerticalOffset = value;
-          await this.plugin.saveSettings();
+        .onChange((value) => {
+          void (async () => {
+             this.plugin.settings.toolbarVerticalOffset = value;
+             await this.plugin.saveSettings();
+          })();
         })
       );
 
@@ -196,7 +200,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         headerSetting.addExtraButton(btn => {
             btn.setIcon('trash-2')
                .setTooltip('Delete Group')
-               .onClick(async () => {
+               .onClick(() => {
                    new ConfirmModal(
                        this.plugin.app,
                        'Delete Group',
@@ -298,9 +302,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
             draggedItem.group = group.id;
             
             // Reorder: insert dragged item before the drop target
-            const groupItems = allItems.filter(i => i.group === group.id).sort((a, b) => a.order - b.order);
-            const targetIndex = groupItems.findIndex(i => i.id === item.id);
-            const draggedIndex = groupItems.findIndex(i => i.id === draggedId);
+            // Variables below are kept for potential future use but prefixed with underscore
+            const _groupItems = allItems.filter(i => i.group === group.id).sort((a, b) => a.order - b.order);
+            void _groupItems; // Suppress unused variable warning
             
             // Remove from old position (if in same group logic) 
             // Actually it's easier to just rebuild the array or use logic
@@ -323,7 +327,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             // Normalize orders
             this.reorderItems();
             
-            this.plugin.saveSettings().then(() => {
+            void this.plugin.saveSettings().then(() => {
                 this.display();
             });
         }
@@ -353,17 +357,17 @@ export class SmartPickSettingTab extends PluginSettingTab {
         itemEl.createSpan({ text: 'AI', cls: 'smartpick-toolbar-item-badge' });
       }
 
-      // Action Buttons Container
-      const actionsEl = itemEl.createDiv('smartpick-item-actions');
-      // actionsEl.style.display = 'flex'; // Moved to CSS
-      // actionsEl.style.gap = '4px'; // Moved to CSS
+      // Action Buttons Container (created for future use)
+      itemEl.createDiv('smartpick-item-actions');
 
     }
   }
 
   private showEditToolbarItemModal(item: ToolbarItem): void {
-    const onDelete = async () => {
-         await this.removeToolbarItem(item.id);
+    const onDelete = () => {
+         void (async () => {
+             await this.removeToolbarItem(item.id);
+         })();
     };
 
     if (item.type === 'command') {
@@ -371,11 +375,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
         this.plugin.app,
         { id: item.commandId || '', tooltip: item.tooltip, icon: item.icon },
         (id, tooltip, icon) => {
-          item.commandId = id;
-          item.tooltip = tooltip;
-          item.icon = icon;
-          this.plugin.saveSettings();
-          this.display();
+          void (async () => {
+              item.commandId = id;
+              item.tooltip = tooltip;
+              item.icon = icon;
+              await this.plugin.saveSettings();
+              this.display();
+          })();
         },
         onDelete
       ).open();
@@ -385,14 +391,16 @@ export class SmartPickSettingTab extends PluginSettingTab {
         this.plugin.settings.promptTemplates,
         { templateId: item.promptTemplateId || '', icon: item.icon },
         (templateId, icon) => {
-            const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
-            if (template) {
-                item.promptTemplateId = templateId;
-                item.icon = icon;
-                item.tooltip = template.name;
-                this.plugin.saveSettings();
-                this.display();
-            }
+            void (async () => {
+                const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
+                if (template) {
+                    item.promptTemplateId = templateId;
+                    item.icon = icon;
+                    item.tooltip = template.name;
+                    await this.plugin.saveSettings();
+                    this.display();
+                }
+            })();
         },
         onDelete
       ).open();
@@ -401,11 +409,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
         this.plugin.app,
         { name: item.tooltip, url: item.url || '', icon: item.icon },
         (name, url, icon) => {
-          item.tooltip = name;
-          item.url = url;
-          item.icon = icon;
-          this.plugin.saveSettings();
-          this.display();
+          void (async () => {
+              item.tooltip = name;
+              item.url = url;
+              item.icon = icon;
+              await this.plugin.saveSettings();
+              this.display();
+          })();
         },
         onDelete
       ).open();
@@ -414,11 +424,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
         this.plugin.app,
         { name: item.tooltip, keys: item.shortcutKeys || '', icon: item.icon },
         (name, keys, icon) => {
-          item.tooltip = name;
-          item.shortcutKeys = keys;
-          item.icon = icon;
-          this.plugin.saveSettings();
-          this.display();
+          void (async () => {
+              item.tooltip = name;
+              item.shortcutKeys = keys;
+              item.icon = icon;
+              await this.plugin.saveSettings();
+              this.display();
+          })();
         },
         onDelete
       ).open();
@@ -458,23 +470,24 @@ export class SmartPickSettingTab extends PluginSettingTab {
           .addOption('ollama', 'Ollama')
           .addOption('custom', 'Custom (OpenAI Compatible)')
           .setValue(aiConfig.provider)
-          .onChange(async (value) => {
-            aiConfig.provider = value as AIProvider;
-            // Update default URL based on provider
-            switch (value) {
-              case 'openai':
-                aiConfig.apiUrl = 'https://api.openai.com/v1';
-                break;
-              case 'anthropic':
-                aiConfig.apiUrl = 'https://api.anthropic.com/v1';
-                break;
-              case 'ollama':
-                aiConfig.apiUrl = 'http://localhost:11434';
-                break;
-            }
-            this.plugin.saveSettings().then(() => {
+          .onChange((value) => {
+            void (async () => {
+                aiConfig.provider = value as AIProvider;
+                // Update default URL based on provider
+                switch (value) {
+                  case 'openai':
+                    aiConfig.apiUrl = 'https://api.openai.com/v1';
+                    break;
+                  case 'anthropic':
+                    aiConfig.apiUrl = 'https://api.anthropic.com/v1';
+                    break;
+                  case 'ollama':
+                    aiConfig.apiUrl = 'http://localhost:11434';
+                    break;
+                }
+                await this.plugin.saveSettings();
                 this.display();
-            });
+            })();
           });
       });
 
@@ -486,9 +499,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
         text
           .setPlaceholder('https://api.openai.com/v1')
           .setValue(aiConfig.apiUrl)
-          .onChange(async (value) => {
-            aiConfig.apiUrl = value;
-            await this.plugin.saveSettings();
+          .onChange((value) => {
+             void (async () => {
+                aiConfig.apiUrl = value;
+                await this.plugin.saveSettings();
+             })();
           });
       });
 
@@ -502,9 +517,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
             .setPlaceholder('sk-...')
             .setValue(aiConfig.apiKey)
             .inputEl.type = 'password';
-          text.onChange(async (value) => {
-            aiConfig.apiKey = value;
-            await this.plugin.saveSettings();
+          text.onChange((value) => {
+             void (async () => {
+                aiConfig.apiKey = value;
+                await this.plugin.saveSettings();
+             })();
           });
         });
     }
@@ -515,24 +532,27 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .setDesc('Retrieve available models from the provider')
       .addButton(button => {
         button.setButtonText(t('fetchModels'));
-        button.onClick(async () => {
-          button.setButtonText(t('fetchingModels'));
-          button.setDisabled(true);
-          
-          try {
-            const provider = this.getProvider();
-            const models = await provider.fetchModels(aiConfig);
-            aiConfig.availableModels = models;
-            await this.plugin.saveSettings();
-            new Notice(t('success') + `: ${models.length} models`);
-            this.display();
-          } catch (error) {
-            new Notice(t('connectionFailed'));
-            console.error('Failed to fetch models:', error);
-          } finally {
-            button.setButtonText(t('fetchModels'));
-            button.setDisabled(false);
-          }
+        button.setButtonText(t('fetchModels'));
+        button.onClick(() => {
+          void (async () => {
+              button.setButtonText(t('fetchingModels'));
+              button.setDisabled(true);
+              
+              try {
+                const provider = this.getProvider();
+                const models = await provider.fetchModels(aiConfig);
+                aiConfig.availableModels = models;
+                await this.plugin.saveSettings();
+                new Notice(t('success') + `: ${models.length} models`);
+                this.display();
+              } catch (error) {
+                new Notice(t('connectionFailed'));
+                console.error('Failed to fetch models:', error);
+              } finally {
+                button.setButtonText(t('fetchModels'));
+                button.setDisabled(false);
+              }
+          })();
         });
       });
 
@@ -547,9 +567,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
           dropdown.addOption(model, model);
         }
         dropdown.setValue(aiConfig.defaultModel);
-        dropdown.onChange(async (value) => {
-          aiConfig.defaultModel = value;
-          await this.plugin.saveSettings();
+        dropdown.onChange((value) => {
+           void (async () => {
+              aiConfig.defaultModel = value;
+              await this.plugin.saveSettings();
+           })();
         });
       });
     } else {
@@ -557,9 +579,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
         text
           .setPlaceholder('gpt-4o-mini')
           .setValue(aiConfig.defaultModel)
-          .onChange(async (value) => {
-            aiConfig.defaultModel = value;
-            await this.plugin.saveSettings();
+          .onChange((value) => {
+             void (async () => {
+                aiConfig.defaultModel = value;
+                await this.plugin.saveSettings();
+             })();
           });
       });
     }
@@ -577,9 +601,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
         .setLimits(0, 1, 0.1)
         .setValue(aiConfig.temperature)
         .setDynamicTooltip()
-        .onChange(async (value) => {
-          aiConfig.temperature = value;
-          await this.plugin.saveSettings();
+        .setValue(aiConfig.temperature)
+        .setDynamicTooltip()
+        .onChange((value) => {
+          void (async () => {
+              aiConfig.temperature = value;
+              await this.plugin.saveSettings();
+          })();
         })
       );
 
@@ -589,12 +617,15 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .setDesc(t('maxTokensDesc'))
       .addText(text => text
         .setValue(String(aiConfig.maxTokens))
-        .onChange(async (value) => {
-          const num = parseInt(value);
-          if (!isNaN(num)) {
-            aiConfig.maxTokens = num;
-            await this.plugin.saveSettings();
-          }
+        .setValue(String(aiConfig.maxTokens))
+        .onChange((value) => {
+           void (async () => {
+              const num = parseInt(value);
+              if (!isNaN(num)) {
+                aiConfig.maxTokens = num;
+                await this.plugin.saveSettings();
+              }
+           })();
         })
       );
   }
@@ -683,93 +714,103 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
   private showAddCommandModal(): void {
     new CommandModal(this.plugin.app, undefined, (id, tooltip, icon) => {
-      const newItem: ToolbarItem = {
-        id: generateId(),
-        type: 'command',
-        icon: icon || 'command',
-        tooltip: tooltip,
-        commandId: id,
-        group: 'ungrouped',
-        order: this.plugin.settings.toolbarItems.length,
-      };
+      void (async () => {
+          const newItem: ToolbarItem = {
+            id: generateId(),
+            type: 'command',
+            icon: icon || 'command',
+            tooltip: tooltip,
+            commandId: id,
+            group: 'ungrouped',
+            order: this.plugin.settings.toolbarItems.length,
+          };
 
-      this.plugin.settings.toolbarItems.push(newItem);
-      this.plugin.saveSettings();
-      this.display();
+          this.plugin.settings.toolbarItems.push(newItem);
+          await this.plugin.saveSettings();
+          this.display();
+      })();
     }).open();
   }
 
   private showAddAICommandModal(): void {
     new AICommandModal(this.plugin.app, this.plugin.settings.promptTemplates, undefined, (templateId, icon) => {
-      const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
-      if (!template) {
-        new Notice(t('templateNotFound'));
-        return;
-      }
+      void (async () => {
+          const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
+          if (!template) {
+            new Notice(t('templateNotFound'));
+            return;
+          }
 
-      const newItem: ToolbarItem = {
-        id: generateId(),
-        type: 'ai',
-        icon: icon || 'sparkles',
-        tooltip: template.name,
-        promptTemplateId: templateId,
-        group: 'ai',
-        order: this.plugin.settings.toolbarItems.length,
-      };
+          const newItem: ToolbarItem = {
+            id: generateId(),
+            type: 'ai',
+            icon: icon || 'sparkles',
+            tooltip: template.name,
+            promptTemplateId: templateId,
+            group: 'ai',
+            order: this.plugin.settings.toolbarItems.length,
+          };
 
-      this.plugin.settings.toolbarItems.push(newItem);
-      this.plugin.saveSettings();
-      this.display();
+          this.plugin.settings.toolbarItems.push(newItem);
+          await this.plugin.saveSettings();
+          this.display();
+      })();
     }).open();
   }
 
   private showAddUrlCommandModal(): void {
     new UrlCommandModal(this.plugin.app, undefined, (name, url, icon) => {
-      const newItem: ToolbarItem = {
-        id: generateId(),
-        type: 'url',
-        icon: icon || 'link',
-        tooltip: name,
-        url: url,
-        group: 'ungrouped',
-        order: this.plugin.settings.toolbarItems.length,
-      };
+      void (async () => {
+          const newItem: ToolbarItem = {
+            id: generateId(),
+            type: 'url',
+            icon: icon || 'link',
+            tooltip: name,
+            url: url,
+            group: 'ungrouped',
+            order: this.plugin.settings.toolbarItems.length,
+          };
 
-      this.plugin.settings.toolbarItems.push(newItem);
-      this.plugin.saveSettings();
-      this.display();
+          this.plugin.settings.toolbarItems.push(newItem);
+          await this.plugin.saveSettings();
+          this.display();
+      })();
     }).open();
   }
 
   private showAddShortcutModal(): void {
     new ShortcutModal(this.plugin.app, undefined, (name, keys, icon) => {
-      const newItem: ToolbarItem = {
-        id: generateId(),
-        type: 'shortcut',
-        icon: icon || 'keyboard',
-        tooltip: name,
-        shortcutKeys: keys,
-        group: 'ungrouped',
-        order: this.plugin.settings.toolbarItems.length,
-      };
+      void (async () => {
+          const newItem: ToolbarItem = {
+            id: generateId(),
+            type: 'shortcut',
+            icon: icon || 'keyboard',
+            tooltip: name,
+            shortcutKeys: keys,
+            group: 'ungrouped',
+            order: this.plugin.settings.toolbarItems.length,
+          };
 
-      this.plugin.settings.toolbarItems.push(newItem);
-      this.plugin.saveSettings();
-      this.display();
+          this.plugin.settings.toolbarItems.push(newItem);
+          await this.plugin.saveSettings();
+          this.display();
+      })();
     }).open();
   }
 
   private addNewGroup(): void {
     new AddGroupModal(this.plugin.app, (name) => {
-      const newGroup: CommandGroup = {
-        id: generateId(),
-        name: name,
-        order: this.plugin.settings.commandGroups.length,
-      };
+      void (async () => {
+          const newGroup: CommandGroup = {
+            id: generateId(),
+            name: name,
+            order: this.plugin.settings.commandGroups.length,
+          };
 
-      this.plugin.settings.commandGroups.push(newGroup);
-      this.plugin.saveSettings();
-      this.display();
+          this.plugin.settings.commandGroups.push(newGroup);
+          await this.plugin.saveSettings();
+          this.display();
+      })();
     }).open();
   }
 
@@ -791,24 +832,27 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
 
     new EditTemplateModal(this.plugin.app, template, (name, category, prompt) => {
-        if (isNew) {
-            const newTemplate: PromptTemplate = {
-                id: generateId(),
-                name: name,
-                category: category || 'Custom',
-                prompt: prompt,
-                outputAction: 'replace',
-                isBuiltin: false,
-            };
-            this.plugin.settings.promptTemplates.push(newTemplate);
-        } else if (template) {
-            template.name = name;
-            template.category = category;
-            template.prompt = prompt;
-        }
-
-        this.plugin.saveSettings();
-        this.display();
+      void (async () => {
+          if (isNew) {
+              const newTemplate: PromptTemplate = {
+                  id: generateId(),
+                  name: name,
+                  category: category || 'Custom',
+                  prompt: prompt,
+                  outputAction: 'replace',
+                  isBuiltin: false,
+              };
+              this.plugin.settings.promptTemplates.push(newTemplate);
+              await this.plugin.saveSettings(); // Ensure we await
+              this.display();
+          } else if (template) {
+              template.name = name;
+              template.category = category;
+              template.prompt = prompt;
+              await this.plugin.saveSettings(); // Ensure we await
+              this.display();
+          }
+      })();
     }).open();
   }
 

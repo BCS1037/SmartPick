@@ -6,6 +6,13 @@ import type { Toolbar } from './Toolbar';
 import { ToolbarItem } from '../settings';
 import { t, I18nStrings } from '../i18n';
 
+
+interface AppWithCommands {
+  commands: {
+    executeCommandById(id: string): void;
+  };
+}
+
 export class ToolbarUI {
   private plugin: SmartPickPlugin;
   private toolbar: Toolbar;
@@ -35,7 +42,7 @@ export class ToolbarUI {
     if (!view) return;
 
     // Remove any existing toolbars in this view to prevent duplicates
-    const existingToolbars = (view as any).contentEl.querySelectorAll('.smartpick-toolbar-container');
+    const existingToolbars = view.contentEl.querySelectorAll('.smartpick-toolbar-container');
     existingToolbars.forEach((el: Element) => el.remove());
 
     // Create container
@@ -113,7 +120,7 @@ export class ToolbarUI {
     }
 
     this.containerEl.appendChild(this.toolbarEl);
-    (view as any).contentEl.appendChild(this.containerEl);
+    view.contentEl.appendChild(this.containerEl);
 
     // Animate in
     requestAnimationFrame(() => {
@@ -171,9 +178,10 @@ export class ToolbarUI {
 
     if (item.type === 'command' && item.commandId) {
       // Execute Obsidian command
-      (this.plugin.app as any).commands.executeCommandById(item.commandId);
+      (this.plugin.app as unknown as AppWithCommands).commands.executeCommandById(item.commandId);
       this.toolbar.hide();
     } else if (item.type === 'ai' && item.promptTemplateId) {
+
       // Execute AI command
       // Handle toolbar hide inside executeAICommand or here? Original code didn't hide here, but executeAICommand had this.toolbar.hide() call at the end.
       await this.executeAICommand(item.promptTemplateId, selection);

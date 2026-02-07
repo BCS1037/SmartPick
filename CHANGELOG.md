@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.9] - 2026-02-08
+
+### Fixed
+- **Code Quality**: Addressed all Obsidian plugin review issues:
+    - Replaced all `any` types with proper TypeScript interfaces.
+    - Added `void` operators to handle async IIFEs in callbacks.
+    - Removed unused variables and imports.
+    - Replaced `@ts-ignore` comments with proper type assertions.
+
 ## [0.2.8] - 2026-02-08
 
 ### Changed

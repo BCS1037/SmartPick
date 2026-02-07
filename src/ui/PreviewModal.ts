@@ -2,7 +2,7 @@
 
 import { App, Editor, Modal, MarkdownRenderer, Component, setIcon, setTooltip } from 'obsidian';
 import type SmartPickPlugin from '../main';
-import { PromptTemplate, AIProvider as AIProviderType } from '../settings';
+import { PromptTemplate } from '../settings';
 import { 
   AIProvider, 
   ChatMessage, 
@@ -14,7 +14,7 @@ import {
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
-import { t } from '../i18n';
+import { t, I18nStrings } from '../i18n';
 
 export class PreviewModal extends Modal {
   private plugin: SmartPickPlugin;
@@ -24,6 +24,8 @@ export class PreviewModal extends Modal {
   private responseEl: HTMLElement | null = null;
   private response: string = '';
   private isGenerating: boolean = false;
+
+  private component = new Component();
 
   constructor(
     app: App,
@@ -37,8 +39,6 @@ export class PreviewModal extends Modal {
     this.template = template;
     this.selectedText = selection;
     this.editor = editor;
-
-
   }
 
   onOpen(): void {
@@ -49,8 +49,7 @@ export class PreviewModal extends Modal {
     // Title - Use localized template name for built-in templates, or stored name for custom ones
     let titleText = this.template.name;
     if (this.template.isBuiltin) {
-      const i18nKey = `template_${this.template.id.replace(/-/g, '_')}`;
-      // @ts-ignore
+      const i18nKey = `template_${this.template.id.replace(/-/g, '_')}` as keyof I18nStrings;
       const localizedName = t(i18nKey);
       if (localizedName && localizedName !== i18nKey) {
         titleText = localizedName;
@@ -165,7 +164,7 @@ export class PreviewModal extends Modal {
                 this.response,
                 this.responseEl,
                 '',
-                this.plugin
+                this.component
               );
 
               
@@ -192,7 +191,7 @@ export class PreviewModal extends Modal {
             this.response,
             this.responseEl,
             '',
-            this.plugin
+            this.component
           );
 
         } catch (renderError) {
@@ -264,6 +263,7 @@ export class PreviewModal extends Modal {
   }
 
   onClose(): void {
+    this.component.unload();
     const { contentEl } = this;
     contentEl.empty();
   }

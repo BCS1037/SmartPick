@@ -1,6 +1,13 @@
 import { App, FuzzySuggestModal, Command, setIcon } from 'obsidian';
 import { getIconIds, FuzzyMatch } from 'obsidian';
 
+// Interface for accessing Obsidian's internal commands registry
+interface AppWithCommands extends App {
+  commands: {
+    commands: Record<string, Command>;
+  };
+}
+
 export class CommandSuggester extends FuzzySuggestModal<Command> {
   private onChoose: (command: Command) => void;
 
@@ -11,7 +18,7 @@ export class CommandSuggester extends FuzzySuggestModal<Command> {
   }
 
   getItems(): Command[] {
-    return Object.values((this.app as any).commands.commands);
+    return Object.values((this.app as AppWithCommands).commands.commands);
   }
 
   getItemText(item: Command): string {

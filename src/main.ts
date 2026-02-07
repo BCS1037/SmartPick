@@ -72,14 +72,20 @@ export default class SmartPickPlugin extends Plugin {
 
     // 3. Migrate toolbar items
     this.settings.toolbarItems.forEach(item => {
-        if (item.type === 'ai' && templatesToRemove.includes(item.promptTemplateId || '')) {
+        if (item.type === 'ai' && item.promptTemplateId && templatesToRemove.includes(item.promptTemplateId)) {
             item.promptTemplateId = 'translate';
         }
     });
 
     // 4. Save immediately to persist migration
-    if (data && (data.promptTemplates?.some((t: any) => templatesToRemove.includes(t.id)) || 
-                 data.toolbarItems?.some((t: any) => templatesToRemove.includes(t.promptTemplateId)))) {
+    // Safe check using unknown cast to avoid 'any'
+    const unknownData = data as unknown as Record<string, unknown> | null;
+    const hasOldTemplates = unknownData?.promptTemplates && Array.isArray(unknownData.promptTemplates) && 
+        unknownData.promptTemplates.some((t: { id?: string }) => templatesToRemove.includes(t.id ?? ''));
+    const hasOldItems = unknownData?.toolbarItems && Array.isArray(unknownData.toolbarItems) && 
+        unknownData.toolbarItems.some((t: { promptTemplateId?: string }) => templatesToRemove.includes(t.promptTemplateId ?? ''));
+
+    if (hasOldTemplates || hasOldItems) {
         await this.saveSettings();
     }
   }
