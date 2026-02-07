@@ -3,6 +3,8 @@ import { t } from '../i18n';
 import { PromptTemplate } from '../settings';
 import { CommandSuggester, IconSuggester } from './Suggesters';
 
+import { ConfirmModal } from './ConfirmModal';
+
 export class EditTemplateModal extends Modal {
   private resultName: string = '';
   private resultCategory: string = 'Custom';
@@ -91,15 +93,20 @@ export class CommandModal extends Modal {
   private resultTooltip: string = '';
   private resultIcon: string = 'command';
   private isEditing: boolean = false;
+
   private onSubmit: (id: string, tooltip: string, icon: string) => void;
+  private onDelete?: () => void;
 
   constructor(
     app: App, 
     initialData: CommandData | undefined,
-    onSubmit: (id: string, tooltip: string, icon: string) => void
+
+    onSubmit: (id: string, tooltip: string, icon: string) => void,
+    onDelete?: () => void
   ) {
     super(app);
     this.onSubmit = onSubmit;
+    this.onDelete = onDelete;
     if (initialData) {
         this.isEditing = true;
         this.resultId = initialData.id;
@@ -198,7 +205,33 @@ export class CommandModal extends Modal {
           }
           this.close();
           this.onSubmit(this.resultId, this.resultTooltip, this.resultIcon);
+
         }));
+
+    if (this.isEditing && this.onDelete) {
+        new Setting(contentEl)
+            .addButton(btn => btn
+                .setButtonText(t('delete'))
+                .setWarning()
+                .onClick(() => {
+                    new ConfirmModal(
+                        this.app,
+                        t('deleteCommand'),
+                        t('deleteCommandDesc'),
+                        () => {
+                            this.onDelete?.();
+                            this.close();
+                        },
+                        t('delete')
+                    ).open();
+                })
+            );
+        // Move delete button to start or adjust css? 
+        // Logic: The user asked for "same row as Cancel & Save". 
+        // The Setting component creates a row. Adding buttons to the SAME new Setting appends them.
+        // My previous code created ONE new Setting for Cancel & Save.
+        // I should modify that block instead of adding a new one if I want them in one row.
+    }
   }
 
   onClose() {
@@ -217,17 +250,22 @@ export class AICommandModal extends Modal {
   private resultIcon: string = 'sparkles';
   private templates: PromptTemplate[];
   private isEditing: boolean = false;
+
   private onSubmit: (templateId: string, icon: string) => void;
+  private onDelete?: () => void;
 
   constructor(
     app: App, 
     templates: PromptTemplate[], 
     initialData: AICommandData | undefined, 
-    onSubmit: (templateId: string, icon: string) => void
+ 
+    onSubmit: (templateId: string, icon: string) => void,
+    onDelete?: () => void
   ) {
     super(app);
     this.templates = templates;
     this.onSubmit = onSubmit;
+    this.onDelete = onDelete;
     if (initialData) {
         this.isEditing = true;
         this.selectedTemplateId = initialData.templateId;
@@ -289,7 +327,19 @@ export class AICommandModal extends Modal {
     updateIconPreview(this.resultIcon);
 
     // Buttons
-    new Setting(contentEl)
+    const buttons = new Setting(contentEl);
+
+    if (this.isEditing && this.onDelete) {
+         buttons.addButton(btn => btn
+            .setButtonText(t('delete'))
+            .setWarning()
+            .onClick(() => {
+                 this.onDelete?.();
+                 this.close();
+            }));
+    }
+
+    buttons
       .addButton(btn => btn
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
@@ -369,15 +419,20 @@ export class UrlCommandModal extends Modal {
   private resultUrl: string = '';
   private resultIcon: string = 'link';
   private isEditing: boolean = false;
+
   private onSubmit: (name: string, url: string, icon: string) => void;
+  private onDelete?: () => void;
 
   constructor(
     app: App, 
     initialData: UrlCommandData | undefined,
-    onSubmit: (name: string, url: string, icon: string) => void
+
+    onSubmit: (name: string, url: string, icon: string) => void,
+    onDelete?: () => void
   ) {
     super(app);
     this.onSubmit = onSubmit;
+    this.onDelete = onDelete;
     if (initialData) {
         this.isEditing = true;
         this.resultName = initialData.name;
@@ -443,7 +498,19 @@ export class UrlCommandModal extends Modal {
     updateIconPreview(this.resultIcon);
 
     // Buttons
-    new Setting(contentEl)
+    const buttons = new Setting(contentEl);
+
+    if (this.isEditing && this.onDelete) {
+         buttons.addButton(btn => btn
+            .setButtonText(t('delete'))
+            .setWarning()
+            .onClick(() => {
+                 this.onDelete?.();
+                 this.close();
+            }));
+    }
+
+    buttons
       .addButton(btn => btn
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
@@ -477,15 +544,20 @@ export class ShortcutModal extends Modal {
   private resultKeys: string = '';
   private resultIcon: string = 'keyboard';
   private isEditing: boolean = false;
+
   private onSubmit: (name: string, keys: string, icon: string) => void;
+  private onDelete?: () => void;
 
   constructor(
     app: App, 
     initialData: ShortcutData | undefined,
-    onSubmit: (name: string, keys: string, icon: string) => void
+
+    onSubmit: (name: string, keys: string, icon: string) => void,
+    onDelete?: () => void
   ) {
     super(app);
     this.onSubmit = onSubmit;
+    this.onDelete = onDelete;
     if (initialData) {
         this.isEditing = true;
         this.resultName = initialData.name;
@@ -583,7 +655,19 @@ export class ShortcutModal extends Modal {
     updateIconPreview(this.resultIcon);
 
     // Buttons
-    new Setting(contentEl)
+    const buttons = new Setting(contentEl);
+
+    if (this.isEditing && this.onDelete) {
+         buttons.addButton(btn => btn
+            .setButtonText(t('delete'))
+            .setWarning()
+            .onClick(() => {
+                 this.onDelete?.();
+                 this.close();
+            }));
+    }
+
+    buttons
       .addButton(btn => btn
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))

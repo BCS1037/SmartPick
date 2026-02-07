@@ -108,7 +108,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       );
 
     // Toolbar Vertical Offset
-    new Setting(containerEl)
+    // Toolbar Vertical Offset
     // Toolbar Vertical Offset
     new Setting(containerEl)
       .setName(t('toolbarVerticalOffset'))
@@ -124,7 +124,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       );
 
     // Toolbar Horizontal Offset
-    new Setting(containerEl)
+    // Toolbar Horizontal Offset
     // Toolbar Horizontal Offset
     new Setting(containerEl)
       .setName(t('toolbarHorizontalOffset'))
@@ -138,33 +138,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         })
       );
-
-    // Toolbar items list
-    const itemsContainer = containerEl.createDiv('smartpick-toolbar-items');
-    
-    // Group items by group
-    const groups = new Map<string, ToolbarItem[]>();
-    for (const item of this.plugin.settings.toolbarItems) {
-      const groupId = item.group || 'ungrouped';
-      if (!groups.has(groupId)) {
-        groups.set(groupId, []);
-      }
-      groups.get(groupId)!.push(item);
-    }
-
-    // Render each group
-    for (const group of this.plugin.settings.commandGroups) {
-      const items = groups.get(group.id) || [];
-      this.renderToolbarGroup(itemsContainer, group, items);
-    }
-
-    // Render ungrouped items
-    const ungroupedItems = groups.get('ungrouped') || [];
-    this.renderToolbarGroup(
-      itemsContainer, 
-      { id: 'ungrouped', name: t('group_ungrouped_name'), order: 999 },
-      ungroupedItems
-    );
 
     // Buttons
     const buttonsContainer = containerEl.createDiv('smartpick-settings-buttons');
@@ -199,6 +172,35 @@ export class SmartPickSettingTab extends PluginSettingTab {
         button.setButtonText(t('newGroup'));
         button.onClick(() => this.addNewGroup());
       });
+
+    // Toolbar items list
+    const itemsContainer = containerEl.createDiv('smartpick-toolbar-items');
+    
+    // Group items by group
+    const groups = new Map<string, ToolbarItem[]>();
+    for (const item of this.plugin.settings.toolbarItems) {
+      const groupId = item.group || 'ungrouped';
+      if (!groups.has(groupId)) {
+        groups.set(groupId, []);
+      }
+      groups.get(groupId)!.push(item);
+    }
+
+    // Render each group
+    for (const group of this.plugin.settings.commandGroups) {
+      const items = groups.get(group.id) || [];
+      this.renderToolbarGroup(itemsContainer, group, items);
+    }
+
+    // Render ungrouped items
+    const ungroupedItems = groups.get('ungrouped') || [];
+    this.renderToolbarGroup(
+      itemsContainer, 
+      { id: 'ungrouped', name: t('group_ungrouped_name'), order: 999 },
+      ungroupedItems
+    );
+
+
   }
 
   private renderToolbarGroup(
@@ -378,20 +380,14 @@ export class SmartPickSettingTab extends PluginSettingTab {
       actionsEl.style.display = 'flex';
       actionsEl.style.gap = '4px';
 
-      // Edit Button
-      const editBtn = actionsEl.createEl('button', { cls: 'smartpick-toolbar-item-edit' });
-      setIcon(editBtn, 'pencil');
-      editBtn.setAttribute('aria-label', t('editCommand'));
-      editBtn.addEventListener('click', () => this.showEditToolbarItemModal(item));
-
-      // Delete button
-      const deleteBtn = actionsEl.createEl('button', { cls: 'smartpick-toolbar-item-delete' });
-      setIcon(deleteBtn, 'trash-2');
-      deleteBtn.addEventListener('click', () => this.removeToolbarItem(item.id));
     }
   }
 
   private showEditToolbarItemModal(item: ToolbarItem): void {
+    const onDelete = async () => {
+         await this.removeToolbarItem(item.id);
+    };
+
     if (item.type === 'command') {
       new CommandModal(
         this.plugin.app,
@@ -402,7 +398,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
           item.icon = icon;
           this.plugin.saveSettings();
           this.display();
-        }
+        },
+        onDelete
       ).open();
     } else if (item.type === 'ai') {
       new AICommandModal(
@@ -418,7 +415,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
                 this.plugin.saveSettings();
                 this.display();
             }
-        }
+        },
+        onDelete
       ).open();
     } else if (item.type === 'url') {
       new UrlCommandModal(
@@ -430,7 +428,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
           item.icon = icon;
           this.plugin.saveSettings();
           this.display();
-        }
+        },
+        onDelete
       ).open();
     } else if (item.type === 'shortcut') {
       new ShortcutModal(
@@ -442,7 +441,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
           item.icon = icon;
           this.plugin.saveSettings();
           this.display();
-        }
+        },
+        onDelete
       ).open();
     }
   }
@@ -468,7 +468,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     const { aiConfig } = this.plugin.settings;
 
     // Provider
-    new Setting(containerEl)
+    // Provider
     // Provider
     new Setting(containerEl)
       .setName(t('apiProvider'))
@@ -590,7 +590,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         .setName('Parameters')
         .setHeading();
     
-    new Setting(containerEl)
+
     new Setting(containerEl)
       .setName(t('temperature'))
       .setDesc(t('temperatureDesc'))
@@ -604,7 +604,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         })
       );
 
-    new Setting(containerEl)
+
     new Setting(containerEl)
       .setName(t('maxTokens'))
       .setDesc(t('maxTokensDesc'))

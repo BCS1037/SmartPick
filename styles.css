@@ -296,9 +296,9 @@
 }
 
 .smartpick-toolbar-group-items {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   min-height: 40px;
   padding-bottom: 8px; /* Extra padding for easier dropping */
 }
@@ -307,7 +307,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px; /* Reduced padding */
+  min-height: 50px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -338,6 +339,10 @@
 .smartpick-toolbar-item-name {
   flex: 1;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9em;
 }
 
 .smartpick-toolbar-item-badge {
@@ -493,8 +498,26 @@
 /* Phase 2 Refactoring Styles */
 .smartpick-settings-buttons {
   margin-top: 24px;
+  margin-bottom: 24px;
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.smartpick-settings-buttons .setting-item {
+  border: none;
+  padding: 0;
+  min-height: auto;
+  background: transparent;
+  margin-bottom: 0;
+}
+
+.smartpick-settings-buttons .setting-item-info {
+  display: none;
+}
+
+.smartpick-settings-buttons .setting-item-control {
+  padding: 0;
 }
 
 .smartpick-confirm-buttons {

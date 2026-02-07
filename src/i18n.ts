@@ -46,6 +46,9 @@ export interface I18nStrings {
   editAICommand: string;
   editUrlCommand: string;
   editShortcutCommand: string;
+  delete: string;
+  deleteCommand: string;
+  deleteCommandDesc: string;
   save: string;
   selectTemplateId: string;
   templateNotFound: string;
@@ -174,6 +177,9 @@ const zh: I18nStrings = {
   editAICommand: '编辑 AI 命令',
   editUrlCommand: '编辑链接命令',
   editShortcutCommand: '编辑快捷键',
+  delete: '删除',
+  deleteCommand: '删除命令',
+  deleteCommandDesc: '确定要删除此命令吗？此操作无法撤销。',
   save: '保存',
   selectTemplateId: '选择模板 ID:',
   templateNotFound: '未找到模板',
@@ -302,6 +308,9 @@ const en: I18nStrings = {
   editAICommand: 'Edit AI Command',
   editUrlCommand: 'Edit Link Command',
   editShortcutCommand: 'Edit Shortcut',
+  delete: 'Delete',
+  deleteCommand: 'Delete Command',
+  deleteCommandDesc: 'Are you sure you want to delete this command? This action cannot be undone.',
   save: 'Save',
   selectTemplateId: 'Select template ID:',
   templateNotFound: 'Template not found',

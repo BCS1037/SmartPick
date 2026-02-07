@@ -3,6 +3,7 @@
 import type SmartPickPlugin from '../main';
 import { ToolbarItem } from '../settings';
 import { exec } from 'child_process';
+import { Notice } from 'obsidian';
 
 export class CommandManager {
   private plugin: SmartPickPlugin;
@@ -31,6 +32,11 @@ export class CommandManager {
             } else if (item.type === 'ai' && item.promptTemplateId) {
               this.executeAICommand(item.promptTemplateId, selection, editor);
             } else if (item.type === 'url' && item.url) {
+              // Auto-copy to clipboard for easier pasting
+              navigator.clipboard.writeText(selection).catch(err => {
+                console.error('Failed to copy', err);
+              });
+              
               const url = item.url.replace(/{{selection}}/g, encodeURIComponent(selection));
               window.open(url);
             } else if (item.type === 'shortcut' && item.shortcutKeys) {

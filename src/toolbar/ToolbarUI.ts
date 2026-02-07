@@ -1,6 +1,6 @@
 // SmartPick Toolbar UI - DOM rendering and button handling
 
-import { setIcon, MarkdownView } from 'obsidian';
+import { setIcon, MarkdownView, Notice } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import type { Toolbar } from './Toolbar';
 import { ToolbarItem } from '../settings';
@@ -142,6 +142,12 @@ export class ToolbarUI {
       await this.executeAICommand(item.promptTemplateId, selection);
     } else if (item.type === 'url' && item.url) {
       // Execute URL command
+      
+      // Auto-copy to clipboard for easier pasting
+      navigator.clipboard.writeText(selection).catch(err => {
+        console.error('Failed to copy', err);
+      });
+
       const url = item.url.replace(/{{selection}}/g, encodeURIComponent(selection));
       window.open(url);
       this.toolbar.hide();

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.6] - 2026-02-07
+
+### Added
+- **UI**: Improved Settings UI layout:
+    - Compacted command list grid (3 items per row).
+    - Moved delete button to the edit modal for cleaner interface.
+    - Adjusted toolbar button positions in settings.
+- **Docs**: Updated README with URL scheme support, custom prompt templates, and Brat installation guide.
+
+### Fixed
+- **Fix**: Resolved issue where "SmartPick" toolbar AI commands (Gemini, Doubao, Qwen, etc.) did not copy selected text to clipboard.
+- **Polish**: Removed "Link copied to clipboard" notification for a seamless experience.
+
 ## [0.2.5] - 2026-02-05
 
 ### Added
