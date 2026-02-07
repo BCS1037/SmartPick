@@ -110,7 +110,7 @@ export class ToolbarUI {
     button.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.handleButtonClick(item);
+      void this.handleButtonClick(item);
     });
 
     this.toolbarEl.appendChild(button);

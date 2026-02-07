@@ -89,7 +89,7 @@ export class OllamaProvider implements AIProvider {
       }, (res: http.IncomingMessage) => {
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
            let errorBody = '';
-           res.on('data', (chunk: any) => errorBody += chunk);
+           res.on('data', (chunk: Buffer) => errorBody += chunk.toString());
            res.on('end', () => reject(new Error(`HTTP error! status: ${res.statusCode}, body: ${errorBody}`)));
            return;
         }

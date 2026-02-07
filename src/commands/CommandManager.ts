@@ -3,7 +3,14 @@
 import type SmartPickPlugin from '../main';
 import { ToolbarItem } from '../settings';
 import { exec } from 'child_process';
-import { Notice } from 'obsidian';
+import { Notice, Editor, App } from 'obsidian';
+
+interface AppWithCommands extends App {
+  commands: {
+    executeCommandById(id: string): void;
+    commands: Record<string, { name: string }>;
+  };
+}
 
 export class CommandManager {
   private plugin: SmartPickPlugin;
@@ -28,7 +35,7 @@ export class CommandManager {
             if (!selection) return;
 
             if (item.type === 'command' && item.commandId) {
-              (this.plugin.app as any).commands.executeCommandById(item.commandId);
+              (this.plugin.app as AppWithCommands).commands.executeCommandById(item.commandId);
             } else if (item.type === 'ai' && item.promptTemplateId) {
               this.executeAICommand(item.promptTemplateId, selection, editor);
             } else if (item.type === 'url' && item.url) {
@@ -51,7 +58,7 @@ export class CommandManager {
   private async executeAICommand(
     templateId: string, 
     selection: string, 
-    editor: any
+    editor: Editor
   ): Promise<void> {
     const template = this.plugin.settings.promptTemplates.find(
       t => t.id === templateId
@@ -105,14 +112,15 @@ export class CommandManager {
   }
 
   getAllObsidianCommands(): Array<{ id: string; name: string }> {
-    return Object.entries((this.plugin.app as any).commands.commands).map(([id, cmd]: [string, any]) => ({
+    const app = this.plugin.app as AppWithCommands;
+    return Object.entries(app.commands.commands).map(([id, cmd]) => ({
       id,
       name: cmd.name,
     }));
   }
 
   getCommandById(id: string): { id: string; name: string } | undefined {
-    const cmd = (this.plugin.app as any).commands.commands[id];
+    const cmd = (this.plugin.app as AppWithCommands).commands.commands[id];
     if (cmd) {
       return { id, name: cmd.name };
     }

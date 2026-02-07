@@ -153,13 +153,13 @@ export class OpenAIProvider implements AIProvider {
           resolve();
         });
         
-        res.on('error', (err: any) => {
-          reject(err instanceof Error ? err : new Error(String(err)));
+        res.on('error', (err: Error) => {
+          reject(err);
         });
       });
 
-      req.on('error', (err: any) => {
-        reject(err instanceof Error ? err : new Error(String(err)));
+      req.on('error', (err: Error) => {
+        reject(err);
       });
 
       req.write(JSON.stringify({

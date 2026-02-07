@@ -9,15 +9,15 @@ import * as http from 'http';
 export class AnthropicProvider implements AIProvider {
   name = 'Anthropic';
 
-  async fetchModels(_config: AIConfig): Promise<string[]> {
+  fetchModels(_config: AIConfig): Promise<string[]> {
     // Anthropic doesn't have a models endpoint, return hardcoded list
-    return [
+    return Promise.resolve([
       'claude-3-5-sonnet-20241022',
       'claude-3-5-haiku-20241022',
       'claude-3-opus-20240229',
       'claude-3-sonnet-20240229',
       'claude-3-haiku-20240307',
-    ];
+    ]);
   }
 
   private convertMessages(messages: ChatMessage[]): { 

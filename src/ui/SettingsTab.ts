@@ -209,28 +209,32 @@ export class SmartPickSettingTab extends PluginSettingTab {
     items: ToolbarItem[]
   ): void {
     const groupEl = container.createDiv('smartpick-toolbar-group');
-    const header = groupEl.createDiv('smartpick-toolbar-group-header');
+    // const header = groupEl.createDiv('smartpick-toolbar-group-header'); // Removed custom header div
     
     const isBuiltinGroup = ['format', 'ai', 'ungrouped', 'link', 'shortcut'].includes(group.id);
     const groupName = isBuiltinGroup ? t(('group_' + group.id) as keyof I18nStrings) || group.name : group.name;
     
-    header.createEl('h4', { text: groupName, cls: 'smartpick-group-title' });
+    // new Setting(containerEl).setName(...).setHeading()
+    // We render into groupEl, not container directly, to keep the group wrapper
+    const headerSetting = new Setting(groupEl)
+        .setName(groupName)
+        .setHeading();
 
     if (group.id !== 'ungrouped') {
-        const deleteBtn = header.createEl('button', { cls: 'smartpick-group-delete' });
-        setIcon(deleteBtn, 'trash-2');
-        deleteBtn.setAttribute('aria-label', 'Delete Group');
-        deleteBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            new ConfirmModal(
-                this.plugin.app,
-                'Delete Group',
-                `Delete group "${group.name}"? Items will be moved to Ungrouped.`,
-                async () => {
-                    await this.removeGroup(group.id);
-                },
-                'Delete'
-            ).open();
+        headerSetting.addExtraButton(btn => {
+            btn.setIcon('trash-2')
+               .setTooltip('Delete Group')
+               .onClick(async () => {
+                   new ConfirmModal(
+                       this.plugin.app,
+                       'Delete Group',
+                       `Delete group "${group.name}"? Items will be moved to Ungrouped.`,
+                       async () => {
+                           await this.removeGroup(group.id);
+                       },
+                       'Delete'
+                   ).open();
+               });
         });
     }
 
@@ -247,7 +251,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       listEl.removeClass('smartpick-drag-over');
     });
 
-    listEl.addEventListener('drop', async (e) => {
+    listEl.addEventListener('drop', (e) => {
       e.preventDefault();
       listEl.removeClass('smartpick-drag-over');
       const draggedId = e.dataTransfer!.getData('text/plain');
@@ -260,8 +264,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
         draggedItem.group = group.id;
         // Recalculate orders
         this.reorderItems();
-        await this.plugin.saveSettings();
-        this.display();
+        this.plugin.saveSettings().then(() => {
+            this.display();
+        });
       }
     });
     
@@ -305,7 +310,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       });
 
       // Drop on Item
-      itemEl.addEventListener('drop', async (e) => {
+      itemEl.addEventListener('drop', (e) => {
         e.preventDefault();
         e.stopPropagation();
         itemEl.removeClass('smartpick-drag-over-item');
@@ -346,8 +351,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
             // Normalize orders
             this.reorderItems();
             
-            await this.plugin.saveSettings();
-            this.display();
+            this.plugin.saveSettings().then(() => {
+                this.display();
+            });
         }
       });
       
@@ -377,8 +383,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
       // Action Buttons Container
       const actionsEl = itemEl.createDiv('smartpick-item-actions');
-      actionsEl.style.display = 'flex';
-      actionsEl.style.gap = '4px';
+      // actionsEl.style.display = 'flex'; // Moved to CSS
+      // actionsEl.style.gap = '4px'; // Moved to CSS
 
     }
   }
@@ -494,8 +500,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
                 aiConfig.apiUrl = 'http://localhost:11434';
                 break;
             }
-            await this.plugin.saveSettings();
-            this.display();
+            this.plugin.saveSettings().then(() => {
+                this.display();
+            });
           });
       });
 
