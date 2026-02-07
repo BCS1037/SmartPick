@@ -12,10 +12,19 @@
 - **Shortcuts & Links**: Trigger system shortcuts or open external links (Google, DeepSeek, etc.) directly.
 - **Group Organization**: Organize your commands into groups for easier access.
 - **Drag & Drop Customization**: Easily rearrange toolbar items using drag and drop.
+- **Custom Prompts**: Create and manage your own prompt templates for AI commands.
+- **URL Scheme Support**: Add and execute URL Scheme commands (e.g., `obsidian://`, `shortcuts://`) directly from the toolbar.
 - **Bilingual Support**: Fully localized in English and Chinese.
 - **Markdown Rendering**: AI responses are rendered in rich Markdown format.
 
 ## 🚀 Installation
+
+### Via BRAT (Beta)
+
+1. Install [Obsidian42 - BRAT](https://github.com/TfTHacker/obsidian42-brat) via Community Plugins.
+2. Open BRAT settings and click "Add Beta plugin".
+3. Enter the repository URL: `https://github.com/bcs/SmartPick`.
+4. Click "Add Plugin", then enable "SmartPick" in the Community Plugins list.
 
 ### Manual Installation
 1. Download the latest release from the [Releases](https://github.com/bcs/SmartPick/releases) page.
