@@ -1,9 +1,9 @@
 // SmartPick Toolbar UI - DOM rendering and button handling
 
-import { setIcon, MarkdownView, Notice } from 'obsidian';
+import { setIcon, MarkdownView } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import type { Toolbar } from './Toolbar';
-import { ToolbarItem } from '../settings';
+import type { ToolbarItem } from '../settings';
 import { t, I18nStrings } from '../i18n';
 
 

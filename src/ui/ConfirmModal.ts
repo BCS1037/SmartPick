@@ -1,4 +1,4 @@
-import { App, Modal, Setting, ButtonComponent } from 'obsidian';
+import { App, Modal, ButtonComponent } from 'obsidian';
 
 export class ConfirmModal extends Modal {
   private title: string;

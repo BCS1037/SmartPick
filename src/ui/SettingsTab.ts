@@ -240,7 +240,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         draggedItem.group = group.id;
         // Recalculate orders
         this.reorderItems();
-        this.plugin.saveSettings().then(() => {
+        void this.plugin.saveSettings().then(() => {
             this.display();
         });
       }
@@ -814,11 +814,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }).open();
   }
 
-  private removeToolbarItem(id: string): void {
+  private async removeToolbarItem(id: string): Promise<void> {
     this.plugin.settings.toolbarItems = this.plugin.settings.toolbarItems.filter(
       item => item.id !== id
     );
-    this.plugin.saveSettings();
+    await this.plugin.saveSettings();
     this.display();
   }
 
@@ -863,12 +863,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
         t('deleteTemplate') + '?',
         () => {
             this.plugin.settings.promptTemplates = this.plugin.settings.promptTemplates.filter(
-                t => t.id !== id
+                tpl => tpl.id !== id
             );
-            this.plugin.saveSettings();
-            this.display();
+            void this.plugin.saveSettings().then(() => {
+                this.display();
+            });
         },
-        'Delete'
+        t('delete')
     ).open();
   }
 

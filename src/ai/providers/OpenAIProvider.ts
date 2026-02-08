@@ -142,7 +142,7 @@ export class OpenAIProvider implements AIProvider {
                 if (content) {
                   onChunk(content);
                 }
-              } catch (e) {
+              } catch {
                 // Ignore JSON parse errors
               }
             }

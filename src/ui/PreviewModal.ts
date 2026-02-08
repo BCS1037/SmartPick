@@ -170,8 +170,8 @@ export class PreviewModal extends Modal {
               
               // Scroll to bottom
               this.responseEl.scrollTop = this.responseEl.scrollHeight;
-            } catch (e) {
-              // console.debug('SmartPick - Partial render skipped:', e);
+            } catch {
+              // console.debug('SmartPick - Partial render skipped:');
             } finally {
               isRendering = false;
             }
