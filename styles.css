@@ -294,18 +294,18 @@
 
 .smartpick-toolbar-group-items {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  min-height: 40px;
-  padding-bottom: 8px; /* Extra padding for easier dropping */
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  min-height: 32px;
+  padding-bottom: 6px; /* Extra padding for easier dropping */
 }
 
 .smartpick-toolbar-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px; /* Reduced padding */
-  min-height: 50px;
+  gap: 6px;
+  padding: 4px 6px;
+  min-height: 32px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -544,4 +544,43 @@
 .smartpick-item-actions {
   display: flex;
   gap: 4px;
+}
+
+/* Disabled toolbar item */
+.smartpick-toolbar-item.is-disabled {
+  opacity: 0.5;
+}
+
+.smartpick-toolbar-item.is-disabled .smartpick-toolbar-item-name {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Toggle enable/disable button */
+.smartpick-toggle-btn {
+  display: flex;
+  padding: 4px;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.15s ease;
+}
+
+.smartpick-toolbar-item:hover .smartpick-toggle-btn {
+  opacity: 1;
+}
+
+.smartpick-toggle-btn:hover {
+  background: transparent;
+  color: var(--text-normal);
+}
+
+.smartpick-toggle-btn svg {
+  width: 14px;
+  height: 14px;
 }

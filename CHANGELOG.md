@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.3] - 2026-02-10
+
+### Added
+- **Feature**: Added enable/disable toggle for commands, allowing users to hide commands from the toolbar without deleting them.
+
+### Improved
+- **UI**: Reduced spacing in command groups on settings page for a more compact layout:
+    - Decreased group padding and margins.
+    - Reduced title font size and spacing.
+    - Optimized vertical space usage between groups.
+
 ## [0.3.2] - 2026-02-09
 
 ### Fixed

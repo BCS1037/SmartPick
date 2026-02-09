@@ -58,6 +58,8 @@ export interface I18nStrings {
   searchCommands: string;
   searchIcons: string;
   defaultIcon: string;
+  enableCommand: string;
+  disableCommand: string;
   
   // AI Settings
   apiProvider: string;
@@ -188,6 +190,8 @@ const zh: I18nStrings = {
   searchCommands: '搜索命令...',
   searchIcons: '搜索图标...',
   defaultIcon: '默认图标',
+  enableCommand: '启用',
+  disableCommand: '禁用',
   
   // AI Settings
   apiProvider: 'API 提供商',
@@ -318,6 +322,8 @@ const en: I18nStrings = {
   searchCommands: 'Search commands...',
   searchIcons: 'Search icons...',
   defaultIcon: 'Default icon',
+  enableCommand: 'Enable',
+  disableCommand: 'Disable',
   
   // AI Settings
   apiProvider: 'API provider',

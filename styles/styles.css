@@ -191,16 +191,16 @@
 
 /* Toolbar Group */
 .smartpick-toolbar-group {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   background: var(--background-primary-alt);
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
-  padding: 12px;
+  padding: 8px;
 }
 
 .smartpick-toolbar-group h4 {
-  margin: 0 0 12px 0;
-  font-size: 0.9em;
+  margin: 0 0 6px 0;
+  font-size: 0.85em;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;

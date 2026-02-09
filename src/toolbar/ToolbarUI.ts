@@ -114,7 +114,7 @@ export class ToolbarUI {
 
     // Render items
     for (const item of items) {
-      if (item.type !== 'separator') {
+      if (item.type !== 'separator' && item.enabled !== false) {
         this.renderButton(item);
       }
     }

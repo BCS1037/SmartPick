@@ -357,8 +357,28 @@ export class SmartPickSettingTab extends PluginSettingTab {
         itemEl.createSpan({ text: 'AI', cls: 'smartpick-toolbar-item-badge' });
       }
 
-      // Action Buttons Container (created for future use)
-      itemEl.createDiv('smartpick-item-actions');
+      // Add disabled state class
+      if (item.enabled === false) {
+        itemEl.addClass('is-disabled');
+      }
+
+      // Action Buttons Container
+      const actionsEl = itemEl.createDiv('smartpick-item-actions');
+
+      // Toggle enable/disable button
+      const toggleBtn = actionsEl.createEl('button', { 
+        cls: 'smartpick-toggle-btn',
+        attr: { 'aria-label': item.enabled !== false ? t('disableCommand') : t('enableCommand') }
+      });
+      setIcon(toggleBtn, item.enabled !== false ? 'eye' : 'eye-off');
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        void (async () => {
+          item.enabled = item.enabled === false ? true : false;
+          await this.plugin.saveSettings();
+          this.display();
+        })();
+      });
 
     }
   }
@@ -720,6 +740,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             type: 'command',
             icon: icon || 'command',
             tooltip: tooltip,
+            enabled: true,
             commandId: id,
             group: 'ungrouped',
             order: this.plugin.settings.toolbarItems.length,
@@ -746,6 +767,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             type: 'ai',
             icon: icon || 'sparkles',
             tooltip: template.name,
+            enabled: true,
             promptTemplateId: templateId,
             group: 'ai',
             order: this.plugin.settings.toolbarItems.length,
@@ -766,6 +788,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             type: 'url',
             icon: icon || 'link',
             tooltip: name,
+            enabled: true,
             url: url,
             group: 'ungrouped',
             order: this.plugin.settings.toolbarItems.length,
@@ -786,6 +809,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             type: 'shortcut',
             icon: icon || 'keyboard',
             tooltip: name,
+            enabled: true,
             shortcutKeys: keys,
             group: 'ungrouped',
             order: this.plugin.settings.toolbarItems.length,
