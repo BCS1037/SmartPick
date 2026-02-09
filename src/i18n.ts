@@ -325,7 +325,7 @@ const en: I18nStrings = {
   apiUrl: 'API URL',
   apiUrlDesc: 'Base URL for the API',
   apiKey: 'API key',
-  apiKeyDesc: 'Secret API Key (stored securely)',
+  apiKeyDesc: 'Secret API key (stored securely)',
   fetchModels: 'Fetch models',
   fetchModelsDesc: 'Retrieve available models from the provider',
   fetchingModels: 'Fetching models...',

@@ -130,7 +130,7 @@ export class CommandModal extends Modal {
       .setName(t('enterCommandId'))
       .addText(text => {
         commandIdText = text;
-        text.setPlaceholder('editor:toggle-bold')
+        text.setPlaceholder('`editor:toggle-bold`')
             .setValue(this.resultId)
             .onChange(value => this.resultId = value);
       })
@@ -171,7 +171,7 @@ export class CommandModal extends Modal {
       .addText(text => {
         iconText = text;
         text.setValue(this.resultIcon)
-            .setPlaceholder('command')
+            .setPlaceholder('`command`')
             .onChange(value => {
               this.resultIcon = value;
               updateIconPreview(value);
@@ -308,7 +308,7 @@ export class AICommandModal extends Modal {
       .addText(text => {
         iconText = text;
         text.setValue(this.resultIcon)
-            .setPlaceholder('sparkles')
+            .setPlaceholder('`sparkles`')
             .onChange(value => {
               this.resultIcon = value;
               updateIconPreview(value);
@@ -465,7 +465,7 @@ export class UrlCommandModal extends Modal {
       .setName(t('enterUrl'))
       .addText(text => {
         text.setValue(this.resultUrl)
-            .setPlaceholder('https://... or shortcuts://...')
+            .setPlaceholder('`https://...` or `shortcuts://...`')
             .onChange(value => this.resultUrl = value);
         text.inputEl.addClass('smartpick-full-width');
       });
@@ -479,7 +479,7 @@ export class UrlCommandModal extends Modal {
       .addText(text => {
         iconText = text;
         text.setValue(this.resultIcon)
-            .setPlaceholder('link')
+            .setPlaceholder('`link`')
             .onChange(value => {
               this.resultIcon = value;
               updateIconPreview(value);
@@ -636,7 +636,7 @@ export class ShortcutModal extends Modal {
       .addText(text => {
         iconText = text;
         text.setValue(this.resultIcon)
-            .setPlaceholder('keyboard')
+            .setPlaceholder('`keyboard`')
             .onChange(value => {
               this.resultIcon = value;
               updateIconPreview(value);

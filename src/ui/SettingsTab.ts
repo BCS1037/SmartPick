@@ -468,7 +468,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
           .addOption('openai', 'OpenAI')
           .addOption('anthropic', 'Anthropic')
           .addOption('ollama', 'Ollama')
-          .addOption('custom', 'Custom (OpenAI compatible)')
+          .addOption('custom', 'Custom (OpenAI-compatible)')
           .setValue(aiConfig.provider)
           .onChange((value) => {
             void (async () => {
@@ -494,7 +494,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     // API URL
     new Setting(containerEl)
       .setName(t('apiUrl'))
-      .setDesc('Base URL for the API')
+      .setDesc(t('apiUrlDesc'))
       .addText(text => {
         text
           .setPlaceholder('https://api.openai.com/v1')
@@ -511,10 +511,10 @@ export class SmartPickSettingTab extends PluginSettingTab {
     if (aiConfig.provider !== 'ollama') {
       new Setting(containerEl)
         .setName(t('apiKey'))
-        .setDesc('Secret API key (stored securely)')
+        .setDesc(t('apiKeyDesc'))
         .addText(text => {
           text
-            .setPlaceholder('sk-...')
+            .setPlaceholder('`sk-...`')
             .setValue(aiConfig.apiKey)
             .inputEl.type = 'password';
           text.onChange((value) => {
@@ -529,7 +529,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     // Fetch Models button
     new Setting(containerEl)
       .setName(t('fetchModels'))
-      .setDesc('Retrieve available models from the provider')
+      .setDesc(t('fetchModelsDesc'))
       .addButton(button => {
         button.setButtonText(t('fetchModels'));
         button.setButtonText(t('fetchModels'));
@@ -577,7 +577,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     } else {
       modelsSetting.addText(text => {
         text
-          .setPlaceholder('gpt-4o-mini')
+          .setPlaceholder('`gpt-4o-mini`')
           .setValue(aiConfig.defaultModel)
           .onChange((value) => {
              void (async () => {

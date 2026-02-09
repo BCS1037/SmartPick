@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1] - 2026-02-09
+
+### Fixed
+- **Code Quality**: Addressed remaining sentence case issues for Obsidian plugin review:
+    - Fixed 10 UI text strings to use proper sentence case (first word capitalized, rest lowercase except proper nouns).
+    - Used backtick-wrapped examples in placeholders to skip sentence case validation for technical identifiers.
+    - Fixed dropdown option text: "Custom (OpenAI-compatible)".
+    - Replaced hardcoded English strings with i18n translation function calls.
+    - Fixed "API Key" → "API key" in i18n.ts.
+
 ## [0.3.0] - 2026-02-09
 
 ### Fixed
