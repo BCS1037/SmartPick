@@ -124,7 +124,7 @@ export class CommandModal extends Modal {
     let commandIdText: TextComponent;
     let tooltipText: TextComponent;
     let iconText: TextComponent;
-    let iconPreview: HTMLElement;
+
     
     new Setting(contentEl)
       .setName(t('enterCommandId'))
@@ -188,7 +188,7 @@ export class CommandModal extends Modal {
         }));
         
     // Add icon preview
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
+    const iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
@@ -301,7 +301,7 @@ export class AICommandModal extends Modal {
 
     // Icon Input
     let iconText: TextComponent;
-    let iconPreview: HTMLElement;
+
 
     const iconSetting = new Setting(contentEl)
       .setName(t('enterIconName'))
@@ -324,7 +324,7 @@ export class AICommandModal extends Modal {
           }).open();
         }));
     
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
+    const iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
@@ -472,7 +472,7 @@ export class UrlCommandModal extends Modal {
 
     // Icon Input
     let iconText: TextComponent;
-    let iconPreview: HTMLElement;
+
     
     const iconSetting = new Setting(contentEl)
       .setName(t('enterIconName'))
@@ -495,7 +495,7 @@ export class UrlCommandModal extends Modal {
           }).open();
         }));
         
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
+    const iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
@@ -629,7 +629,7 @@ export class ShortcutModal extends Modal {
 
     // Icon Input
     let iconText: TextComponent;
-    let iconPreview: HTMLElement;
+
     
     const iconSetting = new Setting(contentEl)
       .setName(t('enterIconName'))
@@ -652,7 +652,7 @@ export class ShortcutModal extends Modal {
           }).open();
         }));
         
-    iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
+    const iconPreview = iconSetting.controlEl.createSpan({ cls: 'smartpick-icon-preview' });
     
     const updateIconPreview = (icon: string) => {
       iconPreview.empty();
