@@ -465,10 +465,10 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .setDesc(t('apiProviderDesc'))
       .addDropdown(dropdown => {
         dropdown
-          .addOption('openai', 'Openai')
+          .addOption('openai', 'OpenAI')
           .addOption('anthropic', 'Anthropic')
           .addOption('ollama', 'Ollama')
-          .addOption('custom', 'Custom (Openai compatible)')
+          .addOption('custom', 'Custom (OpenAI compatible)')
           .setValue(aiConfig.provider)
           .onChange((value) => {
             void (async () => {

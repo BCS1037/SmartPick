@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.2] - 2026-02-09
+
+### Fixed
+- **Code Quality**: Fixed remaining sentence case issue for Obsidian plugin review:
+    - Changed "Openai" → "OpenAI" in API provider dropdown options (proper brand name capitalization).
+
 ## [0.3.1] - 2026-02-09
 
 ### Fixed
