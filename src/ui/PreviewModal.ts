@@ -82,7 +82,7 @@ export class PreviewModal extends Modal {
     const copyBtn = buttonsEl.createEl('button');
     setIcon(copyBtn, 'copy');
     setTooltip(copyBtn, t('copy'));
-    copyBtn.addEventListener('click', () => this.handleCopy());
+    copyBtn.addEventListener('click', () => { void this.handleCopy(); });
 
     // Cancel button
     const cancelBtn = buttonsEl.createEl('button');
@@ -91,7 +91,7 @@ export class PreviewModal extends Modal {
     cancelBtn.addEventListener('click', () => this.close());
 
     // Start generation
-    this.generate();
+    void this.generate();
   }
 
   private async generate(): Promise<void> {
@@ -145,7 +145,7 @@ export class PreviewModal extends Modal {
       await provider.chatStream(
         messages,
         aiConfig,
-        async (chunk) => {
+        (chunk) => {
           this.response += chunk;
           
           const now = Date.now();
@@ -155,26 +155,27 @@ export class PreviewModal extends Modal {
             isRendering = true;
             lastRender = now;
             
-            try {
-              // Render partial response
+            const responseEl = this.responseEl;
+            void (async () => {
+              try {
+                // Render partial response
+                responseEl.empty();
+                await MarkdownRenderer.render(
+                  this.app,
+                  this.response,
+                  responseEl,
+                  '',
+                  this.component
+                );
 
-              this.responseEl.empty();
-              await MarkdownRenderer.render(
-                this.app,
-                this.response,
-                this.responseEl,
-                '',
-                this.component
-              );
-
-              
-              // Scroll to bottom
-              this.responseEl.scrollTop = this.responseEl.scrollHeight;
-            } catch {
-              // console.debug('SmartPick - Partial render skipped:');
-            } finally {
-              isRendering = false;
-            }
+                // Scroll to bottom
+                responseEl.scrollTop = responseEl.scrollHeight;
+              } catch {
+                // console.debug('SmartPick - Partial render skipped:');
+              } finally {
+                isRendering = false;
+              }
+            })();
           }
         },
         this.template.model || aiConfig.defaultModel

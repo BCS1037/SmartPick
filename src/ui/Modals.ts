@@ -457,7 +457,7 @@ export class UrlCommandModal extends Modal {
       .setName(t('enterName'))
       .addText(text => text
         .setValue(this.resultName)
-        .setPlaceholder('Google / Shortcut Name')
+        .setPlaceholder('Google / shortcut name')
         .onChange(value => this.resultName = value));
 
     // URL Input
@@ -582,7 +582,7 @@ export class ShortcutModal extends Modal {
       .setName(t('enterName'))
       .addText(text => text
         .setValue(this.resultName)
-        .setPlaceholder('Screenshot / App Name')
+        .setPlaceholder('Screenshot / app name')
         .onChange(value => this.resultName = value));
 
     // Shortcut Input
@@ -682,7 +682,7 @@ export class ShortcutModal extends Modal {
         .setCta()
         .onClick(() => {
           if (!this.resultName || !this.resultKeys) {
-            new Notice('Name and Shortcut keys are required');
+            new Notice('Name and shortcut keys are required');
             return;
           }
           this.close();

@@ -199,14 +199,14 @@ export class SmartPickSettingTab extends PluginSettingTab {
     if (group.id !== 'ungrouped') {
         headerSetting.addExtraButton(btn => {
             btn.setIcon('trash-2')
-               .setTooltip('Delete Group')
+               .setTooltip('Delete group')
                .onClick(() => {
                    new ConfirmModal(
                        this.plugin.app,
-                       'Delete Group',
-                       `Delete group "${group.name}"? Items will be moved to Ungrouped.`,
-                       async () => {
-                           await this.removeGroup(group.id);
+                       'Delete group',
+                       `Delete group "${group.name}"? Items will be moved to ungrouped.`,
+                       () => {
+                           void this.removeGroup(group.id);
                        },
                        'Delete'
                    ).open();
@@ -468,7 +468,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
           .addOption('openai', 'OpenAI')
           .addOption('anthropic', 'Anthropic')
           .addOption('ollama', 'Ollama')
-          .addOption('custom', 'Custom (OpenAI Compatible)')
+          .addOption('custom', 'Custom (OpenAI compatible)')
           .setValue(aiConfig.provider)
           .onChange((value) => {
             void (async () => {
@@ -511,7 +511,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     if (aiConfig.provider !== 'ollama') {
       new Setting(containerEl)
         .setName(t('apiKey'))
-        .setDesc('Secret API Key (stored securely)')
+        .setDesc('Secret API key (stored securely)')
         .addText(text => {
           text
             .setPlaceholder('sk-...')

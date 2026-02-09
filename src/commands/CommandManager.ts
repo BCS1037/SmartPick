@@ -1,9 +1,8 @@
 // SmartPick Command Manager - Manages custom commands and hotkeys
 
 import type SmartPickPlugin from '../main';
-import { ToolbarItem } from '../settings';
 import { exec } from 'child_process';
-import { Notice, Editor, App } from 'obsidian';
+import { Editor, App } from 'obsidian';
 
 interface AppWithCommands extends App {
   commands: {
@@ -37,7 +36,7 @@ export class CommandManager {
             if (item.type === 'command' && item.commandId) {
               (this.plugin.app as AppWithCommands).commands.executeCommandById(item.commandId);
             } else if (item.type === 'ai' && item.promptTemplateId) {
-              this.executeAICommand(item.promptTemplateId, selection, editor);
+              void this.executeAICommand(item.promptTemplateId, selection, editor);
             } else if (item.type === 'url' && item.url) {
               // Auto-copy to clipboard for easier pasting
               navigator.clipboard.writeText(selection).catch(err => {

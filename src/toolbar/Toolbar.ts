@@ -52,7 +52,7 @@ export class Toolbar {
     if (!editor) return;
 
     // Listen to selection changes via DOM
-    const editorEl = (view.contentEl as HTMLElement).querySelector('.cm-content');
+    const editorEl = view.contentEl.querySelector('.cm-content');
     if (editorEl) {
       this.watchedEditorEl = editorEl as HTMLElement;
       this.watchedEditorEl.addEventListener('mouseup', this.handleSelectionChange);

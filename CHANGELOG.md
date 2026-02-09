@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0] - 2026-02-09
+
+### Fixed
+- **Code Quality**: Resolved all remaining Obsidian plugin review issues:
+    - Fixed unawaited promises with `void` operator in `CommandManager.ts` and `PreviewModal.ts`.
+    - Removed unnecessary type assertion in `Toolbar.ts`.
+    - Converted 15 UI texts to sentence case for consistency.
+    - Fixed promise-in-void-function issues in callbacks.
+    - Removed unused `ToolbarItem` and `Notice` imports.
+
 ## [0.2.9] - 2026-02-08
 
 ### Fixed
