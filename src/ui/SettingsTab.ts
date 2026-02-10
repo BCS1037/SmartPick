@@ -113,6 +113,20 @@ export class SmartPickSettingTab extends PluginSettingTab {
         })
       );
 
+    // Double-click trigger toggle
+    new Setting(containerEl)
+      .setName(t('enableDoubleClickTrigger'))
+      .setDesc(t('enableDoubleClickTriggerDesc'))
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableDoubleClickTrigger)
+        .onChange((value) => {
+          void (async () => {
+            this.plugin.settings.enableDoubleClickTrigger = value;
+            await this.plugin.saveSettings();
+          })();
+        })
+      );
+
     // Toolbar Horizontal Offset - Removed (Smart positioning)
 
     // Buttons

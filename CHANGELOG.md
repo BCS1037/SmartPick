@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0] - 2026-02-10
+
+### Added
+- **Feature**: Double-click to show toolbar — double-clicking in the editor area now triggers the toolbar, even without selecting text. Ideal for insert-type commands (e.g., insert table, callout, code block).
+- **Setting**: Added toggle to enable/disable the double-click trigger in toolbar settings.
+- **UI**: Buttons that require text selection (AI, URL) are visually disabled when no text is selected.
+
 ## [0.3.3] - 2026-02-10
 
 ### Added

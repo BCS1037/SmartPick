@@ -18,14 +18,16 @@ export class ToolbarUI {
   private toolbar: Toolbar;
   private containerEl: HTMLElement | null = null;
   private toolbarEl: HTMLElement | null = null;
+  private hasSelection: boolean = true;
 
   constructor(plugin: SmartPickPlugin, toolbar: Toolbar) {
     this.plugin = plugin;
     this.toolbar = toolbar;
   }
 
-  show(pos: { left: number; top: number; right: number; bottom: number; width: number }): void {
+  show(pos: { left: number; top: number; right: number; bottom: number; width: number }, hasSelection: boolean = true): void {
     this.hide();
+    this.hasSelection = hasSelection;
     this.render(pos);
   }
 
@@ -115,7 +117,7 @@ export class ToolbarUI {
     // Render items
     for (const item of items) {
       if (item.type !== 'separator' && item.enabled !== false) {
-        this.renderButton(item);
+        this.renderButton(item, this.hasSelection);
       }
     }
 
@@ -130,11 +132,17 @@ export class ToolbarUI {
     });
   }
 
-  private renderButton(item: ToolbarItem): void {
+  private renderButton(item: ToolbarItem, hasSelection: boolean = true): void {
     if (!this.toolbarEl) return;
 
     const button = document.createElement('button');
     button.className = 'smartpick-toolbar-button';
+    
+    // Check if this button requires selection
+    const needsSelection = item.type === 'ai' || item.type === 'url';
+    if (needsSelection && !hasSelection) {
+      button.classList.add('smartpick-toolbar-button-disabled');
+    }
     
     let tooltip = item.tooltip;
     if (['bold', 'italic', 'highlight'].includes(item.id)) {
@@ -172,21 +180,21 @@ export class ToolbarUI {
     const selection = this.toolbar.getCurrentSelection();
     const editor = this.toolbar.getCurrentEditor();
 
-    if (!selection || !editor) {
+    if (!editor) {
       return;
     }
 
     if (item.type === 'command' && item.commandId) {
-      // Execute Obsidian command
+      // Execute Obsidian command (works with or without selection)
       (this.plugin.app as unknown as AppWithCommands).commands.executeCommandById(item.commandId);
       this.toolbar.hide();
     } else if (item.type === 'ai' && item.promptTemplateId) {
-
-      // Execute AI command
-      // Handle toolbar hide inside executeAICommand or here? Original code didn't hide here, but executeAICommand had this.toolbar.hide() call at the end.
+      // AI commands require selection
+      if (!selection) return;
       await this.executeAICommand(item.promptTemplateId, selection);
     } else if (item.type === 'url' && item.url) {
-      // Execute URL command
+      // URL commands require selection
+      if (!selection) return;
       
       // Auto-copy to clipboard for easier pasting
       navigator.clipboard.writeText(selection).catch(err => {
@@ -197,7 +205,7 @@ export class ToolbarUI {
       window.open(url);
       this.toolbar.hide();
     } else if (item.type === 'shortcut' && item.shortcutKeys) {
-      // Execute Shortcut
+      // Shortcut commands work with or without selection
       this.plugin.commandManager?.executeShortcut(item.shortcutKeys);
       this.toolbar.hide();
     }

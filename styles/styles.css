@@ -72,6 +72,13 @@
   border-radius: 50%;
 }
 
+/* Disabled Toolbar Button (no selection) */
+.smartpick-toolbar-button-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Toolbar Separator - Hidden */
 .smartpick-toolbar-separator {
   display: none;

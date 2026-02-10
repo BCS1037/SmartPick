@@ -66,6 +66,9 @@ export interface SmartPickSettings {
   
   // Language
   language: 'zh' | 'en' | 'auto';
+  
+  // Double-click trigger
+  enableDoubleClickTrigger: boolean;
 }
 
 // Default built-in prompt templates
@@ -310,6 +313,8 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   maxHistoryTurns: 5,
   
   language: 'auto',
+  
+  enableDoubleClickTrigger: true,
 };
 
 // Generate unique ID

@@ -125,6 +125,10 @@ export interface I18nStrings {
   group_shortcut: string;
   group_ungrouped_name: string;
   
+  // Double-click trigger
+  enableDoubleClickTrigger: string;
+  enableDoubleClickTriggerDesc: string;
+  
   // Built-in Templates
   template_translate: string;
   template_summarize: string;
@@ -257,6 +261,10 @@ const zh: I18nStrings = {
   group_shortcut: '快捷键',
   group_ungrouped_name: '未分组',
   
+  // Double-click trigger
+  enableDoubleClickTrigger: '双击显示工具栏',
+  enableDoubleClickTriggerDesc: '在编辑区域双击鼠标时显示工具栏（无需选中文本）',
+  
   // Built-in Templates
   template_translate: '翻译',
   template_summarize: '总结',
@@ -388,6 +396,10 @@ const en: I18nStrings = {
   group_link: 'Links',
   group_shortcut: 'Shortcuts',
   group_ungrouped_name: 'Ungrouped',
+  
+  // Double-click trigger
+  enableDoubleClickTrigger: 'Double-click to show toolbar',
+  enableDoubleClickTriggerDesc: 'Show toolbar when double-clicking in editor area (no text selection required)',
   
   // Built-in Templates
   template_translate: 'Translate',
