@@ -56,7 +56,16 @@ export class ToolbarUI {
     // But since we want "standard 0 offset" from the top of the selection line, we position it at pos.top
     // and rely on CSS transform: translateY(-100%) and some margin-bottom in CSS/JS to lift it up.
     // Let's set it to pos.top + user setting (default 26px)
-    const top = pos.top + this.plugin.settings.toolbarVerticalOffset;
+    let top = pos.top + this.plugin.settings.toolbarVerticalOffset;
+
+    // Fix for "Select All" / off-screen selection start:
+    // If the calculated top is above the viewport (negative or very small), clamp it to a minimum safe padding.
+    // 10px padding from the top of the viewport seems reasonable.
+    const minTop = 10;
+    if (top < minTop) {
+        top = minTop;
+    }
+
     this.containerEl.style.top = `${top}px`;
 
     // Horizontal positioning logic

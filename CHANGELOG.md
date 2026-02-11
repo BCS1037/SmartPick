@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.1] - 2026-02-12
+
+### Fixed
+- **Toolbar**: Fixed an issue where the toolbar was not visible when selecting all text (`Cmd+A`) in long documents. The toolbar now automatically repositions to remain visible at the top of the viewport.
+
 ## [0.4.0] - 2026-02-10
 
 ### Added
