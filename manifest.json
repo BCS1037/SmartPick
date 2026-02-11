@@ -1,7 +1,7 @@
 {
   "id": "smartpick",
   "name": "SmartPick",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "minAppVersion": "1.0.0",
   "description": "Smart text selection toolbar with custom commands and AI features.",
   "author": "BCS",

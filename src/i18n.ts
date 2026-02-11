@@ -137,6 +137,19 @@ export interface I18nStrings {
   template_fix_grammar: string;
   template_expand: string;
   template_simplify: string;
+
+  // New Built-in Tools
+  group_builtin: string;
+  command_superscript: string;
+  command_subscript: string;
+  command_table: string;
+  command_callout: string;
+  command_clear_formatting: string;
+  command_copy: string;
+  command_cut: string;
+  command_paste: string;
+  command_inline_code: string;
+  command_code_block: string;
 }
 
 const zh: I18nStrings = {
@@ -273,6 +286,19 @@ const zh: I18nStrings = {
   template_fix_grammar: '修正语法',
   template_expand: '扩展内容',
   template_simplify: '简化',
+
+  // New Built-in Tools
+  group_builtin: '内置工具集',
+  command_superscript: '上标',
+  command_subscript: '下标',
+  command_table: '插入表格',
+  command_callout: '插入 Callout',
+  command_clear_formatting: '清除格式',
+  command_copy: '复制',
+  command_cut: '剪切',
+  command_paste: '粘贴',
+  command_inline_code: '行内代码',
+  command_code_block: '代码块',
 };
 
 const en: I18nStrings = {
@@ -409,6 +435,19 @@ const en: I18nStrings = {
   template_fix_grammar: 'Fix grammar',
   template_expand: 'Expand',
   template_simplify: 'Simplify',
+
+  // New Built-in Tools
+  group_builtin: 'Built-in Tools',
+  command_superscript: 'Superscript',
+  command_subscript: 'Subscript',
+  command_table: 'Insert Table',
+  command_callout: 'Insert Callout',
+  command_clear_formatting: 'Clear Formatting',
+  command_copy: 'Copy',
+  command_cut: 'Cut',
+  command_paste: 'Paste',
+  command_inline_code: 'Inline Code',
+  command_code_block: 'Code Block',
 };
 
 const translations: Record<Language, I18nStrings> = { zh, en };

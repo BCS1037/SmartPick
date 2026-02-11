@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0] - 2026-02-12
+
+### Added
+- **Commands**: Added **Insert Quote** and **Insert Footnote** commands to the built-in tools.
+
+### Improved
+- **Toolbar Configuration**: Updated the default toolbar items:
+    - Removed **Italic** command from built-in tools.
+    - Streamlined default enabled commands to reduce clutter (enabled: Bold, Superscript, Subscript, Inline Code, Quote, Footnote, Callout, Copy, Paste, Clear Formatting, Translate, Explain, Google, Gemini).
+- **Icons**: Updated icons for Google, Baidu, and DeepSeek commands for better visual recognition.
+
+### Fixed
+- **Toolbar**: Resolved an issue where duplicate items appeared in the built-in tools group.
+- **Migration**: Improved settings migration to ensure new defaults are correctly applied to existing users.
+
 ## [0.4.1] - 2026-02-12
 
 ### Fixed
