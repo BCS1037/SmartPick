@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.1] - 2026-02-12
+
+### Fixed
+- **Icons**: Corrected icons for Google and Baidu search commands to use `lucide-chrome` and `lucide-paw-print`.
+
 ## [0.5.0] - 2026-02-12
 
 ### Added

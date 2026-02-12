@@ -315,7 +315,7 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
   {
     id: 'link-google',
     type: 'url',
-    icon: 'remix-ChromeLine',
+    icon: 'lucide-chrome',
     tooltip: 'Google',
     enabled: true,
     url: 'https://www.google.com/search?q={{selection}}',
@@ -335,7 +335,7 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
   {
     id: 'link-baidu',
     type: 'url',
-    icon: 'remix-BaiduFill',
+    icon: 'lucide-paw-print',
     tooltip: 'Baidu',
     enabled: false,
     url: 'https://www.baidu.com/s?wd={{selection}}',

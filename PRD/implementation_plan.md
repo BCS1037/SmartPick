@@ -1,28 +1,26 @@
-# Implementation Plan - Toolbar Trigger on Select All (Cmd+A)
+# Requirement: Update Search Icons
 
-## Goal Description
-Enable the SmartPick toolbar to appear when the user selects all text using `Cmd+A` (or `Ctrl+A`) (or any large selection where the start is off-screen). Currently, the toolbar is positioned based on the *start* of the selection. For "Select All", start is at the top of the document, causing the toolbar to render off-screen (negative top coordinates relative to viewport).
+## Goal
 
-## User Review Required
-> [!NOTE]
-> This change primarily affects the **positioning** of the toolbar for large selections. It ensures visibility by clamping the toolbar to the top of the viewport when the selection start is above.
+Update the icons for existing search commands in the SmartPick plugin to better represent their respective services.
 
-## Proposed Changes
+## Changes
 
-### [SmartPick UI]
-Modify `src/toolbar/ToolbarUI.ts` to implement clamping logic for vertical positioning.
+- **Google Search**: Change icon from `remix-ChromeLine` to `lucide-chrome`.
+- **Baidu Search**: Change icon from `remix-BaiduFill` to `lucide-paw-print`.
 
-#### [MODIFY] [ToolbarUI.ts](file:///Users/bcs/MacSync/SmartPick/smartpick/src/toolbar/ToolbarUI.ts)
-- Update `render` method in `ToolbarUI` class.
-- After calculating `top`, check if it is less than a minimum visible padding (e.g., `10px`).
-- If existing logic places the toolbar above the viewport (`top < 10`), clamp it to `10`.
-- Optionally consider `bottom` check if toolbar would cover selection, but for large selections (Select All), `bottom` is far down, so clamping to top is correct ("sticky header" behavior).
+## Files
 
-## Verification Plan
+### [settings.ts](file:///Users/bcs/MacSync/SmartPick/smartpick/src/settings.ts)
 
-### Manual Verification
-1.  Open a long Markdown note (needs scrolling).
-2.  Scroll to the middle/bottom.
-3.  Press `Cmd+A` (Select All) shortcut.
-4.  **Expected**: The SmartPick toolbar appears at the top of the viewport and is visible.
-5.  **Verify**: Selection with mouse (normal small selection) still positions correctly above the text.
+- Update `DEFAULT_TOOLBAR_ITEMS`:
+  - `link-google`: set `icon` to `'lucide-chrome'`
+  - `link-baidu`: set `icon` to `'lucide-paw-print'`
+
+## Verification
+
+1.  **Manual Test**:
+    - Build and reload the plugin.
+    - Check the toolbar or settings specific command icons.
+    - Verify "Google" command shows the Chrome icon.
+    - Verify "Baidu" command shows the Paw Print icon.
