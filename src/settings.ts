@@ -186,10 +186,10 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
   {
     id: 'footnote',
     type: 'command',
-    icon: 'footprints',
+    icon: 'lucide-footprints',
     tooltip: '脚注',
     enabled: true,
-    commandId: 'markdown:insert-footnote',
+    commandId: 'editor:insert-footnote',
     group: 'builtin',
     order: 5,
   },

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.2] - 2026-02-14
+
+### Fixed
+
+- **Commands**: Fixed `insert-footnote` command ID to `editor:insert-footnote` and updated icon to `lucide-footprints`.
+
 ## [0.5.1] - 2026-02-12
 
 ### Fixed
