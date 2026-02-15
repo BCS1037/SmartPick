@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.3] - 2026-02-15
+
+### Maintenance
+- **Internal**: Moved PRD directory out of the repository structure.
+
 ## [0.5.2] - 2026-02-14
 
 ### Fixed
