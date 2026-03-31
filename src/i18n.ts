@@ -150,6 +150,7 @@ export interface I18nStrings {
   command_paste: string;
   command_inline_code: string;
   command_code_block: string;
+  command_paste_url_into_selection: string;
 }
 
 const zh: I18nStrings = {
@@ -299,6 +300,7 @@ const zh: I18nStrings = {
   command_paste: '粘贴',
   command_inline_code: '行内代码',
   command_code_block: '代码块',
+  command_paste_url_into_selection: '粘贴链接到选区',
 };
 
 const en: I18nStrings = {
@@ -448,6 +450,7 @@ const en: I18nStrings = {
   command_paste: 'Paste',
   command_inline_code: 'Inline Code',
   command_code_block: 'Code Block',
+  command_paste_url_into_selection: 'Paste URL into Selection',
 };
 
 const translations: Record<Language, I18nStrings> = { zh, en };

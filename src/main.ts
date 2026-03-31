@@ -1,7 +1,7 @@
 // SmartPick - Obsidian Plugin Main Entry
 // 智能划词工具栏 - 选中文本自动弹出工具栏，支持自定义命令和AI功能
 
-import { Plugin, Notice } from 'obsidian';
+import { Plugin, Notice, Editor } from 'obsidian';
 import { SmartPickSettings, DEFAULT_SETTINGS } from './settings';
 import { initI18n, setLanguage } from './i18n';
 import { Toolbar } from './toolbar/Toolbar';
@@ -136,7 +136,7 @@ export default class SmartPickPlugin extends Plugin {
     this.settings.toolbarItems = this.settings.toolbarItems.filter(item => item.id !== 'italic');
 
     // Add new items (quote, footnote) if missing
-    const newItems = DEFAULT_SETTINGS.toolbarItems.filter(i => ['quote', 'footnote'].includes(i.id));
+    const newItems = DEFAULT_SETTINGS.toolbarItems.filter(i => ['quote', 'footnote', 'paste-url-into-selection'].includes(i.id));
     const currentIds = new Set(this.settings.toolbarItems.map(i => i.id));
     
     for (const item of newItems) {
@@ -158,7 +158,7 @@ export default class SmartPickPlugin extends Plugin {
             }
             
             // Update Enabled State (only for builtin items involved in the change)
-            if (['bold', 'superscript', 'subscript', 'quote', 'footnote', 'callout', 'copy', 'paste', 'cut', 'inline-code', 'code-block', 'table', 'clear-formatting', 'highlight', 
+            if (['bold', 'superscript', 'subscript', 'quote', 'footnote', 'callout', 'copy', 'paste', 'cut', 'inline-code', 'code-block', 'table', 'clear-formatting', 'highlight', 'paste-url-into-selection',
                  'ai-translate', 'ai-summarize', 'ai-explain', 
                  'link-google', 'link-google-scholar', 'link-baidu', 'link-chatgpt', 'link-gemini', 'link-deepseek', 
                  'shortcut-todo', 'shortcut-find'].includes(item.id)) {
@@ -336,5 +336,92 @@ export default class SmartPickPlugin extends Plugin {
             }
         }
     });
+
+    // Paste URL into Selection
+    this.addCommand({
+        id: 'paste-url-into-selection',
+        name: 'SmartPick: Paste URL into Selection',
+        icon: 'link',
+        editorCallback: async (editor) => {
+            await this.pasteUrlIntoSelection(editor);
+        }
+    });
+  }
+
+  /**
+   * Paste URL into Selection - "Notion style" link pasting
+   * If clipboard has a URL and text is selected → [selected text](url)
+   * If selection is a URL and clipboard has text → [clipboard text](selection)
+   * If clipboard has a URL and nothing is selected → paste [](url) with cursor between brackets
+   */
+  private async pasteUrlIntoSelection(editor: Editor): Promise<void> {
+    let clipboardText: string;
+    try {
+        clipboardText = (await navigator.clipboard.readText()).trim();
+    } catch {
+        new Notice('Failed to read clipboard');
+        return;
+    }
+
+    if (!clipboardText) {
+        new Notice('Clipboard is empty');
+        return;
+    }
+
+    const selectedText = editor.getSelection();
+    const cbIsUrl = this.isUrl(clipboardText);
+    const selIsUrl = selectedText ? this.isUrl(selectedText.trim()) : false;
+
+    if (cbIsUrl && selectedText) {
+        // Clipboard is URL, selection is text → [text](url)
+        const url = this.processUrl(clipboardText);
+        const imgMark = this.isImageUrl(clipboardText) ? '!' : '';
+        editor.replaceSelection(`${imgMark}[${selectedText}](${url})`);
+    } else if (selIsUrl && clipboardText && !cbIsUrl) {
+        // Selection is URL, clipboard is text → [text](url)
+        const url = this.processUrl(selectedText.trim());
+        const imgMark = this.isImageUrl(selectedText.trim()) ? '!' : '';
+        editor.replaceSelection(`${imgMark}[${clipboardText}](${url})`);
+    } else if (cbIsUrl && !selectedText) {
+        // Clipboard is URL, nothing selected → insert [](url) and place cursor
+        const url = this.processUrl(clipboardText);
+        const cursor = editor.getCursor();
+        const linkText = `[](${url})`;
+        editor.replaceRange(linkText, cursor);
+        // Place cursor between square brackets
+        editor.setCursor({ line: cursor.line, ch: cursor.ch + 1 });
+    } else {
+        // Neither is a URL, just do a normal paste
+        editor.replaceSelection(clipboardText);
+    }
+  }
+
+  /** Check if a string is a valid URL */
+  private isUrl(text: string): boolean {
+    // Match http(s), ftp, file protocols, or protocol-relative URLs
+    if (/^(https?:\/\/|ftp:\/\/|file:\/\/\/|\/\/)\S+$/i.test(text)) return true;
+    // Match obsidian:// and other app schemes
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S+$/i.test(text)) return true;
+    // Simple domain pattern: something.tld/...
+    if (/^[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(text)) return true;
+    return false;
+  }
+
+  /** Check if the URL points to an image */
+  private isImageUrl(url: string): boolean {
+    return /\.(png|jpe?g|gif|svg|webp|bmp|ico|avif)(\?.*)?$/i.test(url);
+  }
+
+  /** Process URL: encode special characters if needed */
+  private processUrl(url: string): string {
+    // If URL contains unencoded spaces, encode them
+    if (url.includes(' ')) {
+        url = url.replace(/ /g, '%20');
+    }
+    // Strip surrounding angle brackets if present
+    if (/^<.*>$/.test(url)) {
+        url = url.slice(1, -1);
+    }
+    return url;
   }
 }
