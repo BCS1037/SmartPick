@@ -595,32 +595,36 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .setName(t('selectModel'))
       .setDesc(t('selectModelDesc'));
 
-    if (aiConfig.availableModels.length > 0) {
-      modelsSetting.addDropdown(dropdown => {
-        for (const model of aiConfig.availableModels) {
-          dropdown.addOption(model, model);
-        }
-        dropdown.setValue(aiConfig.defaultModel);
-        dropdown.onChange((value) => {
+    modelsSetting.addText(text => {
+      text
+        .setPlaceholder('`gpt-4o-mini`')
+        .setValue(aiConfig.defaultModel)
+        .onChange((value) => {
            void (async () => {
               aiConfig.defaultModel = value;
               await this.plugin.saveSettings();
            })();
         });
-      });
-    } else {
-      modelsSetting.addText(text => {
-        text
-          .setPlaceholder('`gpt-4o-mini`')
-          .setValue(aiConfig.defaultModel)
-          .onChange((value) => {
-             void (async () => {
-                aiConfig.defaultModel = value;
-                await this.plugin.saveSettings();
-             })();
-          });
-      });
-    }
+
+      if (aiConfig.availableModels.length > 0) {
+        const listId = 'smartpick-models-list';
+        text.inputEl.setAttribute('list', listId);
+        
+        let dataList = document.getElementById(listId) as HTMLDataListElement;
+        if (!dataList) {
+          dataList = document.createElement('datalist');
+          dataList.id = listId;
+          document.body.appendChild(dataList);
+        }
+        
+        dataList.innerHTML = '';
+        for (const model of aiConfig.availableModels) {
+          const option = document.createElement('option');
+          option.value = model;
+          dataList.appendChild(option);
+        }
+      }
+    });
 
     // Parameters
     new Setting(containerEl)

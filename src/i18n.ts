@@ -103,6 +103,7 @@ export interface I18nStrings {
   copy: string;
   cancel: string;
   generating: string;
+  connecting: string;
   
   // Messages
   noSelection: string;
@@ -253,6 +254,7 @@ const zh: I18nStrings = {
   copy: '复制',
   cancel: '取消',
   generating: '正在生成...',
+  connecting: '正在连接服务...',
   
   // Messages
   noSelection: '请先选中文本',
@@ -403,6 +405,7 @@ const en: I18nStrings = {
   copy: 'Copy',
   cancel: 'Cancel',
   generating: 'Generating...',
+  connecting: 'Connecting to service...',
   
   // Messages
   noSelection: 'Please select text first',

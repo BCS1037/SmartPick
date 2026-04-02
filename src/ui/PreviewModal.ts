@@ -116,6 +116,12 @@ export class PreviewModal extends Modal {
       const activeFile = this.app.workspace.getActiveFile();
       const noteTitle = activeFile?.basename || '';
 
+      // Set initial "Connecting" state if it's the first time
+      if (this.responseEl) {
+        this.responseEl.setText(t('connecting') || 'Connecting to AI...');
+        this.responseEl.addClass('smartpick-preview-connecting');
+      }
+
       // Parse prompt template
       const prompt = parsePromptTemplate(this.template, this.selectedText, {
         title: noteTitle,
@@ -140,36 +146,46 @@ export class PreviewModal extends Modal {
       
       let lastRender = 0;
       let isRendering = false;
-      const RENDER_INTERVAL = 100; // ms
+      const RENDER_INTERVAL = 150; // Increased from 100ms for better performance
 
       await provider.chatStream(
         messages,
         aiConfig,
         (chunk) => {
+          if (!this.isGenerating) return; // Stop if cancelled
+          
           this.response += chunk;
           
           const now = Date.now();
-          if (!this.isGenerating) return; // Stop if cancelled
+          // Remove connecting class once we get first chunk
+          if (this.responseEl?.hasClass('smartpick-preview-connecting')) {
+            this.responseEl.removeClass('smartpick-preview-connecting');
+          }
 
-            if (!isRendering && now - lastRender >= RENDER_INTERVAL && this.responseEl) {
+          if (!isRendering && now - lastRender >= RENDER_INTERVAL && this.responseEl) {
             isRendering = true;
             lastRender = now;
             
             const responseEl = this.responseEl;
+            const currentResponse = this.response; // Capture current state
+            
             void (async () => {
               try {
                 // Render partial response
                 responseEl.empty();
                 await MarkdownRenderer.render(
                   this.app,
-                  this.response,
+                  currentResponse,
                   responseEl,
                   '',
                   this.component
                 );
 
-                // Scroll to bottom
-                responseEl.scrollTop = responseEl.scrollHeight;
+                // Smooth scroll to bottom
+                responseEl.scrollTo({
+                    top: responseEl.scrollHeight,
+                    behavior: 'auto' // Use auto for better performance during high-speed stream
+                });
               } catch {
                 // console.debug('SmartPick - Partial render skipped:');
               } finally {

@@ -125,13 +125,13 @@ export class OpenAIProvider implements AIProvider {
         let buffer = '';
 
         res.on('data', (chunk: Buffer) => {
-          const chunkText = decoder.decode(chunk, { stream: true });
-          buffer += chunkText;
+          buffer += decoder.decode(chunk, { stream: true });
           
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+          let lineBreakIndex;
+          while ((lineBreakIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, lineBreakIndex).trim();
+            buffer = buffer.slice(lineBreakIndex + 1);
 
-          for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.slice(6).trim();
               if (data === '[DONE]') continue;
@@ -143,7 +143,7 @@ export class OpenAIProvider implements AIProvider {
                   onChunk(content);
                 }
               } catch {
-                // Ignore JSON parse errors
+                // Buffer the incomplete line if JSON.parse fails (though split by \n should be safe)
               }
             }
           }

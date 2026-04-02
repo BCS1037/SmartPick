@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.7] - 2026-04-02
+
+### Added
+- **AI Configuration**: Added support for manual model ID input in the settings tab, allowing users to use any model even if it's not in the fetched list.
+
+### Improved
+- **AI Streaming**: Optimized response rendering mechanism:
+    - Increased rendering interval to 150ms to reduce UI stutter during high-speed streaming (e.g., with glm-4-flash).
+    - Improved stream parsing logic for better stability with fragmented data packets.
+    - Added "Connecting to service..." feedback to eliminate perceived lag after clicking AI buttons.
+    - Smoother scrolling behavior during text generation.
+
+
 ## [0.5.3] - 2026-02-15
 
 ### Maintenance
