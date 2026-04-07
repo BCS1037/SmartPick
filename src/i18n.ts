@@ -152,6 +152,8 @@ export interface I18nStrings {
   command_inline_code: string;
   command_code_block: string;
   command_paste_url_into_selection: string;
+  command_copy_note: string;
+  command_copy_note_file: string;
 }
 
 const zh: I18nStrings = {
@@ -303,6 +305,8 @@ const zh: I18nStrings = {
   command_inline_code: '行内代码',
   command_code_block: '代码块',
   command_paste_url_into_selection: '粘贴链接到选区',
+  command_copy_note: '拷贝当前笔记内容',
+  command_copy_note_file: '拷贝当前笔记文件 (作为附件)',
 };
 
 const en: I18nStrings = {
@@ -454,6 +458,8 @@ const en: I18nStrings = {
   command_inline_code: 'Inline Code',
   command_code_block: 'Code Block',
   command_paste_url_into_selection: 'Paste URL into Selection',
+  command_copy_note: 'Copy Current Note Content',
+  command_copy_note_file: 'Copy Current Note File (as Attachment)',
 };
 
 const translations: Record<Language, I18nStrings> = { zh, en };

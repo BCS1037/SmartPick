@@ -135,8 +135,8 @@ export default class SmartPickPlugin extends Plugin {
     // Remove italic
     this.settings.toolbarItems = this.settings.toolbarItems.filter(item => item.id !== 'italic');
 
-    // Add new items (quote, footnote) if missing
-    const newItems = DEFAULT_SETTINGS.toolbarItems.filter(i => ['quote', 'footnote', 'paste-url-into-selection'].includes(i.id));
+    // Add new items (quote, footnote, copy-note, copy-note-file) if missing
+    const newItems = DEFAULT_SETTINGS.toolbarItems.filter(i => ['quote', 'footnote', 'paste-url-into-selection', 'copy-note', 'copy-note-file'].includes(i.id));
     const currentIds = new Set(this.settings.toolbarItems.map(i => i.id));
     
     for (const item of newItems) {
@@ -161,7 +161,7 @@ export default class SmartPickPlugin extends Plugin {
             if (['bold', 'superscript', 'subscript', 'quote', 'footnote', 'callout', 'copy', 'paste', 'cut', 'inline-code', 'code-block', 'table', 'clear-formatting', 'highlight', 'paste-url-into-selection',
                  'ai-translate', 'ai-summarize', 'ai-explain', 
                  'link-google', 'link-google-scholar', 'link-baidu', 'link-chatgpt', 'link-gemini', 'link-deepseek', 
-                 'shortcut-todo', 'shortcut-find'].includes(item.id)) {
+                 'shortcut-todo', 'shortcut-find', 'copy-note', 'copy-note-file'].includes(item.id)) {
                  item.enabled = def.enabled;
             }
 
@@ -344,6 +344,90 @@ export default class SmartPickPlugin extends Plugin {
         icon: 'link',
         editorCallback: async (editor) => {
             await this.pasteUrlIntoSelection(editor);
+        }
+    });
+
+    // Copy Current Note Content
+    this.addCommand({
+        id: 'copy-note',
+        name: 'SmartPick: Copy Current Note Content',
+        icon: 'copy',
+        callback: async () => {
+            const activeFile = this.app.workspace.getActiveFile();
+            if (!activeFile) {
+                new Notice('No active file');
+                return;
+            }
+            try {
+                const content = await this.app.vault.read(activeFile);
+                await navigator.clipboard.writeText(content);
+                new Notice('Note content copied to clipboard');
+            } catch (err) {
+                new Notice('Failed to copy note content');
+                console.error(err);
+            }
+        }
+    });
+
+    // Copy Current Note File (as Attachment)
+    this.addCommand({
+        id: 'copy-note-file',
+        name: 'SmartPick: Copy Current Note File',
+        icon: 'paperclip',
+        callback: async () => {
+            const activeFile = this.app.workspace.getActiveFile();
+            if (!activeFile) {
+                new Notice('No active file');
+                return;
+            }
+            
+            try {
+                // Get absolute path
+                const adapter = this.app.vault.adapter;
+                // A more reliable way to detect desktop is checking if getFullPath exists on the adapter
+                const isDesktop = typeof (adapter as any).getFullPath === 'function';
+                
+                if (isDesktop) {
+                    const fullPath = (adapter as any).getFullPath(activeFile.path);
+                    
+                    // Try to get electron from various possible sources
+                    let electron: any = null;
+                    if (typeof (window as any).require === 'function') {
+                        try {
+                            electron = (window as any).require('electron');
+                        } catch (e) {
+                            console.log('require("electron") failed', e);
+                        }
+                    }
+                    
+                    const clipboard = electron?.clipboard || (window as any).electron?.clipboard;
+                    
+                    if (clipboard) {
+                        // Clear before writing to ensure clean state
+                        clipboard.clear();
+                        
+                        // Strategy for macOS: provide filenames (for attachment) and path string (as fallback)
+                        clipboard.write({ 
+                            filenames: [fullPath],
+                            text: fullPath // fallback if app doesn't understand filenames list
+                        });
+                        
+                        new Notice(`Note file copied to clipboard`);
+                        console.log('SmartPick: Successfully wrote to clipboard.', {
+                            path: fullPath,
+                            formats: clipboard.availableFormats()
+                        });
+                    } else {
+                        new Notice('Copy failed: Electron clipboard not accessible');
+                        console.error('Electron clipboard not found. Available keys on window:', Object.keys(window));
+                    }
+                } else {
+                    new Notice('File copying is only supported on Obsidian Desktop');
+                }
+            } catch (err) {
+                new Notice(`Error copying file: ${err.message || err}`);
+                console.error('SmartPick Copy File Error:', err);
+            }
         }
     });
   }

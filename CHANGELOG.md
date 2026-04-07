@@ -1,16 +1,21 @@
 # Changelog
 
-## [0.5.7] - 2026-04-02
+## [0.6.0] - 2026-04-07
 
 ### Added
-- **AI Configuration**: Added support for manual model ID input in the settings tab, allowing users to use any model even if it's not in the fetched list.
+- **Copy Note File**: New command to copy the entire markdown file object to the system clipboard.
+    - Icon: `paperclip` (Lucide).
+    - Functionality: Allows users to paste the note as an attachment directly into AI chat interfaces (ChatGPT, Claude, etc.).
+- **Copy Note Content**: New command to copy the full markdown content of the current note.
 
 ### Improved
-- **AI Streaming**: Optimized response rendering mechanism:
-    - Increased rendering interval to 150ms to reduce UI stutter during high-speed streaming (e.g., with glm-4-flash).
-    - Improved stream parsing logic for better stability with fragmented data packets.
-    - Added "Connecting to service..." feedback to eliminate perceived lag after clicking AI buttons.
-    - Smoother scrolling behavior during text generation.
+- **Settings UI Redesign**: Major overhaul of the configuration interface for better clarity and efficiency:
+    - **8-Column Grid**: Toolbar items now display in a compact 8-column layout.
+    - **Hover Labels**: Command names are hidden by default and appear as high-contrast tooltips (above icons) on hover.
+    - **Progressive Disclosure**: AI badges and visibility toggles are hidden until hover to reduce visual clutter.
+    - **Unified Backgrounds**: Icon backgrounds now expand to fill the entire rectangular frame of each item.
+- **AI Configuration**: Added support for manual model ID input in settings.
+- **AI Streaming**: Optimized response rendering (150ms interval) for smoother generation and reduced UI stutter.
 
 
 ## [0.5.3] - 2026-02-15
