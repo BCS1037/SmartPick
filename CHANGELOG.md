@@ -14,6 +14,9 @@
     - **Hover Labels**: Command names are hidden by default and appear as high-contrast tooltips (above icons) on hover.
     - **Progressive Disclosure**: AI badges and visibility toggles are hidden until hover to reduce visual clutter.
     - **Unified Backgrounds**: Icon backgrounds now expand to fill the entire rectangular frame of each item.
+
+
+## [0.5.8] - 2026-04-07
 - **AI Configuration**: Added support for manual model ID input in settings.
 - **AI Streaming**: Optimized response rendering (150ms interval) for smoother generation and reduced UI stutter.
 
