@@ -16,7 +16,7 @@
     - **Unified Backgrounds**: Icon backgrounds now expand to fill the entire rectangular frame of each item.
 
 
-## [0.5.8] - 2026-04-07
+## [0.5.7] - 2026-04-02
 - **AI Configuration**: Added support for manual model ID input in settings.
 - **AI Streaming**: Optimized response rendering (150ms interval) for smoother generation and reduced UI stutter.
 
