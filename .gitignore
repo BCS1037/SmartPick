@@ -12,3 +12,4 @@ main.js
 # Obsidian specific
 .obsidian/
 PRD/
+dev_logs/
