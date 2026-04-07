@@ -402,24 +402,43 @@ export default class SmartPickPlugin extends Plugin {
                     
                     const clipboard = electron?.clipboard || (window as any).electron?.clipboard;
                     
-                    if (clipboard) {
-                        // Clear before writing to ensure clean state
-                        clipboard.clear();
-                        
-                        // Strategy for macOS: provide filenames (for attachment) and path string (as fallback)
-                        clipboard.write({ 
-                            filenames: [fullPath],
-                            text: fullPath // fallback if app doesn't understand filenames list
-                        });
-                        
-                        new Notice(`Note file copied to clipboard`);
-                        console.log('SmartPick: Successfully wrote to clipboard.', {
-                            path: fullPath,
-                            formats: clipboard.availableFormats()
-                        });
+                    const isMacOS = navigator.platform.indexOf('Mac') > -1 || navigator.userAgent.indexOf('Mac') > -1;
+                    
+                    if (isMacOS) {
+                        try {
+                            if (clipboard && typeof clipboard.writeBuffer === 'function') {
+                                clipboard.clear();
+                                const fileUrl = `file://${encodeURI(fullPath)}`;
+                                // Access Buffer (available in Obsidian's electron node context)
+                                const BufferClass = (window as any).Buffer || require('buffer').Buffer;
+                                
+                                clipboard.writeBuffer('public.file-url', BufferClass.from(fileUrl, 'utf-8'));
+                                new Notice('Note file copied to clipboard');
+                                console.log('SmartPick: Successfully wrote file URL to clipboard.');
+                            } else {
+                                throw new Error('writeBuffer not available');
+                            }
+                        } catch (e) {
+                            console.error('macOS file copy failed', e);
+                            if (clipboard) {
+                                clipboard.clear();
+                                clipboard.write({ filenames: [fullPath], text: fullPath });
+                                new Notice('Note file copied (fallback)');
+                            } else {
+                                new Notice('Copy failed: Electron clipboard not accessible');
+                            }
+                        }
                     } else {
-                        new Notice('Copy failed: Electron clipboard not accessible');
-                        console.error('Electron clipboard not found. Available keys on window:', Object.keys(window));
+                        if (clipboard) {
+                            // Clear before writing to ensure clean state
+                            clipboard.clear();
+                            clipboard.write({ filenames: [fullPath], text: fullPath });
+                            new Notice(`Note file copied to clipboard`);
+                            console.log('SmartPick: Successfully wrote to clipboard.', { path: fullPath });
+                        } else {
+                            new Notice('Copy failed: Electron clipboard not accessible');
+                            console.error('Electron clipboard not found. Available keys on window:', Object.keys(window));
+                        }
                     }
                 } else {
                     new Notice('File copying is only supported on Obsidian Desktop');

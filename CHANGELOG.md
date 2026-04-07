@@ -1,29 +1,37 @@
 # Changelog
 
+## [0.6.1] - 2026-04-07
+
+### Fixed
+
+- **Copy Note File**: Resolves an issue on MacOS where pasting a copied file via `CMD+V` would only paste the file path string in apps relying on `text/plain`. We now utilize the native Electron Buffer API (`public.file-url`) for seamless and reliable file object attachment compatibility across Finder and major applications.
+
+
 ## [0.6.0] - 2026-04-07
 
 ### Added
+
 - **Copy Note File**: New command to copy the entire markdown file object to the system clipboard.
-    - Icon: `paperclip` (Lucide).
-    - Functionality: Allows users to paste the note as an attachment directly into AI chat interfaces (ChatGPT, Claude, etc.).
+  - Icon: `paperclip` (Lucide).
+  - Functionality: Allows users to paste the note as an attachment directly into AI chat interfaces (ChatGPT, Claude, etc.).
 - **Copy Note Content**: New command to copy the full markdown content of the current note.
 
 ### Improved
-- **Settings UI Redesign**: Major overhaul of the configuration interface for better clarity and efficiency:
-    - **8-Column Grid**: Toolbar items now display in a compact 8-column layout.
-    - **Hover Labels**: Command names are hidden by default and appear as high-contrast tooltips (above icons) on hover.
-    - **Progressive Disclosure**: AI badges and visibility toggles are hidden until hover to reduce visual clutter.
-    - **Unified Backgrounds**: Icon backgrounds now expand to fill the entire rectangular frame of each item.
 
+- **Settings UI Redesign**: Major overhaul of the configuration interface for better clarity and efficiency:
+  - **8-Column Grid**: Toolbar items now display in a compact 8-column layout.
+  - **Hover Labels**: Command names are hidden by default and appear as high-contrast tooltips (above icons) on hover.
+  - **Progressive Disclosure**: AI badges and visibility toggles are hidden until hover to reduce visual clutter.
+  - **Unified Backgrounds**: Icon backgrounds now expand to fill the entire rectangular frame of each item.
 
 ## [0.5.7] - 2026-04-02
 - **AI Configuration**: Added support for manual model ID input in settings.
 - **AI Streaming**: Optimized response rendering (150ms interval) for smoother generation and reduced UI stutter.
 
-
 ## [0.5.3] - 2026-02-15
 
 ### Maintenance
+
 - **Internal**: Moved PRD directory out of the repository structure.
 
 ## [0.5.2] - 2026-02-14
@@ -35,31 +43,37 @@
 ## [0.5.1] - 2026-02-12
 
 ### Fixed
+
 - **Icons**: Corrected icons for Google and Baidu search commands to use `lucide-chrome` and `lucide-paw-print`.
 
 ## [0.5.0] - 2026-02-12
 
 ### Added
+
 - **Commands**: Added **Insert Quote** and **Insert Footnote** commands to the built-in tools.
 
 ### Improved
+
 - **Toolbar Configuration**: Updated the default toolbar items:
-    - Removed **Italic** command from built-in tools.
-    - Streamlined default enabled commands to reduce clutter (enabled: Bold, Superscript, Subscript, Inline Code, Quote, Footnote, Callout, Copy, Paste, Clear Formatting, Translate, Explain, Google, Gemini).
+  - Removed **Italic** command from built-in tools.
+  - Streamlined default enabled commands to reduce clutter (enabled: Bold, Superscript, Subscript, Inline Code, Quote, Footnote, Callout, Copy, Paste, Clear Formatting, Translate, Explain, Google, Gemini).
 - **Icons**: Updated icons for Google, Baidu, and DeepSeek commands for better visual recognition.
 
 ### Fixed
+
 - **Toolbar**: Resolved an issue where duplicate items appeared in the built-in tools group.
 - **Migration**: Improved settings migration to ensure new defaults are correctly applied to existing users.
 
 ## [0.4.1] - 2026-02-12
 
 ### Fixed
+
 - **Toolbar**: Fixed an issue where the toolbar was not visible when selecting all text (`Cmd+A`) in long documents. The toolbar now automatically repositions to remain visible at the top of the viewport.
 
 ## [0.4.0] - 2026-02-10
 
 ### Added
+
 - **Feature**: Double-click to show toolbar — double-clicking in the editor area now triggers the toolbar, even without selecting text. Ideal for insert-type commands (e.g., insert table, callout, code block).
 - **Setting**: Added toggle to enable/disable the double-click trigger in toolbar settings.
 - **UI**: Buttons that require text selection (AI, URL) are visually disabled when no text is selected.
@@ -67,48 +81,54 @@
 ## [0.3.3] - 2026-02-10
 
 ### Added
+
 - **Feature**: Added enable/disable toggle for commands, allowing users to hide commands from the toolbar without deleting them.
 
 ### Improved
+
 - **UI**: Reduced spacing in command groups on settings page for a more compact layout:
-    - Decreased group padding and margins.
-    - Reduced title font size and spacing.
-    - Optimized vertical space usage between groups.
+  - Decreased group padding and margins.
+  - Reduced title font size and spacing.
+  - Optimized vertical space usage between groups.
 
 ## [0.3.2] - 2026-02-09
 
 ### Fixed
+
 - **Code Quality**: Fixed remaining sentence case issue for Obsidian plugin review:
-    - Changed "Openai" → "OpenAI" in API provider dropdown options (proper brand name capitalization).
+  - Changed "Openai" → "OpenAI" in API provider dropdown options (proper brand name capitalization).
 
 ## [0.3.1] - 2026-02-09
 
 ### Fixed
+
 - **Code Quality**: Addressed remaining sentence case issues for Obsidian plugin review:
-    - Fixed 10 UI text strings to use proper sentence case (first word capitalized, rest lowercase except proper nouns).
-    - Used backtick-wrapped examples in placeholders to skip sentence case validation for technical identifiers.
-    - Fixed dropdown option text: "Custom (OpenAI-compatible)".
-    - Replaced hardcoded English strings with i18n translation function calls.
-    - Fixed "API Key" → "API key" in i18n.ts.
+  - Fixed 10 UI text strings to use proper sentence case (first word capitalized, rest lowercase except proper nouns).
+  - Used backtick-wrapped examples in placeholders to skip sentence case validation for technical identifiers.
+  - Fixed dropdown option text: "Custom (OpenAI-compatible)".
+  - Replaced hardcoded English strings with i18n translation function calls.
+  - Fixed "API Key" → "API key" in i18n.ts.
 
 ## [0.3.0] - 2026-02-09
 
 ### Fixed
+
 - **Code Quality**: Resolved all remaining Obsidian plugin review issues:
-    - Fixed unawaited promises with `void` operator in `CommandManager.ts` and `PreviewModal.ts`.
-    - Removed unnecessary type assertion in `Toolbar.ts`.
-    - Converted 15 UI texts to sentence case for consistency.
-    - Fixed promise-in-void-function issues in callbacks.
-    - Removed unused `ToolbarItem` and `Notice` imports.
+  - Fixed unawaited promises with `void` operator in `CommandManager.ts` and `PreviewModal.ts`.
+  - Removed unnecessary type assertion in `Toolbar.ts`.
+  - Converted 15 UI texts to sentence case for consistency.
+  - Fixed promise-in-void-function issues in callbacks.
+  - Removed unused `ToolbarItem` and `Notice` imports.
 
 ## [0.2.9] - 2026-02-08
 
 ### Fixed
+
 - **Code Quality**: Addressed all Obsidian plugin review issues:
-    - Replaced all `any` types with proper TypeScript interfaces.
-    - Added `void` operators to handle async IIFEs in callbacks.
-    - Removed unused variables and imports.
-    - Replaced `@ts-ignore` comments with proper type assertions.
+  - Replaced all `any` types with proper TypeScript interfaces.
+  - Added `void` operators to handle async IIFEs in callbacks.
+  - Removed unused variables and imports.
+  - Replaced `@ts-ignore` comments with proper type assertions.
 
 ## [0.2.8] - 2026-02-08
 
@@ -128,63 +148,74 @@
 ## [0.2.7] - 2026-02-07
 
 ### Fixed
+
 - **Submission**: Addressed Obsidian plugin review feedback:
-    - Fixed unawaited promises and async/await usage.
-    - Improved type safety by removing explicit `any` types.
-    - Refactored Settings UI to use Obsidian's `Setting` API for headers.
-    - Moved inline styles to CSS classes.
+  - Fixed unawaited promises and async/await usage.
+  - Improved type safety by removing explicit `any` types.
+  - Refactored Settings UI to use Obsidian's `Setting` API for headers.
+  - Moved inline styles to CSS classes.
 
 ## [0.2.6] - 2026-02-07
 
 ### Added
+
 - **UI**: Improved Settings UI layout:
-    - Compacted command list grid (3 items per row).
-    - Moved delete button to the edit modal for cleaner interface.
-    - Adjusted toolbar button positions in settings.
+  - Compacted command list grid (3 items per row).
+  - Moved delete button to the edit modal for cleaner interface.
+  - Adjusted toolbar button positions in settings.
 - **Docs**: Updated README with URL scheme support, custom prompt templates, and Brat installation guide.
 
 ### Fixed
+
 - **Fix**: Resolved issue where "SmartPick" toolbar AI commands (Gemini, Doubao, Qwen, etc.) did not copy selected text to clipboard.
 - **Polish**: Removed "Link copied to clipboard" notification for a seamless experience.
 
 ## [0.2.5] - 2026-02-05
 
 ### Added
+
 - Feature: Added ability to edit existing toolbar items (commands, AI, urls, shortcuts).
 - Localization: Added comprehensive translations for edit modals.
 
 ### Improved
+
 - UI: Added "Edit" button (pencil icon) to toolbar items in settings.
 - UX: Toolbar items in settings derived click-to-edit behavior.
 - UI: Improved delete icon positioning for command groups.
 
 ### Fixed
+
 - Fixed layout alignment for default command groups (Link, Shortcut) to allow proper deletion and display.
 
 ## [0.2.4] - 2026-02-04
 
 ### Fixed
+
 - Addressed code review feedback (replaced inline styles with CSS classes, cleaned up manifest description).
 
 ## [0.2.3] - 2026-02-04
 
 ### Added
+
 - Added built-in **Link** group with preset searches: Google, Google Scholar, Baidu, WeChat, DeepSeek, ChatGPT, Gemini, Doubao, Qianwen.
 - Added built-in **Shortcut** group with presets: Toggle Todo (Alt+L), Find (Cmd+F).
 
 ## [0.2.2] - 2026-02-04
 
 ### Polish
+
 - Removed debug logs introduced in v0.2.1 for troubleshooting purposes.
 
 ## [0.2.1] - 2026-02-04
 
 ### Fixed
+
 - Fixed an issue where clicking on shortcut toolbar items did not trigger the action.
 
 ## [0.2.0] - 2026-02-04
 
 ### Added
+
 - Added support for **Keyboard Shortcuts** in the toolbar, allowing triggering of system hotkeys (macOS supported).
 - Implemented **Auto-capture** for shortcut input: users can press keys to record the shortcut combination.
 - Added localization for shortcut features.
@@ -192,13 +223,13 @@
 ## [0.1.2] - 2026-02-04
 
 ### Added
+
 - Added support for System Shortcuts and URL/Link commands.
 - Added support for `{{selection}}` placeholder in URL commands.
 - Added "Add Link/Shortcut" button in settings.
 
-
-
 ## [0.1.1] - 2026-02-03
 
 ### Fixed
+
 - Fixed built-in commands and templates remaining in Chinese when language content is set to English.
