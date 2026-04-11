@@ -28,7 +28,7 @@ export class CommandManager {
       if (item.hotkey && item.id) {
         this.plugin.addCommand({
           id: `smartpick-${item.id}`,
-          name: `SmartPick: ${item.tooltip}`,
+          name: item.tooltip,
           editorCallback: (editor) => {
             const selection = editor.getSelection();
             if (!selection) return;

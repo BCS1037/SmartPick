@@ -69,6 +69,9 @@ export interface SmartPickSettings {
   
   // Double-click trigger
   enableDoubleClickTrigger: boolean;
+
+  // Migration version tracker (internal, do not display in settings UI)
+  migrationVersion: number;
 }
 
 // Default built-in prompt templates
@@ -458,6 +461,8 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   language: 'auto',
   
   enableDoubleClickTrigger: true,
+
+  migrationVersion: 1,
 };
 
 // Generate unique ID

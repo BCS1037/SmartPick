@@ -146,52 +146,60 @@ export default class SmartPickPlugin extends Plugin {
         }
     }
 
-    // Update enabled state and icons for existing items to match new defaults
-    const defaultsMap = new Map(DEFAULT_SETTINGS.toolbarItems.map(i => [i.id, i]));
+    // One-time migration: Update enabled state, icons, tooltips, and order (v0.4.1 → v0.5.0)
+    // Only run this migration ONCE. After that, respect user's own enabled/disabled choices.
+    const currentMigrationVersion = this.settings.migrationVersion ?? 0;
     
-    this.settings.toolbarItems.forEach(item => {
-        const def = defaultsMap.get(item.id);
-        if (def) {
-            // Update Icon
-            if (['link-google', 'link-baidu', 'link-deepseek'].includes(item.id)) {
-                item.icon = def.icon;
+    if (currentMigrationVersion < 1) {
+        const defaultsMap = new Map(DEFAULT_SETTINGS.toolbarItems.map(i => [i.id, i]));
+        
+        this.settings.toolbarItems.forEach(item => {
+            const def = defaultsMap.get(item.id);
+            if (def) {
+                // Update Icon
+                if (['link-google', 'link-baidu', 'link-deepseek'].includes(item.id)) {
+                    item.icon = def.icon;
+                }
+                
+                // Update Enabled State (only for builtin items involved in the change)
+                if (['bold', 'superscript', 'subscript', 'quote', 'footnote', 'callout', 'copy', 'paste', 'cut', 'inline-code', 'code-block', 'table', 'clear-formatting', 'highlight', 'paste-url-into-selection',
+                     'ai-translate', 'ai-summarize', 'ai-explain', 
+                     'link-google', 'link-google-scholar', 'link-baidu', 'link-chatgpt', 'link-gemini', 'link-deepseek', 
+                     'shortcut-todo', 'shortcut-find', 'copy-note', 'copy-note-file'].includes(item.id)) {
+                     item.enabled = def.enabled;
+                }
+
+                // Update tooltip text if it changed
+                item.tooltip = def.tooltip;
             }
-            
-            // Update Enabled State (only for builtin items involved in the change)
-            if (['bold', 'superscript', 'subscript', 'quote', 'footnote', 'callout', 'copy', 'paste', 'cut', 'inline-code', 'code-block', 'table', 'clear-formatting', 'highlight', 'paste-url-into-selection',
-                 'ai-translate', 'ai-summarize', 'ai-explain', 
-                 'link-google', 'link-google-scholar', 'link-baidu', 'link-chatgpt', 'link-gemini', 'link-deepseek', 
-                 'shortcut-todo', 'shortcut-find', 'copy-note', 'copy-note-file'].includes(item.id)) {
-                 item.enabled = def.enabled;
+        });
+
+        // Re-sort builtin items
+        const builtinOrderMap = new Map(DEFAULT_SETTINGS.toolbarItems
+            .filter(i => i.group === 'builtin')
+            .map((i, index) => [i.id, index]));
+        
+        this.settings.toolbarItems.sort((a, b) => {
+            if (a.group === 'builtin' && b.group === 'builtin') {
+                 const oa = builtinOrderMap.get(a.id) ?? 999;
+                 const ob = builtinOrderMap.get(b.id) ?? 999;
+                 return oa - ob;
             }
+            return 0; 
+        });
 
-            // Update tooltip text if it changed
-            item.tooltip = def.tooltip;
-        }
-    });
+        this.settings.toolbarItems.forEach(item => {
+            if (item.group === 'builtin') {
+                 const def = defaultsMap.get(item.id);
+                 if (def) {
+                     item.order = def.order;
+                 }
+            }
+        });
 
-    // Re-sort builtin items
-    const builtinOrderMap = new Map(DEFAULT_SETTINGS.toolbarItems
-        .filter(i => i.group === 'builtin')
-        .map((i, index) => [i.id, index]));
-    
-    this.settings.toolbarItems.sort((a, b) => {
-        if (a.group === 'builtin' && b.group === 'builtin') {
-             const oa = builtinOrderMap.get(a.id) ?? 999;
-             const ob = builtinOrderMap.get(b.id) ?? 999;
-             return oa - ob;
-        }
-        return 0; 
-    });
-
-    this.settings.toolbarItems.forEach(item => {
-        if (item.group === 'builtin') {
-             const def = defaultsMap.get(item.id);
-             if (def) {
-                 item.order = def.order;
-             }
-        }
-    });
+        // Mark migration as complete
+        this.settings.migrationVersion = 1;
+    }
 
     // Final Safety: Remove duplicates based on ID
     // Keep the last occurrence or the first? 
@@ -236,7 +244,7 @@ export default class SmartPickPlugin extends Plugin {
     // Superscript
     this.addCommand({
         id: 'superscript',
-        name: 'SmartPick: Superscript',
+        name: 'Superscript',
         icon: 'superscript',
         editorCallback: (editor) => {
             const selection = editor.getSelection();
@@ -249,7 +257,7 @@ export default class SmartPickPlugin extends Plugin {
     // Subscript
     this.addCommand({
         id: 'subscript',
-        name: 'SmartPick: Subscript',
+        name: 'Subscript',
         icon: 'subscript',
         editorCallback: (editor) => {
             const selection = editor.getSelection();
@@ -262,7 +270,7 @@ export default class SmartPickPlugin extends Plugin {
     // Insert Code Block
     this.addCommand({
         id: 'insert-code-block',
-        name: 'SmartPick: Insert Code Block',
+        name: 'Insert Code Block',
         icon: 'file-code',
         editorCallback: (editor) => {
             const selection = editor.getSelection();
@@ -273,7 +281,7 @@ export default class SmartPickPlugin extends Plugin {
     // Copy
     this.addCommand({
         id: 'copy',
-        name: 'SmartPick: Copy',
+        name: 'Copy',
         icon: 'copy',
         editorCallback: (editor) => {
             const selection = editor.getSelection();
@@ -287,7 +295,7 @@ export default class SmartPickPlugin extends Plugin {
     // Cut
     this.addCommand({
         id: 'cut',
-        name: 'SmartPick: Cut',
+        name: 'Cut',
         icon: 'scissors',
         editorCallback: (editor) => {
             const selection = editor.getSelection();
@@ -302,7 +310,7 @@ export default class SmartPickPlugin extends Plugin {
     // Paste
     this.addCommand({
         id: 'paste',
-        name: 'SmartPick: Paste',
+        name: 'Paste',
         icon: 'clipboard',
         editorCallback: async (editor) => {
             try {
@@ -318,7 +326,7 @@ export default class SmartPickPlugin extends Plugin {
     // Clear Formatting
     this.addCommand({
         id: 'clear-formatting',
-        name: 'SmartPick: Clear Formatting',
+        name: 'Clear Formatting',
         icon: 'remove-formatting',
         editorCallback: (editor) => {
             const selection = editor.getSelection();
@@ -340,7 +348,7 @@ export default class SmartPickPlugin extends Plugin {
     // Paste URL into Selection
     this.addCommand({
         id: 'paste-url-into-selection',
-        name: 'SmartPick: Paste URL into Selection',
+        name: 'Paste URL into Selection',
         icon: 'link',
         editorCallback: async (editor) => {
             await this.pasteUrlIntoSelection(editor);
@@ -350,7 +358,7 @@ export default class SmartPickPlugin extends Plugin {
     // Copy Current Note Content
     this.addCommand({
         id: 'copy-note',
-        name: 'SmartPick: Copy Current Note Content',
+        name: 'Copy Current Note Content',
         icon: 'copy',
         callback: async () => {
             const activeFile = this.app.workspace.getActiveFile();
@@ -372,7 +380,7 @@ export default class SmartPickPlugin extends Plugin {
     // Copy Current Note File (as Attachment)
     this.addCommand({
         id: 'copy-note-file',
-        name: 'SmartPick: Copy Current Note File',
+        name: 'Copy Current Note File',
         icon: 'paperclip',
         callback: async () => {
             const activeFile = this.app.workspace.getActiveFile();

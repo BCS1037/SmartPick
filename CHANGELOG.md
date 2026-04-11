@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2] - 2026-04-11
+
+### Fixed
+
+- **Settings Persistence**: Fixed a critical bug where user-customized command enabled/disabled states were reset to defaults on every Obsidian restart. The migration logic that syncs defaults now only runs once, and user preferences are properly preserved across restarts.
+- **Command Palette**: Fixed duplicate plugin name prefix in command palette — commands previously showed as "SmartPick: SmartPick: Copy" and now correctly display as "SmartPick: Copy".
+
 ## [0.6.1] - 2026-04-07
 
 ### Fixed
