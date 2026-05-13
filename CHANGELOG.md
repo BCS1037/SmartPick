@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.6.6] - 2026-05-13
+
+### Fixed
+
+- **CSS Compliance**: Removed all `!important` declarations from `styles.css` and `styles/styles.css` to comply with Obsidian community plugin requirements. Increased selector specificity (e.g., using `button.class`) to ensure styles remain correctly applied.
+
+## [0.6.5] - 2026-05-13
+
+### Fixed
+
+- **Plugin Submission**: Addressed remaining Obsidian community review feedback:
+  - Bumped `minAppVersion` to `1.8.7` for `getLanguage` API compatibility.
+  - Added release notes generation to GitHub Actions release workflow.
+  - Resolved `require('electron')` issues by avoiding explicit string requires.
+  - Cleaned up ESLint `any` warnings with proper typing for `loadData()` and Electron APIs.
+  - Removed unused variable errors in try-catch blocks.
+  - Switched from `activeWindow.setTimeout` to `window.setTimeout` for timer compatibility.
+  - Switched from `requestAnimationFrame` to `window.requestAnimationFrame`.
+- **Popout Window Crash**: Fixed a `HierarchyRequestError` that caused the toolbar to fail to appear. The issue was due to improperly creating elements on the root `activeDocument` object instead of within the view's content element.
+
 ## [0.6.4] - 2026-05-13
 
 ### Fixed

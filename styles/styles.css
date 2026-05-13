@@ -27,7 +27,7 @@
 }
 
 /* Toolbar Button */
-.smartpick-toolbar-button {
+button.smartpick-toolbar-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -36,11 +36,11 @@
   padding: 0;
   border: none;
   border-radius: 4px;
-  background: transparent !important;
+  background: transparent;
   color: var(--text-normal);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 .smartpick-toolbar-button:hover {
