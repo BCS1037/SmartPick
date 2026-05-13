@@ -23,11 +23,14 @@ export class OpenAIProvider implements AIProvider {
         },
       });
 
-      const data = response.json;
+      interface OpenAIModelsResponse {
+        data?: Array<{ id: string }>;
+      }
+      const data = response.json as OpenAIModelsResponse;
       
       if (data.data && Array.isArray(data.data)) {
         return data.data
-          .map((model: { id: string }) => model.id)
+          .map((model) => model.id)
           .filter((id: string) => 
             // Filter chat models (heuristic)
             id.includes('gpt') || 
@@ -72,7 +75,10 @@ export class OpenAIProvider implements AIProvider {
         }),
       });
 
-      const data = response.json;
+      interface OpenAIChatResponse {
+        choices: Array<{ message: { content: string }; finish_reason: string }>;
+      }
+      const data = response.json as OpenAIChatResponse;
       
       return {
         content: data.choices[0].message.content,
@@ -137,7 +143,10 @@ export class OpenAIProvider implements AIProvider {
               if (data === '[DONE]') continue;
               
               try {
-                const parsed = JSON.parse(data);
+                interface OpenAIStreamEvent {
+                  choices?: Array<{ delta?: { content?: string } }>;
+                }
+                const parsed = JSON.parse(data) as OpenAIStreamEvent;
                 const content = parsed.choices?.[0]?.delta?.content;
                 if (content) {
                   onChunk(content);

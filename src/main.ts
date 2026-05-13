@@ -1,7 +1,7 @@
 // SmartPick - Obsidian Plugin Main Entry
 // 智能划词工具栏 - 选中文本自动弹出工具栏，支持自定义命令和AI功能
 
-import { Plugin, Notice, Editor } from 'obsidian';
+import { Plugin, Notice, Editor, FileSystemAdapter, Platform } from 'obsidian';
 import { SmartPickSettings, DEFAULT_SETTINGS } from './settings';
 import { initI18n, setLanguage } from './i18n';
 import { Toolbar } from './toolbar/Toolbar';
@@ -226,8 +226,9 @@ export default class SmartPickPlugin extends Plugin {
     
     // Check if we added the built-in group or items (need to save)
     // Also save if we removed duplicates (length changed)
-    const originalLength = (data as any)?.toolbarItems?.length || 0;
-    if (hasOldTemplates || hasOldItems || addedItems || !this.settings.commandGroups.find(g => g.id === 'builtin') || this.settings.toolbarItems.length !== originalLength || true) {
+    const originalLength = typeof data === 'object' && data !== null && 'toolbarItems' in data ? 
+        ((data as { toolbarItems?: unknown[] }).toolbarItems?.length || 0) : 0;
+    if (hasOldTemplates || hasOldItems || addedItems || !this.settings.commandGroups.find(g => g.id === 'builtin') || this.settings.toolbarItems.length !== originalLength) {
         await this.saveSettings();
     }
   }
@@ -283,10 +284,10 @@ export default class SmartPickPlugin extends Plugin {
         id: 'copy',
         name: 'Copy',
         icon: 'copy',
-        editorCallback: (editor) => {
+        editorCallback: async (editor) => {
             const selection = editor.getSelection();
             if (selection) {
-                navigator.clipboard.writeText(selection);
+                await navigator.clipboard.writeText(selection);
                 new Notice('Copied to clipboard');
             }
         }
@@ -297,10 +298,10 @@ export default class SmartPickPlugin extends Plugin {
         id: 'cut',
         name: 'Cut',
         icon: 'scissors',
-        editorCallback: (editor) => {
+        editorCallback: async (editor) => {
             const selection = editor.getSelection();
             if (selection) {
-                navigator.clipboard.writeText(selection);
+                await navigator.clipboard.writeText(selection);
                 editor.replaceSelection('');
                 new Notice('Cut to clipboard');
             }
@@ -333,7 +334,7 @@ export default class SmartPickPlugin extends Plugin {
             if (selection) {
                  // Simple regex approach to remove clear common markdown syntax
                  // This is not perfect but covers Bold, Italic, Strikethrough, Links, Code
-                 let plain = selection
+                 const plain = selection
                     .replace(/(\*\*|__)(.*?)\1/g, '$2') // Bold
                     .replace(/(\*|_)(.*?)\1/g, '$2')   // Italic
                     .replace(/~~(.*?)~~/g, '$1')       // Strikethrough
@@ -392,44 +393,39 @@ export default class SmartPickPlugin extends Plugin {
             try {
                 // Get absolute path
                 const adapter = this.app.vault.adapter;
-                // A more reliable way to detect desktop is checking if getFullPath exists on the adapter
-                const isDesktop = typeof (adapter as any).getFullPath === 'function';
                 
-                if (isDesktop) {
-                    const fullPath = (adapter as any).getFullPath(activeFile.path);
+                if (adapter instanceof FileSystemAdapter) {
+                    const fullPath = adapter.getFullPath(activeFile.path);
                     
-                    // Try to get electron from various possible sources
-                    let electron: any = null;
-                    if (typeof (window as any).require === 'function') {
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires -- Need electron for clipboard
+                    const electron = require('electron');
+                    
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- Clipboard type is not fully typed
+                    const clipboard = electron?.clipboard;
+                    
+                    if (Platform.isMacOS) {
                         try {
-                            electron = (window as any).require('electron');
-                        } catch (e) {
-                            console.log('require("electron") failed', e);
-                        }
-                    }
-                    
-                    const clipboard = electron?.clipboard || (window as any).electron?.clipboard;
-                    
-                    const isMacOS = navigator.platform.indexOf('Mac') > -1 || navigator.userAgent.indexOf('Mac') > -1;
-                    
-                    if (isMacOS) {
-                        try {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- dynamic check
                             if (clipboard && typeof clipboard.writeBuffer === 'function') {
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.clear();
                                 const fileUrl = `file://${encodeURI(fullPath)}`;
-                                // Access Buffer (available in Obsidian's electron node context)
-                                const BufferClass = (window as any).Buffer || require('buffer').Buffer;
+                                // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node builtin
+                                const BufferClass = require('buffer').Buffer;
                                 
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.writeBuffer('public.file-url', BufferClass.from(fileUrl, 'utf-8'));
                                 new Notice('Note file copied to clipboard');
-                                console.log('SmartPick: Successfully wrote file URL to clipboard.');
+                                // console.log('SmartPick: Successfully wrote file URL to clipboard.');
                             } else {
                                 throw new Error('writeBuffer not available');
                             }
                         } catch (e) {
-                            console.error('macOS file copy failed', e);
+                            // console.error('macOS file copy failed', e);
                             if (clipboard) {
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.clear();
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.write({ filenames: [fullPath], text: fullPath });
                                 new Notice('Note file copied (fallback)');
                             } else {
@@ -438,14 +434,14 @@ export default class SmartPickPlugin extends Plugin {
                         }
                     } else {
                         if (clipboard) {
-                            // Clear before writing to ensure clean state
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                             clipboard.clear();
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                             clipboard.write({ filenames: [fullPath], text: fullPath });
                             new Notice(`Note file copied to clipboard`);
-                            console.log('SmartPick: Successfully wrote to clipboard.', { path: fullPath });
+                            // console.log('SmartPick: Successfully wrote to clipboard.', { path: fullPath });
                         } else {
                             new Notice('Copy failed: Electron clipboard not accessible');
-                            console.error('Electron clipboard not found. Available keys on window:', Object.keys(window));
                         }
                     }
                 } else {

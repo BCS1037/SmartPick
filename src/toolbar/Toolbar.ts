@@ -8,7 +8,7 @@ export class Toolbar {
   private plugin: SmartPickPlugin;
   private ui: ToolbarUI;
   private isVisible: boolean = false;
-  private debounceTimer: NodeJS.Timeout | null = null;
+  private debounceTimer: number | null = null;
   private currentEditor: Editor | null = null;
   private currentSelection: string = '';
   private watchedEditorEl: HTMLElement | null = null;
@@ -32,10 +32,10 @@ export class Toolbar {
     this.attachEditorListeners();
 
     // Global ESC listener
-    document.addEventListener('keydown', this.handleKeyDown);
+    activeDocument.addEventListener('keydown', this.handleKeyDown);
 
     // Click outside listener
-    document.addEventListener('mousedown', this.handleClickOutside);
+    activeDocument.addEventListener('mousedown', this.handleClickOutside);
   }
 
   private attachEditorListeners(): void {
@@ -65,11 +65,11 @@ export class Toolbar {
 
   private handleSelectionChange = (): void => {
     if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
+      activeWindow.clearTimeout(this.debounceTimer);
     }
 
     // Fixed 200ms delay as requested
-    this.debounceTimer = setTimeout(() => {
+    this.debounceTimer = activeWindow.setTimeout(() => {
       this.checkSelection();
     }, 200);
   };
@@ -84,11 +84,11 @@ export class Toolbar {
 
     // Cancel any pending selection check to avoid conflict
     if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
+      activeWindow.clearTimeout(this.debounceTimer);
     }
 
     // Use a short delay to let the browser's native double-click selection complete
-    setTimeout(() => {
+    activeWindow.setTimeout(() => {
       this.showAtCurrentPosition();
     }, 50);
   };
@@ -264,8 +264,8 @@ export class Toolbar {
       this.watchedEditorEl.removeEventListener('dblclick', this.handleDoubleClick);
       this.watchedEditorEl = null;
     }
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('mousedown', this.handleClickOutside);
+    activeDocument.removeEventListener('keydown', this.handleKeyDown);
+    activeDocument.removeEventListener('mousedown', this.handleClickOutside);
     this.ui.destroy();
   }
 }

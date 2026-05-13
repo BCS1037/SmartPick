@@ -58,10 +58,15 @@ export class AnthropicProvider implements AIProvider {
         }),
       });
 
-      const data = response.json;
+interface AnthropicResponse {
+  content: Array<{ type: string; text?: string }>;
+  stop_reason: string;
+}
+
+      const data = response.json as AnthropicResponse;
       const content = data.content
-        .filter((block: { type: string }) => block.type === 'text')
-        .map((block: { text: string }) => block.text)
+        .filter((block) => block.type === 'text' && block.text)
+        .map((block) => block.text!)
         .join('');
 
       return {
@@ -118,7 +123,11 @@ export class AnthropicProvider implements AIProvider {
               const data = line.slice(6).trim();
               
               try {
-                const parsed = JSON.parse(data);
+                interface AnthropicStreamEvent {
+                  type: string;
+                  delta?: { text: string };
+                }
+                const parsed = JSON.parse(data) as AnthropicStreamEvent;
                 if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
                   onChunk(parsed.delta.text);
                 }

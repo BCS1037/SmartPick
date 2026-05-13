@@ -237,7 +237,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       listEl.addClass('smartpick-drag-over');
     });
 
-    listEl.addEventListener('dragleave', (e) => {
+    listEl.addEventListener('dragleave', (_e) => {
       listEl.removeClass('smartpick-drag-over');
     });
 
@@ -271,14 +271,14 @@ export class SmartPickSettingTab extends PluginSettingTab {
         e.dataTransfer!.setData('text/plain', item.id);
         itemEl.addClass('smartpick-sortable-drag');
         // setTimeout to hide the element but keep it in DOM for drag image
-        setTimeout(() => itemEl.addClass('smartpick-sortable-ghost'), 0);
+        activeWindow.setTimeout(() => itemEl.addClass('smartpick-sortable-ghost'), 0);
       });
 
       // Drag End
-      itemEl.addEventListener('dragend', (e) => {
+      itemEl.addEventListener('dragend', (_e) => {
         itemEl.removeClass('smartpick-sortable-drag');
         itemEl.removeClass('smartpick-sortable-ghost');
-        document.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
+        activeDocument.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
       });
       
       // Click to Edit (ignore clicks on buttons)
@@ -295,7 +295,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       });
 
       // Drag Leave
-      itemEl.addEventListener('dragleave', (e) => {
+      itemEl.addEventListener('dragleave', (_e) => {
         itemEl.removeClass('smartpick-drag-over-item');
       });
 
@@ -610,16 +610,16 @@ export class SmartPickSettingTab extends PluginSettingTab {
         const listId = 'smartpick-models-list';
         text.inputEl.setAttribute('list', listId);
         
-        let dataList = document.getElementById(listId) as HTMLDataListElement;
+        let dataList = activeDocument.getElementById(listId) as HTMLDataListElement;
         if (!dataList) {
-          dataList = document.createElement('datalist');
+          dataList = activeDocument.createEl('datalist');
           dataList.id = listId;
-          document.body.appendChild(dataList);
+          activeDocument.body.appendChild(dataList);
         }
         
         dataList.innerHTML = '';
         for (const model of aiConfig.availableModels) {
-          const option = document.createElement('option');
+          const option = activeDocument.createEl('option');
           option.value = model;
           dataList.appendChild(option);
         }

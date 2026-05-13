@@ -1,8 +1,8 @@
 {
   "id": "smartpick",
   "name": "SmartPick",
-  "version": "0.6.2",
-  "minAppVersion": "1.0.0",
+  "version": "0.6.3",
+  "minAppVersion": "1.4.4",
   "description": "Smart text selection toolbar with custom commands and AI features.",
   "author": "BCS",
   "authorUrl": "https://github.com/BCS1037",

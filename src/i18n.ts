@@ -1,6 +1,8 @@
 // SmartPick i18n - Internationalization support
 // Supports Chinese and English
 
+import { getLanguage as getObsidianLanguage } from 'obsidian';
+
 export type Language = 'zh' | 'en';
 
 export interface I18nStrings {
@@ -476,7 +478,7 @@ export function getLanguage(): Language {
 
 export function detectLanguage(): Language {
   // Try to detect from Obsidian's locale
-  const locale = window.localStorage.getItem('language') || navigator.language;
+  const locale = getObsidianLanguage() || navigator.language;
   return locale.startsWith('zh') ? 'zh' : 'en';
 }
 

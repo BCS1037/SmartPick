@@ -19,10 +19,13 @@ export class OllamaProvider implements AIProvider {
         method: 'GET',
       });
 
-      const data = response.json;
+      interface OllamaTagsResponse {
+        models?: Array<{ name: string }>;
+      }
+      const data = response.json as OllamaTagsResponse;
       
       if (data.models && Array.isArray(data.models)) {
-        return data.models.map((model: { name: string }) => model.name).sort();
+        return data.models.map((model) => model.name).sort();
       }
       
       return [];
@@ -55,7 +58,11 @@ export class OllamaProvider implements AIProvider {
         }),
       });
 
-      const data = response.json;
+      interface OllamaChatResponse {
+        message?: { content: string };
+        done_reason?: string;
+      }
+      const data = response.json as OllamaChatResponse;
       
       return {
         content: data.message?.content || '',
@@ -107,7 +114,10 @@ export class OllamaProvider implements AIProvider {
           for (const line of lines) {
             if (line.trim()) {
               try {
-                const parsed = JSON.parse(line);
+                interface OllamaStreamEvent {
+                  message?: { content: string };
+                }
+                const parsed = JSON.parse(line) as OllamaStreamEvent;
                 if (parsed.message?.content) {
                   onChunk(parsed.message.content);
                 }

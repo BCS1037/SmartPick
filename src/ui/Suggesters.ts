@@ -25,7 +25,7 @@ export class CommandSuggester extends FuzzySuggestModal<Command> {
     return item.name;
   }
 
-  onChooseItem(item: Command, evt: MouseEvent | KeyboardEvent): void {
+  onChooseItem(item: Command, _evt: MouseEvent | KeyboardEvent): void {
     this.onChoose(item);
   }
 }
@@ -54,7 +54,7 @@ export class IconSuggester extends FuzzySuggestModal<string> {
     el.createSpan({ text: item.item });
   }
 
-  onChooseItem(item: string, evt: MouseEvent | KeyboardEvent): void {
+  onChooseItem(item: string, _evt: MouseEvent | KeyboardEvent): void {
     this.onChoose(item);
   }
 }

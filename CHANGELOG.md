@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.3] - 2026-05-13
+
+### Fixed
+
+- **Code Quality**: Addressed all remaining Obsidian plugin review issues for final community submission:
+  - Replaced all explicit `any` types with proper interfaces in AI providers (`AnthropicProvider`, `OllamaProvider`, `OpenAIProvider`).
+  - Replaced raw DOM API calls (`document`, `window`, `navigator`) with Obsidian native APIs (`activeDocument`, `activeWindow`, `Platform`) to ensure popout window compatibility.
+  - Refactored language detection to use Obsidian's `getLanguage()` API instead of raw `localStorage`.
+  - Added GitHub Actions artifact attestation to release workflow (`.github/workflows/release.yml`) for security provenance.
+  - Bumped `minAppVersion` to `1.4.4` to satisfy new Obsidian API requirements.
+  - Removed deprecated `builtin-modules` package dependency and migrated to native Node.js `node:module`.
+  - Cleaned up unused variables and unused ESLint rules.
 ## [0.6.2] - 2026-04-11
 
 ### Fixed

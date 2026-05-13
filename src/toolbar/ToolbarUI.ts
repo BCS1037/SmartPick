@@ -48,7 +48,7 @@ export class ToolbarUI {
     existingToolbars.forEach((el: Element) => el.remove());
 
     // Create container
-    this.containerEl = document.createElement('div');
+    this.containerEl = activeDocument.createDiv();
     this.containerEl.className = 'smartpick-toolbar-container';
     
     // Vertical positioning: Always above the selection with 0 offset (standard)
@@ -110,7 +110,7 @@ export class ToolbarUI {
     // and maybe add max-width/overflow handling in CSS.
 
     // Create toolbar
-    this.toolbarEl = document.createElement('div');
+    this.toolbarEl = activeDocument.createDiv();
     this.toolbarEl.className = 'smartpick-toolbar';
 
     // Sort items by group and order
@@ -144,7 +144,7 @@ export class ToolbarUI {
   private renderButton(item: ToolbarItem, hasSelection: boolean = true): void {
     if (!this.toolbarEl) return;
 
-    const button = document.createElement('button');
+    const button = activeDocument.createEl('button');
     button.className = 'smartpick-toolbar-button';
     
     // Check if this button requires selection
