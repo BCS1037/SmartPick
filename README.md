@@ -23,12 +23,12 @@
 
 1. Install [Obsidian42 - BRAT](https://github.com/TfTHacker/obsidian42-brat) via Community Plugins.
 2. Open BRAT settings and click "Add Beta plugin".
-3. Enter the repository URL: `https://github.com/bcs/SmartPick`.
+3. Enter the repository URL: `https://github.com/BCS1037/SmartPick`.
 4. Click "Add Plugin", then enable "SmartPick" in the Community Plugins list.
 
 ### Manual Installation
 
-1. Download the latest release from the [Releases](https://github.com/bcs/SmartPick/releases) page.
+1. Download the latest release from the [Releases](https://github.com/BCS1037/SmartPick/releases) page.
 2. Extract the files into your Obsidian vault's plugins folder: `.obsidian/plugins/smartpick/`.
 3. Reload Obsidian and enable the plugin in Settings.
 

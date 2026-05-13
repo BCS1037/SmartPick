@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.7] - 2026-05-13
+
+### Fixed
+
+- **Documentation**: Updated repository URLs in `README.md` to point to the correct GitHub repository (`BCS1037/SmartPick`) to resolve community review warnings.
+
 ## [0.6.6] - 2026-05-13
 
 ### Fixed
