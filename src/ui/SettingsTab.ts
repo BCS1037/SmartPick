@@ -612,16 +612,14 @@ export class SmartPickSettingTab extends PluginSettingTab {
         
         let dataList = activeDocument.getElementById(listId) as HTMLDataListElement;
         if (!dataList) {
-          dataList = activeDocument.createEl('datalist');
+          dataList = activeDocument.body.createEl('datalist');
           dataList.id = listId;
-          activeDocument.body.appendChild(dataList);
         }
         
         dataList.innerHTML = '';
         for (const model of aiConfig.availableModels) {
-          const option = activeDocument.createEl('option');
+          const option = dataList.createEl('option');
           option.value = model;
-          dataList.appendChild(option);
         }
       }
     });

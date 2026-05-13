@@ -48,7 +48,7 @@ export class ToolbarUI {
     existingToolbars.forEach((el: Element) => el.remove());
 
     // Create container
-    this.containerEl = activeDocument.createDiv();
+    this.containerEl = view.contentEl.createDiv();
     this.containerEl.className = 'smartpick-toolbar-container';
     
     // Vertical positioning: Always above the selection with 0 offset (standard)
@@ -110,7 +110,7 @@ export class ToolbarUI {
     // and maybe add max-width/overflow handling in CSS.
 
     // Create toolbar
-    this.toolbarEl = activeDocument.createDiv();
+    this.toolbarEl = this.containerEl.createDiv();
     this.toolbarEl.className = 'smartpick-toolbar';
 
     // Sort items by group and order
@@ -130,8 +130,7 @@ export class ToolbarUI {
       }
     }
 
-    this.containerEl.appendChild(this.toolbarEl);
-    view.contentEl.appendChild(this.containerEl);
+    // (Already appended via createDiv)
 
     // Animate in
     requestAnimationFrame(() => {
@@ -144,7 +143,7 @@ export class ToolbarUI {
   private renderButton(item: ToolbarItem, hasSelection: boolean = true): void {
     if (!this.toolbarEl) return;
 
-    const button = activeDocument.createEl('button');
+    const button = this.toolbarEl.createEl('button');
     button.className = 'smartpick-toolbar-button';
     
     // Check if this button requires selection
@@ -180,7 +179,7 @@ export class ToolbarUI {
       void this.handleButtonClick(item);
     });
 
-    this.toolbarEl.appendChild(button);
+    // (Already appended via createEl)
   }
 
 

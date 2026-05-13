@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.4] - 2026-05-13
+
+### Fixed
+
+- **Popout Window Crash**: Fixed a `HierarchyRequestError` that caused the toolbar to fail to appear. The issue was due to improperly creating elements on the root `activeDocument` object instead of within the view's content element.
+
 ## [0.6.3] - 2026-05-13
 
 ### Fixed
