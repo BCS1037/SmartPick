@@ -65,11 +65,11 @@ export class Toolbar {
 
   private handleSelectionChange = (): void => {
     if (this.debounceTimer) {
-      activeWindow.clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
 
     // Fixed 200ms delay as requested
-    this.debounceTimer = activeWindow.setTimeout(() => {
+    this.debounceTimer = window.setTimeout(() => {
       this.checkSelection();
     }, 200);
   };
@@ -84,11 +84,11 @@ export class Toolbar {
 
     // Cancel any pending selection check to avoid conflict
     if (this.debounceTimer) {
-      activeWindow.clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
 
     // Use a short delay to let the browser's native double-click selection complete
-    activeWindow.setTimeout(() => {
+    window.setTimeout(() => {
       this.showAtCurrentPosition();
     }, 50);
   };

@@ -53,7 +53,7 @@ export default class SmartPickPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const data = await this.loadData();
+    const data = await this.loadData() as Partial<SmartPickSettings> | null;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
 
     // Migration: Remove old translations and Add Built-in Tools
@@ -397,35 +397,36 @@ export default class SmartPickPlugin extends Plugin {
                 if (adapter instanceof FileSystemAdapter) {
                     const fullPath = adapter.getFullPath(activeFile.path);
                     
-                    // eslint-disable-next-line @typescript-eslint/no-var-requires -- Need electron for clipboard
-                    const electron = require('electron');
+                    const req = (window as unknown as { require?: (mod: string) => unknown }).require;
+                    if (!req) {
+                        new Notice('Copy failed: require is not available');
+                        return;
+                    }
                     
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- Clipboard type is not fully typed
+                    interface ElectronClipboard {
+                        writeBuffer(format: string, buffer: Uint8Array): void;
+                        clear(): void;
+                        write(data: { filenames?: string[], text?: string }): void;
+                    }
+                    
+                    const electron = req('electron') as { clipboard?: ElectronClipboard };
                     const clipboard = electron?.clipboard;
                     
                     if (Platform.isMacOS) {
                         try {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- dynamic check
                             if (clipboard && typeof clipboard.writeBuffer === 'function') {
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.clear();
                                 const fileUrl = `file://${encodeURI(fullPath)}`;
-                                // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node builtin
-                                const BufferClass = require('buffer').Buffer;
+                                const bufferMod = req('buffer') as { Buffer: { from: (str: string, enc: string) => Uint8Array } };
                                 
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-                                clipboard.writeBuffer('public.file-url', BufferClass.from(fileUrl, 'utf-8'));
+                                clipboard.writeBuffer('public.file-url', bufferMod.Buffer.from(fileUrl, 'utf-8'));
                                 new Notice('Note file copied to clipboard');
-                                // console.log('SmartPick: Successfully wrote file URL to clipboard.');
                             } else {
                                 throw new Error('writeBuffer not available');
                             }
-                        } catch (e) {
-                            // console.error('macOS file copy failed', e);
+                        } catch {
                             if (clipboard) {
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.clear();
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                                 clipboard.write({ filenames: [fullPath], text: fullPath });
                                 new Notice('Note file copied (fallback)');
                             } else {
@@ -434,12 +435,9 @@ export default class SmartPickPlugin extends Plugin {
                         }
                     } else {
                         if (clipboard) {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                             clipboard.clear();
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                             clipboard.write({ filenames: [fullPath], text: fullPath });
                             new Notice(`Note file copied to clipboard`);
-                            // console.log('SmartPick: Successfully wrote to clipboard.', { path: fullPath });
                         } else {
                             new Notice('Copy failed: Electron clipboard not accessible');
                         }
@@ -447,8 +445,9 @@ export default class SmartPickPlugin extends Plugin {
                 } else {
                     new Notice('File copying is only supported on Obsidian Desktop');
                 }
-            } catch (err) {
-                new Notice(`Error copying file: ${err.message || err}`);
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err);
+                new Notice(`Error copying file: ${msg}`);
                 console.error('SmartPick Copy File Error:', err);
             }
         }

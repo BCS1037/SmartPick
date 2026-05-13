@@ -133,7 +133,7 @@ export class ToolbarUI {
     // (Already appended via createDiv)
 
     // Animate in
-    requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       if (this.toolbarEl) {
         this.toolbarEl.classList.add('smartpick-toolbar-visible');
       }

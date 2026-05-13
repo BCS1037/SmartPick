@@ -271,7 +271,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         e.dataTransfer!.setData('text/plain', item.id);
         itemEl.addClass('smartpick-sortable-drag');
         // setTimeout to hide the element but keep it in DOM for drag image
-        activeWindow.setTimeout(() => itemEl.addClass('smartpick-sortable-ghost'), 0);
+        window.setTimeout(() => itemEl.addClass('smartpick-sortable-ghost'), 0);
       });
 
       // Drag End
