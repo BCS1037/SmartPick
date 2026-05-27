@@ -131,6 +131,12 @@ export interface I18nStrings {
   // Double-click trigger
   enableDoubleClickTrigger: string;
   enableDoubleClickTriggerDesc: string;
+
+  // Modifier key trigger
+  enableModifierKeyTrigger: string;
+  enableModifierKeyTriggerDesc: string;
+  modifierKeySetting: string;
+  modifierKeySettingDesc: string;
   
   // Built-in Templates
   template_translate: string;
@@ -284,6 +290,12 @@ const zh: I18nStrings = {
   // Double-click trigger
   enableDoubleClickTrigger: '双击显示工具栏',
   enableDoubleClickTriggerDesc: '在编辑区域双击鼠标时显示工具栏（无需选中文本）',
+
+  // Modifier key trigger
+  enableModifierKeyTrigger: '按修饰键弹出',
+  enableModifierKeyTriggerDesc: '选中文本后不立即弹出工具栏，而是按一下指定的修饰键再弹出（免打扰模式）',
+  modifierKeySetting: '自定义修饰键',
+  modifierKeySettingDesc: '选择触发弹出工具栏的修饰键',
   
   // Built-in Templates
   template_translate: '翻译',
@@ -437,6 +449,12 @@ const en: I18nStrings = {
   // Double-click trigger
   enableDoubleClickTrigger: 'Double-click to show toolbar',
   enableDoubleClickTriggerDesc: 'Show toolbar when double-clicking in editor area (no text selection required)',
+
+  // Modifier key trigger
+  enableModifierKeyTrigger: 'Trigger with modifier key',
+  enableModifierKeyTriggerDesc: 'Do not show the toolbar immediately after text selection, but only after pressing the specified modifier key (quiet mode)',
+  modifierKeySetting: 'Modifier key',
+  modifierKeySettingDesc: 'Choose the modifier key to trigger the toolbar',
   
   // Built-in Templates
   template_translate: 'Translate',

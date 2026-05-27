@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0] - 2026-05-27
+
+### Added
+
+- **Quiet Mode (Hold Modifier to Trigger)**: Added a highly anticipated quiet-mode trigger mechanism. Users can now choose to only show the SmartPick toolbar when holding down a specific modifier key while selecting text, completely eliminating accidental hover popups.
+- **Custom Modifier Keys**: Provided flexible settings to select the trigger key in options. Options include `Cmd / Ctrl` (smart OS-native fallback), `Ctrl`, `Cmd (Mac)`, `Alt / Option`, and `Shift`.
+- **Dynamic Conditional Settings UI**: The custom modifier key dropdown is conditionally rendered only when the Quiet Mode toggle is active, utilizing dynamic re-rendering on toggle changes.
+- **Zero-Conflict Native Key Interception**: Leveraged synchronous event modifier checks (`e.shiftKey`, `e.altKey`, etc.) directly on native `mouseup` and `keyup` listeners, ensuring complete immunity from complex key sequence lag or standard system shortcut overrides (e.g. `Cmd+C`).
+
 ## [0.6.7] - 2026-05-13
 
 ### Fixed

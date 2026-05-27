@@ -70,6 +70,10 @@ export interface SmartPickSettings {
   // Double-click trigger
   enableDoubleClickTrigger: boolean;
 
+  // Modifier key trigger
+  enableModifierKeyTrigger: boolean;
+  modifierKey: 'CmdOrCtrl' | 'Control' | 'Meta' | 'Alt' | 'Shift';
+
   // Migration version tracker (internal, do not display in settings UI)
   migrationVersion: number;
 }
@@ -461,6 +465,9 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   language: 'auto',
   
   enableDoubleClickTrigger: true,
+
+  enableModifierKeyTrigger: false,
+  modifierKey: 'CmdOrCtrl',
 
   migrationVersion: 1,
 };

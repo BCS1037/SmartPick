@@ -127,6 +127,44 @@ export class SmartPickSettingTab extends PluginSettingTab {
         })
       );
 
+    // Modifier key trigger toggle
+    new Setting(containerEl)
+      .setName(t('enableModifierKeyTrigger'))
+      .setDesc(t('enableModifierKeyTriggerDesc'))
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableModifierKeyTrigger)
+        .onChange((value) => {
+          void (async () => {
+            this.plugin.settings.enableModifierKeyTrigger = value;
+            await this.plugin.saveSettings();
+            // Refresh settings UI dynamically to show/hide the modifier key dropdown
+            this.display();
+          })();
+        })
+      );
+
+    // Modifier key dropdown selection
+    if (this.plugin.settings.enableModifierKeyTrigger) {
+      new Setting(containerEl)
+        .setName(t('modifierKeySetting'))
+        .setDesc(t('modifierKeySettingDesc'))
+        .addDropdown(dropdown => {
+          dropdown
+            .addOption('CmdOrCtrl', 'Cmd / Ctrl')
+            .addOption('Control', 'Ctrl')
+            .addOption('Meta', 'Cmd (Mac)')
+            .addOption('Alt', 'Alt / Option')
+            .addOption('Shift', 'Shift')
+            .setValue(this.plugin.settings.modifierKey || 'CmdOrCtrl')
+            .onChange((value) => {
+              void (async () => {
+                this.plugin.settings.modifierKey = value as 'CmdOrCtrl' | 'Control' | 'Meta' | 'Alt' | 'Shift';
+                await this.plugin.saveSettings();
+              })();
+            });
+        });
+    }
+
     // Toolbar Horizontal Offset - Removed (Smart positioning)
 
     // Buttons

@@ -1,6 +1,6 @@
 // SmartPick Toolbar - Main toolbar controller
 
-import { Editor, MarkdownView } from 'obsidian';
+import { Editor, MarkdownView, Platform } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { ToolbarUI } from './ToolbarUI';
 
@@ -63,14 +63,19 @@ export class Toolbar {
     }
   }
 
-  private handleSelectionChange = (): void => {
+  private handleSelectionChange = (e: MouseEvent | KeyboardEvent): void => {
     if (this.debounceTimer) {
       window.clearTimeout(this.debounceTimer);
     }
 
+    let modifierActive = false;
+    if (this.plugin.settings.enableModifierKeyTrigger) {
+      modifierActive = this.checkEventModifier(e);
+    }
+
     // Fixed 200ms delay as requested
     this.debounceTimer = window.setTimeout(() => {
-      this.checkSelection();
+      this.checkSelection(modifierActive);
     }, 200);
   };
 
@@ -118,7 +123,7 @@ export class Toolbar {
     }
   }
 
-  private checkSelection(): void {
+  private checkSelection(modifierActive?: boolean): void {
     const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) {
       this.hide();
@@ -132,7 +137,16 @@ export class Toolbar {
       this.currentEditor = editor;
       this.currentSelection = selection.toString();
       this.hasSelection = true;
-      this.show(editor, view);
+      
+      if (this.plugin.settings.enableModifierKeyTrigger) {
+        if (modifierActive) {
+          this.show(editor, view);
+        } else {
+          this.hide();
+        }
+      } else {
+        this.show(editor, view);
+      }
     } else {
       this.hide();
     }
@@ -235,6 +249,32 @@ export class Toolbar {
       this.hide();
     }
   };
+
+  private checkEventModifier(e: MouseEvent | KeyboardEvent): boolean {
+    const config = this.plugin.settings.modifierKey || 'CmdOrCtrl';
+    
+    if (config === 'CmdOrCtrl') {
+      return Platform.isMacOS ? e.metaKey : e.ctrlKey;
+    }
+    
+    if (config === 'Control') {
+      return e.ctrlKey;
+    }
+    
+    if (config === 'Meta') {
+      return e.metaKey;
+    }
+    
+    if (config === 'Alt') {
+      return e.altKey;
+    }
+    
+    if (config === 'Shift') {
+      return e.shiftKey;
+    }
+    
+    return false;
+  }
 
   private handleClickOutside = (e: MouseEvent): void => {
     if (!this.isVisible) return;
