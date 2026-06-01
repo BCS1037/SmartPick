@@ -27,9 +27,46 @@ export class SmartPickSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  // Obsidian < 1.13.0: called directly by the framework
   display(): void {
     const { containerEl } = this;
+    if (!containerEl) return;
     containerEl.empty();
+    this.renderFullSettings(containerEl);
+  }
+
+  // Obsidian 1.13.0+: declarative entry point — bypasses display()
+  getSettingDefinitions() {
+    return [
+      {
+        name: '',
+        render: (_setting: Setting) => {
+          // Use the Setting row's own element as full-canvas container
+          const el = _setting.settingEl;
+          if (!el) return;
+
+          // Remove default Setting row layout (name/desc/control columns)
+          el.empty();
+          el.classList.add('smartpick-declarative-root');
+
+          this.renderFullSettings(el);
+        }
+      }
+    ];
+  }
+
+  // Version-adaptive refresh: update() on 1.13+, display() on older
+  refresh(): void {
+    const tab = this as PluginSettingTab & { update?: () => void };
+    if (typeof tab.update === 'function') {
+      tab.update();
+    } else {
+      this.display();
+    }
+  }
+
+  // Shared rendering core — works with any HTMLElement container
+  private renderFullSettings(containerEl: HTMLElement): void {
     containerEl.addClass('smartpick-settings');
 
     // Title
@@ -39,9 +76,9 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
     // Render Tabs
     const tabsContainer = containerEl.createDiv('smartpick-settings-tabs');
-    this.renderTab(tabsContainer, 'toolbar', t('toolbarSettings'));
-    this.renderTab(tabsContainer, 'ai', t('aiSettings'));
-    this.renderTab(tabsContainer, 'templates', t('promptTemplates'));
+    this.renderCustomTab(tabsContainer, 'toolbar', t('toolbarSettings'));
+    this.renderCustomTab(tabsContainer, 'ai', t('aiSettings'));
+    this.renderCustomTab(tabsContainer, 'templates', t('promptTemplates'));
 
     // Render Content based on active tab
     const contentContainer = containerEl.createDiv('smartpick-settings-tab-content');
@@ -59,7 +96,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
   }
 
-  private renderTab(container: HTMLElement, id: TabId, label: string): void {
+  private renderCustomTab(container: HTMLElement, id: TabId, label: string): void {
     const tab = container.createDiv('smartpick-settings-tab');
     tab.setText(label);
     if (this.activeTab === id) {
@@ -67,7 +104,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
     tab.addEventListener('click', () => {
       this.activeTab = id;
-      this.display();
+      this.refresh();
     });
   }
 
@@ -90,7 +127,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
               const lang = value === 'auto' ? detectLanguage() : value;
               setLanguage(lang as 'en' | 'zh');
               // Refresh settings
-              this.display();
+              this.refresh();
             })();
           });
       });
@@ -138,7 +175,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             this.plugin.settings.enableModifierKeyTrigger = value;
             await this.plugin.saveSettings();
             // Refresh settings UI dynamically to show/hide the modifier key dropdown
-            this.display();
+            this.refresh();
           })();
         })
       );
@@ -293,7 +330,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         // Recalculate orders
         this.reorderItems();
         void this.plugin.saveSettings().then(() => {
-            this.display();
+            this.refresh();
         });
       }
     });
@@ -380,7 +417,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
             this.reorderItems();
             
             void this.plugin.saveSettings().then(() => {
-                this.display();
+                this.refresh();
             });
         }
       });
@@ -428,7 +465,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
         void (async () => {
           item.enabled = item.enabled === false ? true : false;
           await this.plugin.saveSettings();
-          this.display();
+          this.refresh();
         })();
       });
 
@@ -452,7 +489,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
               item.tooltip = tooltip;
               item.icon = icon;
               await this.plugin.saveSettings();
-              this.display();
+              this.refresh();
           })();
         },
         onDelete
@@ -470,7 +507,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
                     item.icon = icon;
                     item.tooltip = template.name;
                     await this.plugin.saveSettings();
-                    this.display();
+                    this.refresh();
                 }
             })();
         },
@@ -486,7 +523,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
               item.url = url;
               item.icon = icon;
               await this.plugin.saveSettings();
-              this.display();
+              this.refresh();
           })();
         },
         onDelete
@@ -501,7 +538,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
               item.shortcutKeys = keys;
               item.icon = icon;
               await this.plugin.saveSettings();
-              this.display();
+              this.refresh();
           })();
         },
         onDelete
@@ -558,7 +595,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
                     break;
                 }
                 await this.plugin.saveSettings();
-                this.display();
+                this.refresh();
             })();
           });
       });
@@ -616,7 +653,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
                 aiConfig.availableModels = models;
                 await this.plugin.saveSettings();
                 new Notice(t('success') + `: ${models.length} models`);
-                this.display();
+                this.refresh();
               } catch (error) {
                 new Notice(t('connectionFailed'));
                 console.error('Failed to fetch models:', error);
@@ -802,7 +839,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
           this.plugin.settings.toolbarItems.push(newItem);
           await this.plugin.saveSettings();
-          this.display();
+          this.refresh();
       })();
     }).open();
   }
@@ -829,7 +866,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
           this.plugin.settings.toolbarItems.push(newItem);
           await this.plugin.saveSettings();
-          this.display();
+          this.refresh();
       })();
     }).open();
   }
@@ -850,7 +887,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
           this.plugin.settings.toolbarItems.push(newItem);
           await this.plugin.saveSettings();
-          this.display();
+          this.refresh();
       })();
     }).open();
   }
@@ -871,7 +908,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
           this.plugin.settings.toolbarItems.push(newItem);
           await this.plugin.saveSettings();
-          this.display();
+          this.refresh();
       })();
     }).open();
   }
@@ -887,7 +924,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
           this.plugin.settings.commandGroups.push(newGroup);
           await this.plugin.saveSettings();
-          this.display();
+          this.refresh();
       })();
     }).open();
   }
@@ -897,7 +934,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       item => item.id !== id
     );
     await this.plugin.saveSettings();
-    this.display();
+    this.refresh();
   }
 
   private showEditTemplateModal(template?: PromptTemplate): void {
@@ -922,13 +959,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
               };
               this.plugin.settings.promptTemplates.push(newTemplate);
               await this.plugin.saveSettings(); // Ensure we await
-              this.display();
+              this.refresh();
           } else if (template) {
               template.name = name;
               template.category = category;
               template.prompt = prompt;
               await this.plugin.saveSettings(); // Ensure we await
-              this.display();
+              this.refresh();
           }
       })();
     }).open();
@@ -944,7 +981,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
                 tpl => tpl.id !== id
             );
             void this.plugin.saveSettings().then(() => {
-                this.display();
+                this.refresh();
             });
         },
         t('delete')
@@ -963,6 +1000,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
     this.plugin.settings.commandGroups = this.plugin.settings.commandGroups.filter(g => g.id !== groupId);
     
     await this.plugin.saveSettings();
-    this.display();
+    this.refresh();
   }
 }
