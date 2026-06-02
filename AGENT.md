@@ -163,6 +163,15 @@ npm run build
 ```
 执行代码压缩、依赖混淆，生成符合发布标准的单文件生产包。
 
+### 4.4 基于 `obsidian-cli` 的自动化闭环集成测试（Agent 强约束）
+* **背景与痛点**：任何代码修改或排版重构，**绝对不能**仅仅依赖静态编译成功（`npm run build`）就结束。AI Agent 必须在本地对正在运行的 Obsidian 实例进行实机动态验证，确保没有任何运行时崩溃（Crash）或 UI 错位。
+* **Agent 自动化验证标准闭环**：
+  1. **构建与同步部署**：编译完成后，必须使用命令将 `main.js`、`manifest.json` 和 `styles.css` 复制部署到用户的活动测试库插件目录 `/Users/bcs/Obsidian/bcsbox/.obsidian/plugins/smartpick/`。
+  2. **极速热重载**：运行 `obsidian plugin:reload id=smartpick`，使修改即时生效。
+  3. **捕获运行时错误**：运行 `obsidian dev:errors`。若报错缓冲区中有任何与 `smartpick` 相关的 TypeError 或空指针异常，必须立刻回滚并修复。
+  4. **全画布与 DOM 树核对**：使用 `activeDocument` 穿透多窗口，运行 `obsidian eval code="activeDocument.querySelector('.smartpick-settings-buttons') !== null"`。或利用 `obsidian eval` 获取目标容器的 computed styles 计算样式，实现像素级视觉还原度核对。
+  5. **截图物理存证**：运行 `obsidian dev:screenshot path=PRD/after_manual_display.png` 保存实际渲染快照，用于高真度视觉比对。
+
 ---
 
 ## 5. PRD 文档规范与 Agent 协作流程
