@@ -1,7 +1,7 @@
 // SmartPick Command Manager - Manages custom commands and hotkeys
 
 import type SmartPickPlugin from '../main';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { Editor, App } from 'obsidian';
 
 interface AppWithCommands extends App {
@@ -102,8 +102,7 @@ export class CommandManager {
 
     const usingClause = modifiers.length > 0 ? ` using {${modifiers.join(', ')}}` : '';
     const script = `tell application "System Events" to keystroke "${key}"${usingClause}`;
-
-    exec(`osascript -e '${script}'`, (error) => {
+    execFile('osascript', ['-e', script], (error) => {
       if (error) {
         console.error('Failed to execute shortcut:', error);
       }
