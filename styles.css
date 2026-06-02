@@ -545,22 +545,55 @@ button.smartpick-toolbar-button {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  align-items: center;
 }
 
-.smartpick-settings-buttons .setting-item {
-  border: none;
-  padding: 0;
-  min-height: auto;
-  background: transparent;
-  margin-bottom: 0;
+.smartpick-settings-buttons button {
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-small);
+  font-weight: 500;
+  padding: 6px 14px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background-color: var(--background-secondary-alt);
+  color: var(--text-normal);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.smartpick-settings-buttons .setting-item-info {
-  display: none;
+.smartpick-settings-buttons button:hover {
+  background-color: var(--background-modifier-hover);
+  border-color: var(--border-color-hover, var(--text-muted));
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
-.smartpick-settings-buttons .setting-item-control {
-  padding: 0;
+.smartpick-settings-buttons button:active {
+  transform: translateY(0);
+  background-color: var(--background-modifier-active-hover);
+}
+
+/* CTA primary button ("添加命令") style */
+.smartpick-settings-buttons button.mod-cta {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.smartpick-settings-buttons button.mod-cta:hover {
+  background-color: var(--interactive-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--interactive-accent-rgb, 100, 100, 100), 0.3);
+}
+
+.smartpick-settings-buttons button.mod-cta:active {
+  transform: translateY(0);
 }
 
 .smartpick-confirm-buttons {

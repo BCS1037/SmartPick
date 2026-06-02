@@ -1,6 +1,6 @@
 // SmartPick Settings Tab - Plugin settings UI
 
-import { App, PluginSettingTab, Setting, setIcon, Notice } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon, Notice, ButtonComponent } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { 
   ToolbarItem, 
@@ -207,36 +207,26 @@ export class SmartPickSettingTab extends PluginSettingTab {
     // Buttons
     const buttonsContainer = containerEl.createDiv('smartpick-settings-buttons');
 
-    new Setting(buttonsContainer)
-      .addButton(button => {
-        button.setButtonText(t('addCommand'));
-        button.setCta();
-        button.onClick(() => this.showAddCommandModal());
-      });
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(t('addCommand'))
+      .setCta()
+      .onClick(() => this.showAddCommandModal());
 
-    new Setting(buttonsContainer)
-      .addButton(button => {
-        button.setButtonText(t('addAICommand'));
-        button.onClick(() => this.showAddAICommandModal());
-      });
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(t('addAICommand'))
+      .onClick(() => this.showAddAICommandModal());
 
-    new Setting(buttonsContainer)
-      .addButton(button => {
-        button.setButtonText(t('addUrlCommand'));
-        button.onClick(() => this.showAddUrlCommandModal());
-      });
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(t('addUrlCommand'))
+      .onClick(() => this.showAddUrlCommandModal());
 
-    new Setting(buttonsContainer)
-      .addButton(button => {
-        button.setButtonText(t('addShortcutCommand'));
-        button.onClick(() => this.showAddShortcutModal());
-      });
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(t('addShortcutCommand'))
+      .onClick(() => this.showAddShortcutModal());
 
-    new Setting(buttonsContainer)
-      .addButton(button => {
-        button.setButtonText(t('newGroup'));
-        button.onClick(() => this.addNewGroup());
-      });
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(t('newGroup'))
+      .onClick(() => this.addNewGroup());
 
     // Toolbar items list
     const itemsContainer = containerEl.createDiv('smartpick-toolbar-items');
