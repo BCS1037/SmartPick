@@ -103,7 +103,14 @@ graph TD
   - DOM 节点的创建和组装必须全部使用 `createEl`、`createDiv`、`appendChild` 并结合 `setText` 等原生安全方法进行。
   - 若必须渲染大模型生成的 Markdown 流式文本，必须采用 Obsidian 官方提供的安全 Markdown 解析渲染 API `MarkdownRenderer.render`，绝对不可手写正则并配合 `innerHTML` 进行挂载。
 
-### 3.5 结合 `/vibe-obsidian-dev` 专属 Vibe Coding 开发及安全规范
+### 3.5 社区发布与 GitHub Release 命名规范（防商店预检报错与拒审）
+* **痛点**：Obsidian 官方插件中心在自动扫描并分发插件时，要求 **GitHub Release 的 Tag 标签名与 Release 标题必须与 `manifest.json` 中的 `version` 字段值完全一致**。如果习惯性地在标签前面加上 `v` 前缀（例如 `v0.7.3` 而 manifest 中是 `0.7.3`），官方预检系统会直接报错：`No release matches your manifest version`。
+* **避坑红线**：
+  - **严禁**在创建 GitHub Tag 和 Release 时使用带 `v` 的前缀（如 `v1.0.0`）。
+  - **必须**使用纯版本号数字作为 Tag 名和 Release 标题（如 `1.0.0`）。
+  - 如果不慎犯错，必须立即在 GitHub 远端和本地删除错误的 `v` 前缀标签和 release，重新打包并推送纯版本号标签和 Release。
+
+### 3.6 结合 `/vibe-obsidian-dev` 专属 Vibe Coding 开发及安全规范
 在日常修改或二次开发 SmartPick 插件时，AI Agent 与人类开发者必须严格应用本地配置的 **`/vibe-obsidian-dev`** 专属开发技能库，其核心编码规范汇总如下：
 
 1. **元素创建优先级 (DOM Element Creation)**
