@@ -180,7 +180,7 @@ export class CommandModal extends Modal {
         new Setting(contentEl)
             .addButton(btn => btn
                 .setButtonText(t('delete'))
-                .setWarning()
+                .setDestructive()
                 .onClick(() => {
                     new ConfirmModal(
                         this.app,
@@ -322,7 +322,7 @@ export class AICommandModal extends Modal {
     if (this.isEditing && !this.isBuiltin && this.onDelete) {
          buttons.addButton(btn => btn
             .setButtonText(t('delete'))
-            .setWarning()
+            .setDestructive()
             .onClick(() => {
               new ConfirmModal(
                 this.app,
@@ -501,7 +501,7 @@ export class UrlCommandModal extends Modal {
     if (this.isEditing && this.onDelete) {
          buttons.addButton(btn => btn
             .setButtonText(t('delete'))
-            .setWarning()
+            .setDestructive()
             .onClick(() => {
                  this.onDelete?.();
                  this.close();
@@ -658,7 +658,7 @@ export class ShortcutModal extends Modal {
     if (this.isEditing && this.onDelete) {
          buttons.addButton(btn => btn
             .setButtonText(t('delete'))
-            .setWarning()
+            .setDestructive()
             .onClick(() => {
                  this.onDelete?.();
                  this.close();

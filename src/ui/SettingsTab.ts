@@ -27,11 +27,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
   // Obsidian < 1.13.0: called directly by the framework
   display(): void {
-    const { containerEl } = this;
-    if (!containerEl) return;
-    containerEl.empty();
-    this.settingsRootEl = containerEl;
-    this.renderFullSettings(containerEl);
+    // Left empty since we use getSettingDefinitions() in 1.13.0+
   }
 
   // Obsidian 1.13.0+: declarative entry point — bypasses display()
@@ -55,7 +51,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     ];
   }
 
-  // Version-adaptive refresh: update() on 1.13+, display() on older
+  // Version-adaptive refresh: update() on 1.13+
   refresh(): void {
     if (this.settingsRootEl?.isConnected) {
       this.settingsRootEl.empty();
@@ -64,12 +60,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
       return;
     }
 
-    const tab = this as PluginSettingTab & { update?: () => void };
-    if (typeof tab.update === 'function') {
-      tab.update();
-    } else {
-      this.display();
-    }
+    ((this as unknown) as PluginSettingTab & { update: () => void }).update();
   }
 
   // Shared rendering core — works with any HTMLElement container
@@ -147,7 +138,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .addSlider(slider => slider
         .setLimits(0, 100, 1)
         .setValue(this.plugin.settings.toolbarVerticalOffset)
-        .setDynamicTooltip()
         .onChange((value) => {
           void (async () => {
              this.plugin.settings.toolbarVerticalOffset = value;
@@ -209,7 +199,10 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
 
     const customCard = containerEl.createDiv('smartpick-card');
-    customCard.createEl('h3', { text: localize('自定义命令', 'Custom commands'), cls: 'smartpick-card-title' });
+    new Setting(customCard)
+      .setName(localize('自定义命令', 'Custom commands'))
+      .setHeading()
+      .settingEl.classList.add('smartpick-card-title');
 
     const buttonsContainer = customCard.createDiv('smartpick-settings-buttons');
 
@@ -239,7 +232,10 @@ export class SmartPickSettingTab extends PluginSettingTab {
     this.renderCommandGrid(customItemsContainer, customItems, false);
 
     const builtinCard = containerEl.createDiv('smartpick-card');
-    builtinCard.createEl('h3', { text: localize('内置命令', 'Built-in commands'), cls: 'smartpick-card-title' });
+    new Setting(builtinCard)
+      .setName(localize('内置命令', 'Built-in commands'))
+      .setHeading()
+      .settingEl.classList.add('smartpick-card-title');
     const builtinDesc = builtinCard.createEl('p', { cls: 'smartpick-command-desc' });
     builtinDesc.setText(localize(
       '插件预设命令可启用、禁用和拖拽排序；前 8 个启用命令显示在工具栏，其余进入“更多”。',
@@ -691,9 +687,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .addSlider(slider => slider
         .setLimits(0, 1, 0.1)
         .setValue(aiConfig.temperature)
-        .setDynamicTooltip()
-        .setValue(aiConfig.temperature)
-        .setDynamicTooltip()
         .onChange((value) => {
           void (async () => {
               aiConfig.temperature = value;
@@ -707,7 +700,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
       .setName(t('maxTokens'))
       .setDesc(t('maxTokensDesc'))
       .addText(text => text
-        .setValue(String(aiConfig.maxTokens))
         .setValue(String(aiConfig.maxTokens))
         .onChange((value) => {
            void (async () => {

@@ -344,7 +344,7 @@ export class ToolbarUI {
     element.addEventListener('dragend', () => {
       element.classList.remove('smartpick-toolbar-dragging');
       this.clearAllToolbarDropIndicators();
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         this.suppressToolbarClick = false;
       }, 0);
     });

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.5] - 2026-06-28
+
+### Fixed
+
+- **Store Compliance & API Deprecations**:
+  - Bumped `minAppVersion` to `1.13.0` to officially align with declarative settings APIs (`getSettingDefinitions`, `update()`).
+  - Replaced custom HTML heading tags in the settings tab with native `Setting` header components for consistent UI styling.
+  - Replaced all deprecated `.setWarning()` calls with `.setDestructive()` for destructive actions.
+  - Switched from `activeWindow.setTimeout` to `window.setTimeout` for timer functions.
+  - Removed deprecated `.setDynamicTooltip()` calls on sliders and removed duplicated `.setValue()` calls.
+  - Simplified settings tab `refresh()` code and bypassed the deprecated `display()` handler.
+
 ## [0.7.4] - 2026-06-28
 
 ### Added
