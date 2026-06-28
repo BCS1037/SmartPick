@@ -3,6 +3,7 @@
 import type SmartPickPlugin from '../main';
 import { execFile } from 'child_process';
 import { Editor, App } from 'obsidian';
+import { ToolbarItem } from '../settings';
 
 interface AppWithCommands extends App {
   commands: {
@@ -35,8 +36,8 @@ export class CommandManager {
 
             if (item.type === 'command' && item.commandId) {
               (this.plugin.app as AppWithCommands).commands.executeCommandById(item.commandId);
-            } else if (item.type === 'ai' && item.promptTemplateId) {
-              void this.executeAICommand(item.promptTemplateId, selection, editor);
+            } else if (item.type === 'ai') {
+              void this.executeAICommand(item, selection, editor);
             } else if (item.type === 'url' && item.url) {
               // Auto-copy to clipboard for easier pasting
               navigator.clipboard.writeText(selection).catch(err => {
@@ -44,7 +45,7 @@ export class CommandManager {
               });
               
               const url = item.url.replace(/{{selection}}/g, encodeURIComponent(selection));
-              window.open(url);
+              activeWindow.open(url);
             } else if (item.type === 'shortcut' && item.shortcutKeys) {
               this.executeShortcut(item.shortcutKeys);
             }
@@ -55,24 +56,21 @@ export class CommandManager {
   }
 
   private async executeAICommand(
-    templateId: string, 
+    item: ToolbarItem,
     selection: string, 
     editor: Editor
   ): Promise<void> {
-    const template = this.plugin.settings.promptTemplates.find(
-      t => t.id === templateId
-    );
-
-    if (!template) {
-      console.error('Template not found:', templateId);
-      return;
-    }
-
     const { PreviewModal } = await import('../ui/PreviewModal');
     const modal = new PreviewModal(
       this.plugin.app,
       this.plugin,
-      template,
+      {
+        id: item.id,
+        name: item.tooltip,
+        prompt: item.prompt || '',
+        outputAction: item.outputAction || 'replace',
+        isBuiltin: !!item.isBuiltin,
+      },
       selection,
       editor
     );

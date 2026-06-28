@@ -12,11 +12,14 @@ export interface ToolbarItem {
   enabled: boolean;             // Controls whether command shows in toolbar
   hotkey?: string;
   commandId?: string;           // For Obsidian commands
-  promptTemplateId?: string;    // For AI commands
+  promptTemplateId?: string;    // Legacy AI template ID, migrated to prompt
+  prompt?: string;              // For inline AI commands
+  outputAction?: OutputAction;  // How AI output is handled
   url?: string;                 // For URL/URI commands
   shortcutKeys?: string;        // For Keyboard Shortcuts
   group: string;
   order: number;
+  isBuiltin?: boolean;
 }
 
 export interface PromptTemplate {
@@ -50,15 +53,11 @@ export interface AIConfig {
 export interface SmartPickSettings {
   // Toolbar
   toolbarItems: ToolbarItem[];
-  commandGroups: CommandGroup[];
   toolbarPosition: 'above' | 'below';
   toolbarVerticalOffset: number;
   
   // AI
   aiConfig: AIConfig;
-  
-  // Prompt Templates
-  promptTemplates: PromptTemplate[];
   
   // Conversation History (for multi-turn)
   enableMultiTurn: boolean;
@@ -78,78 +77,8 @@ export interface SmartPickSettings {
   migrationVersion: number;
 }
 
-// Default built-in prompt templates
-const DEFAULT_TEMPLATES: PromptTemplate[] = [
-  {
-    id: 'translate',
-    name: '翻译',
-    category: '翻译',
-    prompt: 'Please translate the following text into Chinese, return only the translation without any explanation:\n\n{{selection}}',
-    outputAction: 'replace',
-    isBuiltin: true,
-  },
-  {
-    id: 'summarize',
-    name: '总结',
-    category: '文本处理',
-    prompt: '请用简洁的语言总结以下内容的要点：\n\n{{selection}}',
-    outputAction: 'insert',
-    isBuiltin: true,
-  },
-  {
-    id: 'explain',
-    name: '解释',
-    category: '文本处理',
-    prompt: '请用通俗易懂的语言解释以下内容：\n\n{{selection}}',
-    outputAction: 'insert',
-    isBuiltin: true,
-  },
-  {
-    id: 'improve-writing',
-    name: '改进写作',
-    category: '写作',
-    prompt: '请改进以下文本的写作质量，使其更加清晰、流畅和专业，只返回改进后的文本：\n\n{{selection}}',
-    outputAction: 'replace',
-    isBuiltin: true,
-  },
-  {
-    id: 'fix-grammar',
-    name: '修正语法',
-    category: '写作',
-    prompt: '请修正以下文本中的语法和拼写错误，只返回修正后的文本：\n\n{{selection}}',
-    outputAction: 'replace',
-    isBuiltin: true,
-  },
-  {
-    id: 'expand',
-    name: '扩展内容',
-    category: '写作',
-    prompt: '请扩展以下内容，添加更多细节和解释：\n\n{{selection}}',
-    outputAction: 'insert',
-    isBuiltin: true,
-  },
-  {
-    id: 'simplify',
-    name: '简化',
-    category: '文本处理',
-    prompt: '请简化以下内容，使其更加简洁易懂：\n\n{{selection}}',
-    outputAction: 'replace',
-    isBuiltin: true,
-  },
-];
-
 // Default toolbar items
 const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
-  {
-    id: 'bold',
-    type: 'command',
-    icon: 'bold',
-    tooltip: '加粗',
-    enabled: true,
-    commandId: 'editor:toggle-bold',
-    group: 'builtin',
-    order: 0,
-  },
   {
     id: 'superscript',
     type: 'command',
@@ -158,7 +87,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: true,
     commandId: 'smartpick:superscript',
     group: 'builtin',
-    order: 1,
+    order: 0,
+    isBuiltin: true,
   },
   {
     id: 'subscript',
@@ -168,7 +98,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: true,
     commandId: 'smartpick:subscript',
     group: 'builtin',
-    order: 2,
+    order: 1,
+    isBuiltin: true,
   },
   {
     id: 'highlight',
@@ -178,27 +109,19 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: false,
     commandId: 'editor:toggle-highlight',
     group: 'builtin',
-    order: 3,
-  },
-  {
-    id: 'quote',
-    type: 'command',
-    icon: 'quote',
-    tooltip: '引用',
-    enabled: true,
-    commandId: 'editor:toggle-blockquote',
-    group: 'builtin',
-    order: 4,
+    order: 12,
+    isBuiltin: true,
   },
   {
     id: 'footnote',
     type: 'command',
-    icon: 'lucide-footprints',
+    icon: 'footprints',
     tooltip: '脚注',
     enabled: true,
     commandId: 'editor:insert-footnote',
     group: 'builtin',
-    order: 5,
+    order: 7,
+    isBuiltin: true,
   },
   {
     id: 'callout',
@@ -208,37 +131,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: true,
     commandId: 'editor:insert-callout',
     group: 'builtin',
-    order: 6,
-  },
-  {
-    id: 'copy',
-    type: 'command',
-    icon: 'copy',
-    tooltip: '复制',
-    enabled: true,
-    commandId: 'smartpick:copy',
-    group: 'builtin',
-    order: 7,
-  },
-  {
-    id: 'paste',
-    type: 'command',
-    icon: 'clipboard',
-    tooltip: '粘贴',
-    enabled: true,
-    commandId: 'smartpick:paste',
-    group: 'builtin',
     order: 8,
-  },
-  {
-    id: 'cut',
-    type: 'command',
-    icon: 'scissors',
-    tooltip: '剪切',
-    enabled: false,
-    commandId: 'smartpick:cut',
-    group: 'builtin',
-    order: 9,
+    isBuiltin: true,
   },
   {
     id: 'inline-code',
@@ -248,7 +142,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: true,
     commandId: 'editor:toggle-code',
     group: 'builtin',
-    order: 10,
+    order: 2,
+    isBuiltin: true,
   },
   {
     id: 'code-block',
@@ -258,7 +153,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: false,
     commandId: 'smartpick:insert-code-block',
     group: 'builtin',
-    order: 11,
+    order: 13,
+    isBuiltin: true,
   },
   {
     id: 'table',
@@ -268,7 +164,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: false,
     commandId: 'editor:insert-table',
     group: 'builtin',
-    order: 12,
+    order: 14,
+    isBuiltin: true,
   },
   {
     id: 'clear-formatting',
@@ -278,27 +175,30 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: true,
     commandId: 'smartpick:clear-formatting',
     group: 'builtin',
-    order: 13,
+    order: 9,
+    isBuiltin: true,
   },
   {
     id: 'paste-url-into-selection',
     type: 'command',
-    icon: 'link',
+    icon: 'link-2',
     tooltip: '粘贴链接到选区',
     enabled: true,
     commandId: 'smartpick:paste-url-into-selection',
     group: 'builtin',
-    order: 14,
+    order: 3,
+    isBuiltin: true,
   },
   {
     id: 'copy-note',
     type: 'command',
-    icon: 'copy',
+    icon: 'clipboard-list',
     tooltip: '拷贝当前笔记内容',
-    enabled: true,
+    enabled: false,
     commandId: 'smartpick:copy-note',
     group: 'builtin',
     order: 15,
+    isBuiltin: true,
   },
   {
     id: 'copy-note-file',
@@ -308,16 +208,8 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     enabled: true,
     commandId: 'smartpick:copy-note-file',
     group: 'builtin',
-    order: 16,
-  },
-  {
-    id: 'sep1',
-    type: 'separator',
-    icon: '',
-    tooltip: '',
-    enabled: true,
-    group: '',
-    order: 15,
+    order: 4,
+    isBuiltin: true,
   },
   {
     id: 'ai-translate',
@@ -325,9 +217,11 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     icon: 'languages',
     tooltip: '翻译',
     enabled: true,
-    promptTemplateId: 'translate',
-    group: 'ai',
-    order: 15,
+    prompt: 'Please translate the following text into Chinese, return only the translation without any explanation:\n\n{{selection}}',
+    outputAction: 'replace',
+    group: 'builtin',
+    order: 5,
+    isBuiltin: true,
   },
   {
     id: 'ai-summarize',
@@ -335,29 +229,82 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     icon: 'file-text',
     tooltip: '总结',
     enabled: false,
-    promptTemplateId: 'summarize',
-    group: 'ai',
+    prompt: '请用简洁的语言总结以下内容的要点：\n\n{{selection}}',
+    outputAction: 'insert',
+    group: 'builtin',
     order: 16,
+    isBuiltin: true,
   },
   {
     id: 'ai-explain',
     type: 'ai',
     icon: 'help-circle',
     tooltip: '解释',
-    enabled: true,
-    promptTemplateId: 'explain',
-    group: 'ai',
+    enabled: false,
+    prompt: '请用通俗易懂的语言解释以下内容：\n\n{{selection}}',
+    outputAction: 'insert',
+    group: 'builtin',
     order: 17,
+    isBuiltin: true,
+  },
+  {
+    id: 'ai-improve-writing',
+    type: 'ai',
+    icon: 'pencil',
+    tooltip: '改进写作',
+    enabled: false,
+    prompt: '请改进以下文本的写作质量，使其更加清晰、流畅和专业，只返回改进后的文本：\n\n{{selection}}',
+    outputAction: 'replace',
+    group: 'builtin',
+    order: 18,
+    isBuiltin: true,
+  },
+  {
+    id: 'ai-fix-grammar',
+    type: 'ai',
+    icon: 'check-check',
+    tooltip: '修正语法',
+    enabled: false,
+    prompt: '请修正以下文本中的语法和拼写错误，只返回修正后的文本：\n\n{{selection}}',
+    outputAction: 'replace',
+    group: 'builtin',
+    order: 19,
+    isBuiltin: true,
+  },
+  {
+    id: 'ai-expand',
+    type: 'ai',
+    icon: 'arrow-up-right',
+    tooltip: '扩展内容',
+    enabled: false,
+    prompt: '请扩展以下内容，添加更多细节和解释：\n\n{{selection}}',
+    outputAction: 'insert',
+    group: 'builtin',
+    order: 20,
+    isBuiltin: true,
+  },
+  {
+    id: 'ai-simplify',
+    type: 'ai',
+    icon: 'minus-circle',
+    tooltip: '简化',
+    enabled: false,
+    prompt: '请简化以下内容，使其更加简洁易懂：\n\n{{selection}}',
+    outputAction: 'replace',
+    group: 'builtin',
+    order: 21,
+    isBuiltin: true,
   },
   {
     id: 'link-google',
     type: 'url',
-    icon: 'lucide-chrome',
+    icon: 'globe',
     tooltip: 'Google',
     enabled: true,
     url: 'https://www.google.com/search?q={{selection}}',
-    group: 'link',
-    order: 0,
+    group: 'builtin',
+    order: 6,
+    isBuiltin: true,
   },
   {
     id: 'link-google-scholar',
@@ -366,18 +313,20 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     tooltip: 'Google Scholar',
     enabled: false,
     url: 'https://scholar.google.com/scholar?q={{selection}}',
-    group: 'link',
-    order: 1,
+    group: 'builtin',
+    order: 22,
+    isBuiltin: true,
   },
   {
     id: 'link-baidu',
     type: 'url',
-    icon: 'lucide-paw-print',
+    icon: 'paw-print',
     tooltip: 'Baidu',
     enabled: false,
     url: 'https://www.baidu.com/s?wd={{selection}}',
-    group: 'link',
-    order: 2,
+    group: 'builtin',
+    order: 23,
+    isBuiltin: true,
   },
   {
     id: 'link-chatgpt',
@@ -386,28 +335,31 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     tooltip: 'ChatGPT',
     enabled: false,
     url: 'https://chatgpt.com/?q={{selection}}',
-    group: 'link',
-    order: 4,
+    group: 'builtin',
+    order: 24,
+    isBuiltin: true,
   },
   {
     id: 'link-gemini',
     type: 'url',
     icon: 'sparkles',
     tooltip: 'Gemini',
-    enabled: true,
+    enabled: false,
     url: 'https://gemini.google.com/app?text={{selection}}',
-    group: 'link',
-    order: 5,
+    group: 'builtin',
+    order: 25,
+    isBuiltin: true,
   },
   {
     id: 'link-deepseek',
     type: 'url',
-    icon: 'lucide-fish',
+    icon: 'fish',
     tooltip: 'DeepSeek',
     enabled: false,
     url: 'https://chat.deepseek.com/?q={{selection}}',
-    group: 'link',
-    order: 8,
+    group: 'builtin',
+    order: 26,
+    isBuiltin: true,
   },
   {
     id: 'shortcut-todo',
@@ -416,34 +368,14 @@ const DEFAULT_TOOLBAR_ITEMS: ToolbarItem[] = [
     tooltip: 'Toggle Todo',
     enabled: false,
     commandId: 'editor:toggle-checklist-status',
-    group: 'shortcut',
-    order: 0,
-  },
-  {
-    id: 'shortcut-find',
-    type: 'shortcut',
-    icon: 'search',
-    tooltip: 'Find',
-    enabled: false,
-    shortcutKeys: 'Cmd+F',
-    group: 'shortcut',
-    order: 1,
+    group: 'builtin',
+    order: 27,
+    isBuiltin: true,
   },
 ];
-
-const DEFAULT_GROUPS: CommandGroup[] = [
-  { id: 'format', name: '格式', order: 0 },
-  { id: 'ai', name: 'AI', order: 1 },
-  { id: 'builtin', name: '内置工具集', order: 2 },
-  { id: 'link', name: '链接', order: 3 },
-  { id: 'shortcut', name: '快捷键', order: 4 },
-];
-
-// Redundant code removed. DEFAULT_TOOLBAR_ITEMS is already fully defined above.
 
 export const DEFAULT_SETTINGS: SmartPickSettings = {
   toolbarItems: DEFAULT_TOOLBAR_ITEMS,
-  commandGroups: DEFAULT_GROUPS,
   toolbarPosition: 'above',
   toolbarVerticalOffset: 26,
   
@@ -457,8 +389,6 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
     maxTokens: 2000,
   },
   
-  promptTemplates: DEFAULT_TEMPLATES,
-  
   enableMultiTurn: false,
   maxHistoryTurns: 5,
   
@@ -469,7 +399,7 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   enableModifierKeyTrigger: false,
   modifierKey: 'CmdOrCtrl',
 
-  migrationVersion: 1,
+  migrationVersion: 2,
 };
 
 // Generate unique ID

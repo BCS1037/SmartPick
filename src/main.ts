@@ -2,11 +2,22 @@
 // 智能划词工具栏 - 选中文本自动弹出工具栏，支持自定义命令和AI功能
 
 import { Plugin, Notice, Editor, FileSystemAdapter, Platform } from 'obsidian';
-import { SmartPickSettings, DEFAULT_SETTINGS } from './settings';
+import { SmartPickSettings, DEFAULT_SETTINGS, OutputAction } from './settings';
 import { initI18n, setLanguage } from './i18n';
 import { Toolbar } from './toolbar/Toolbar';
 import { SmartPickSettingTab } from './ui/SettingsTab';
 import { CommandManager } from './commands/CommandManager';
+
+const CURRENT_MIGRATION_VERSION = 3;
+const REMOVED_BUILTIN_TOOLBAR_ITEM_IDS = new Set([
+  'bold',
+  'quote',
+  'copy',
+  'paste',
+  'cut',
+  'shortcut-find',
+  'sep1',
+]);
 
 export default class SmartPickPlugin extends Plugin {
   settings: SmartPickSettings = DEFAULT_SETTINGS;
@@ -53,161 +64,107 @@ export default class SmartPickPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const data = await this.loadData() as Partial<SmartPickSettings> | null;
+    interface LegacyPromptTemplate {
+      id?: string;
+      name: string;
+      category?: string;
+      prompt: string;
+      outputAction?: OutputAction;
+      isBuiltin?: boolean;
+    }
+
+    type LegacySettings = Partial<SmartPickSettings> & {
+      promptTemplates?: LegacyPromptTemplate[];
+      commandGroups?: unknown;
+    };
+
+    const data = await this.loadData() as LegacySettings | null;
+    const migrationVersion = data?.migrationVersion ?? 0;
+    const legacyPromptTemplates = Array.isArray(data?.promptTemplates) ? data.promptTemplates : [];
+    const defaultToolbarItems = [...DEFAULT_SETTINGS.toolbarItems];
+    const defaultToolbarItemMap = new Map(defaultToolbarItems.map((item) => [item.id, item]));
     this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+    let shouldSaveSettings = false;
 
-    // Migration: Remove old translations and Add Built-in Tools
-    const templatesToRemove = ['translate-en', 'translate-zh'];
-    
-    // 1. Remove old templates
-    this.settings.promptTemplates = this.settings.promptTemplates.filter(t => !templatesToRemove.includes(t.id));
-
-    // 2. Ensure new translate template exists if it's missing
-    if (!this.settings.promptTemplates.find(t => t.id === 'translate')) {
-         const defaultTranslate = DEFAULT_SETTINGS.promptTemplates.find(t => t.id === 'translate');
-         if (defaultTranslate) {
-             this.settings.promptTemplates.push(defaultTranslate);
-         }
+    if (!Array.isArray(this.settings.toolbarItems) || this.settings.toolbarItems.length === 0) {
+      this.settings.toolbarItems = defaultToolbarItems.map((item) => ({ ...item }));
+      shouldSaveSettings = true;
     }
 
-    // 3. Migrate toolbar items
-    this.settings.toolbarItems.forEach(item => {
-        if (item.type === 'ai' && item.promptTemplateId && templatesToRemove.includes(item.promptTemplateId)) {
-            item.promptTemplateId = 'translate';
-        }
+    const existingToolbarItemIds = new Set(this.settings.toolbarItems.map((item) => item.id));
+    for (const template of legacyPromptTemplates.filter((template) => !template.isBuiltin)) {
+      const id = template.id || `${Date.now().toString(36)}${Math.random().toString(36).substring(2)}`;
+      const exists = existingToolbarItemIds.has(id)
+        || this.settings.toolbarItems.some((item) => item.type === 'ai' && item.tooltip === template.name);
+      if (exists) continue;
+
+      this.settings.toolbarItems.push({
+        id,
+        type: 'ai',
+        icon: 'sparkles',
+        tooltip: template.name,
+        enabled: true,
+        prompt: template.prompt,
+        outputAction: template.outputAction || 'replace',
+        group: 'custom',
+        order: this.getNextToolbarOrder(),
+        isBuiltin: false,
+      });
+      existingToolbarItemIds.add(id);
+      shouldSaveSettings = true;
+    }
+
+    const toolbarLengthBeforeCleanup = this.settings.toolbarItems.length;
+    this.settings.toolbarItems = this.settings.toolbarItems.filter((item) => {
+        if (item.type === 'separator') return false;
+        return !REMOVED_BUILTIN_TOOLBAR_ITEM_IDS.has(item.id);
     });
+    if (this.settings.toolbarItems.length !== toolbarLengthBeforeCleanup) {
+        shouldSaveSettings = true;
+    }
 
-    // 4. Add Built-in Tools Group if missing
-    if (!this.settings.commandGroups.find(g => g.id === 'builtin')) {
-        const builtinGroup = DEFAULT_SETTINGS.commandGroups.find(g => g.id === 'builtin');
-        if (builtinGroup) {
-            // Insert before 'link' group (order 2)
-            this.settings.commandGroups.push(builtinGroup);
-            this.settings.commandGroups.sort((a, b) => a.order - b.order);
+    for (const defaultItem of defaultToolbarItems) {
+        if (!existingToolbarItemIds.has(defaultItem.id)) {
+            this.settings.toolbarItems.push({ ...defaultItem });
+            existingToolbarItemIds.add(defaultItem.id);
+            shouldSaveSettings = true;
         }
     }
 
-    // 5. Add Built-in Tool Items if missing
-    const builtinItems = DEFAULT_SETTINGS.toolbarItems.filter(i => i.group === 'builtin');
-    const existingIds = new Set(this.settings.toolbarItems.map(i => i.id));
-    
-    let addedItems = false;
-    for (const item of builtinItems) {
-        if (!existingIds.has(item.id)) {
-            this.settings.toolbarItems.push(item);
-            addedItems = true;
-        }
-    }
-
-    // 7. Migration: Merge 'format' group into 'builtin'
-    // Move existing format items to builtin
-    this.settings.toolbarItems.forEach(item => {
-        if (item.group === 'format') {
-            item.group = 'builtin';
-        }
-    });
-
-    // Remove format group if it exists
-    this.settings.commandGroups = this.settings.commandGroups.filter(g => g.id !== 'format');
-
-    // Ensure builtin group exists and update order
-    let builtinGroup = this.settings.commandGroups.find(g => g.id === 'builtin');
-    if (!builtinGroup) {
-        builtinGroup = { id: 'builtin', name: '内置工具集', order: 0 };
-        this.settings.commandGroups.push(builtinGroup);
-    } else {
-        builtinGroup.order = 0; // Move to top
-    }
-    
-    // Reorder other groups
-    const aiGroup = this.settings.commandGroups.find(g => g.id === 'ai');
-    if (aiGroup) aiGroup.order = 1;
-    
-    const linkGroup = this.settings.commandGroups.find(g => g.id === 'link');
-    if (linkGroup) linkGroup.order = 2;
-    
-    const shortcutGroup = this.settings.commandGroups.find(g => g.id === 'shortcut');
-    if (shortcutGroup) shortcutGroup.order = 3;
-
-    this.settings.commandGroups.sort((a, b) => a.order - b.order);
-
-    // 8. Migration: Update Built-in Tools config (v0.4.1 update)
-    // Remove italic
-    this.settings.toolbarItems = this.settings.toolbarItems.filter(item => item.id !== 'italic');
-
-    // Add new items (quote, footnote, copy-note, copy-note-file) if missing
-    const newItems = DEFAULT_SETTINGS.toolbarItems.filter(i => ['quote', 'footnote', 'paste-url-into-selection', 'copy-note', 'copy-note-file'].includes(i.id));
-    const currentIds = new Set(this.settings.toolbarItems.map(i => i.id));
-    
-    for (const item of newItems) {
-        if (!currentIds.has(item.id)) {
-            // Push a copy to avoid mutating DEFAULT_SETTINGS
-            this.settings.toolbarItems.push({ ...item });
-        }
-    }
-
-    // One-time migration: Update enabled state, icons, tooltips, and order (v0.4.1 → v0.5.0)
-    // Only run this migration ONCE. After that, respect user's own enabled/disabled choices.
-    const currentMigrationVersion = this.settings.migrationVersion ?? 0;
-    
-    if (currentMigrationVersion < 1) {
-        const defaultsMap = new Map(DEFAULT_SETTINGS.toolbarItems.map(i => [i.id, i]));
-        
-        this.settings.toolbarItems.forEach(item => {
-            const def = defaultsMap.get(item.id);
-            if (def) {
-                // Update Icon
-                if (['link-google', 'link-baidu', 'link-deepseek'].includes(item.id)) {
-                    item.icon = def.icon;
-                }
-                
-                // Update Enabled State (only for builtin items involved in the change)
-                if (['bold', 'superscript', 'subscript', 'quote', 'footnote', 'callout', 'copy', 'paste', 'cut', 'inline-code', 'code-block', 'table', 'clear-formatting', 'highlight', 'paste-url-into-selection',
-                     'ai-translate', 'ai-summarize', 'ai-explain', 
-                     'link-google', 'link-google-scholar', 'link-baidu', 'link-chatgpt', 'link-gemini', 'link-deepseek', 
-                     'shortcut-todo', 'shortcut-find', 'copy-note', 'copy-note-file'].includes(item.id)) {
-                     item.enabled = def.enabled;
-                }
-
-                // Update tooltip text if it changed
-                item.tooltip = def.tooltip;
+    if (migrationVersion < CURRENT_MIGRATION_VERSION) {
+        for (const item of this.settings.toolbarItems) {
+            const defaultItem = defaultToolbarItemMap.get(item.id);
+            if (defaultItem) {
+                item.isBuiltin = true;
+                item.type = defaultItem.type;
+                item.icon = defaultItem.icon;
+                item.tooltip = defaultItem.tooltip;
+                item.enabled = defaultItem.enabled;
+                item.commandId = defaultItem.commandId;
+                item.prompt = defaultItem.prompt;
+                item.outputAction = defaultItem.outputAction;
+                item.url = defaultItem.url;
+                item.shortcutKeys = defaultItem.shortcutKeys;
+                item.group = 'builtin';
+                item.order = defaultItem.order;
+            } else if (!item.group || ['format', 'ai', 'link', 'shortcut', 'ungrouped'].includes(item.group)) {
+                item.group = 'custom';
+                item.isBuiltin = false;
             }
-        });
 
-        // Re-sort builtin items
-        const builtinOrderMap = new Map(DEFAULT_SETTINGS.toolbarItems
-            .filter(i => i.group === 'builtin')
-            .map((i, index) => [i.id, index]));
-        
-        this.settings.toolbarItems.sort((a, b) => {
-            if (a.group === 'builtin' && b.group === 'builtin') {
-                 const oa = builtinOrderMap.get(a.id) ?? 999;
-                 const ob = builtinOrderMap.get(b.id) ?? 999;
-                 return oa - ob;
+            if (item.type === 'ai') {
+                const legacyTemplate = legacyPromptTemplates.find((template) => template.id === item.promptTemplateId);
+                item.prompt = item.prompt || legacyTemplate?.prompt || defaultItem?.prompt || '';
+                item.outputAction = item.outputAction || legacyTemplate?.outputAction || defaultItem?.outputAction || 'replace';
+                delete item.promptTemplateId;
             }
-            return 0; 
-        });
-
-        this.settings.toolbarItems.forEach(item => {
-            if (item.group === 'builtin') {
-                 const def = defaultsMap.get(item.id);
-                 if (def) {
-                     item.order = def.order;
-                 }
-            }
-        });
-
-        // Mark migration as complete
-        this.settings.migrationVersion = 1;
+        }
+        this.settings.migrationVersion = CURRENT_MIGRATION_VERSION;
+        shouldSaveSettings = true;
     }
 
-    // Final Safety: Remove duplicates based on ID
-    // Keep the last occurrence or the first? 
-    // Usually first is better if we just appended duplicates. 
-    // However, if we appended new defaults, we want to keep user's existing config if it exists?
-    // Actually, in the migration steps above, we might have appended duplicates if checks failed.
-    // Let's keep the first occurrence of each ID.
-    const seenIds = new Set();
+    const seenIds = new Set<string>();
+    const lengthBeforeDedup = this.settings.toolbarItems.length;
     this.settings.toolbarItems = this.settings.toolbarItems.filter(item => {
         if (seenIds.has(item.id)) {
             return false;
@@ -215,22 +172,22 @@ export default class SmartPickPlugin extends Plugin {
         seenIds.add(item.id);
         return true;
     });
+    if (this.settings.toolbarItems.length !== lengthBeforeDedup) {
+        shouldSaveSettings = true;
+    }
 
-    // 6. Save immediately to persist migration
-    // Safe check using unknown cast to avoid 'any'
-    const unknownData = data as unknown as Record<string, unknown> | null;
-    const hasOldTemplates = unknownData?.promptTemplates && Array.isArray(unknownData.promptTemplates) && 
-        unknownData.promptTemplates.some((t: { id?: string }) => templatesToRemove.includes(t.id ?? ''));
-    const hasOldItems = unknownData?.toolbarItems && Array.isArray(unknownData.toolbarItems) && 
-        unknownData.toolbarItems.some((t: { promptTemplateId?: string }) => templatesToRemove.includes(t.promptTemplateId ?? ''));
-    
-    // Check if we added the built-in group or items (need to save)
-    // Also save if we removed duplicates (length changed)
-    const originalLength = typeof data === 'object' && data !== null && 'toolbarItems' in data ? 
-        ((data as { toolbarItems?: unknown[] }).toolbarItems?.length || 0) : 0;
-    if (hasOldTemplates || hasOldItems || addedItems || !this.settings.commandGroups.find(g => g.id === 'builtin') || this.settings.toolbarItems.length !== originalLength) {
+    this.settings.toolbarItems.sort((a, b) => a.order - b.order);
+
+    if (shouldSaveSettings) {
+        const migratedSettings = this.settings as SmartPickSettings & LegacySettings;
+        delete migratedSettings.promptTemplates;
+        delete migratedSettings.commandGroups;
         await this.saveSettings();
     }
+  }
+
+  private getNextToolbarOrder(): number {
+    return Math.max(-1, ...this.settings.toolbarItems.map((item) => item.order)) + 1;
   }
 
   async saveSettings(): Promise<void> {

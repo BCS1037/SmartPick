@@ -15,3 +15,9 @@ PRD/
 dev_logs/
 FILETREE.md
 AGENT.md
+
+# Privacy & Reference folders
+References 参考资料/
+*.jsonl
+.agent/
+.agents/

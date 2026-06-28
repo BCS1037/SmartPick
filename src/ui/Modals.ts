@@ -1,79 +1,41 @@
 import { App, Modal, Setting, Notice, setIcon, TextComponent } from 'obsidian';
 import { t } from '../i18n';
-import { PromptTemplate } from '../settings';
 import { CommandSuggester, IconSuggester } from './Suggesters';
 
 import { ConfirmModal } from './ConfirmModal';
 
-export class EditTemplateModal extends Modal {
-  private resultName: string = '';
-  private resultCategory: string = 'Custom';
-  private resultPrompt: string = '';
-  private isEditing: boolean = false;
-  private onSubmit: (name: string, category: string, prompt: string) => void;
+export class AddCommandChoiceModal extends Modal {
+  private onSelect: (choice: 'command' | 'ai' | 'url' | 'shortcut') => void;
 
-  constructor(
-    app: App, 
-    template: PromptTemplate | undefined, 
-    onSubmit: (name: string, category: string, prompt: string) => void
-  ) {
+  constructor(app: App, onSelect: (choice: 'command' | 'ai' | 'url' | 'shortcut') => void) {
     super(app);
-    this.onSubmit = onSubmit;
-    if (template) {
-        this.isEditing = true;
-        this.resultName = template.name;
-        this.resultCategory = template.category;
-        this.resultPrompt = template.prompt;
-    }
+    this.onSelect = onSelect;
   }
 
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl('h2', { text: this.isEditing ? t('editTemplate') : t('addNewTemplate') });
+    contentEl.createEl('h2', { text: t('modal_chooseCommandType'), cls: 'smartpick-modal-title' });
 
-    // Name
-    new Setting(contentEl)
-      .setName(t('templateName'))
-      .addText(text => text
-        .setValue(this.resultName)
-        .onChange(value => this.resultName = value));
+    const container = contentEl.createDiv('smartpick-choice-container');
+    const choices = [
+      { id: 'command', name: t('choice_builtinCommand'), desc: t('choice_builtinCommandDesc'), icon: 'command' },
+      { id: 'ai', name: t('choice_aiCommand'), desc: t('choice_aiCommandDesc'), icon: 'sparkles' },
+      { id: 'url', name: t('choice_urlCommand'), desc: t('choice_urlCommandDesc'), icon: 'link' },
+      { id: 'shortcut', name: t('choice_shortcutCommand'), desc: t('choice_shortcutCommandDesc'), icon: 'keyboard' },
+    ];
 
-    // Category
-    new Setting(contentEl)
-      .setName(t('templateCategory'))
-      .addText(text => text
-        .setValue(this.resultCategory)
-        .onChange(value => this.resultCategory = value));
-
-    // Prompt (TextArea)
-    new Setting(contentEl)
-      .setName(t('templatePrompt'))
-      .addTextArea(text => {
-        text
-          .setValue(this.resultPrompt)
-          .setPlaceholder('{{selection}}')
-          .onChange(value => this.resultPrompt = value);
-        text.inputEl.rows = 6;
-        text.inputEl.addClass('smartpick-full-width');
+    choices.forEach(choice => {
+      const card = container.createDiv('smartpick-choice-card');
+      const iconEl = card.createSpan('smartpick-choice-card-icon');
+      setIcon(iconEl, choice.icon);
+      card.createEl('strong', { text: choice.name });
+      card.createEl('span', { text: choice.desc });
+      card.addEventListener('click', () => {
+        this.close();
+        this.onSelect(choice.id as 'command' | 'ai' | 'url' | 'shortcut');
       });
-
-    // Buttons
-    new Setting(contentEl)
-      .addButton(btn => btn
-        .setButtonText(t('cancel'))
-        .onClick(() => this.close()))
-      .addButton(btn => btn
-        .setButtonText(this.isEditing ? 'Save' : 'Add')
-        .setCta()
-        .onClick(() => {
-          if (!this.resultName || !this.resultPrompt) {
-            new Notice(t('error')); // Or specific message
-            return;
-          }
-          this.close();
-          this.onSubmit(this.resultName, this.resultCategory, this.resultPrompt);
-        }));
+    });
   }
 
   onClose() {
@@ -247,37 +209,40 @@ export class CommandModal extends Modal {
 }
 
 export interface AICommandData {
-  templateId: string;
+  name: string;
+  prompt: string;
   icon: string;
+  outputAction: 'replace' | 'insert' | 'clipboard';
+  isBuiltin?: boolean;
 }
 
 export class AICommandModal extends Modal {
-  private selectedTemplateId: string = '';
+  private resultName: string = '';
+  private resultPrompt: string = '';
   private resultIcon: string = 'sparkles';
-  private templates: PromptTemplate[];
+  private resultOutputAction: 'replace' | 'insert' | 'clipboard' = 'replace';
   private isEditing: boolean = false;
+  private isBuiltin: boolean = false;
 
-  private onSubmit: (templateId: string, icon: string) => void;
+  private onSubmit: (name: string, prompt: string, icon: string, outputAction: 'replace' | 'insert' | 'clipboard') => void;
   private onDelete?: () => void;
 
   constructor(
-    app: App, 
-    templates: PromptTemplate[], 
-    initialData: AICommandData | undefined, 
- 
-    onSubmit: (templateId: string, icon: string) => void,
+    app: App,
+    initialData: AICommandData | null,
+    onSubmit: (name: string, prompt: string, icon: string, outputAction: 'replace' | 'insert' | 'clipboard') => void,
     onDelete?: () => void
   ) {
     super(app);
-    this.templates = templates;
     this.onSubmit = onSubmit;
     this.onDelete = onDelete;
     if (initialData) {
         this.isEditing = true;
-        this.selectedTemplateId = initialData.templateId;
+        this.resultName = initialData.name;
+        this.resultPrompt = initialData.prompt;
         this.resultIcon = initialData.icon;
-    } else if (templates.length > 0) {
-      this.selectedTemplateId = templates[0].id;
+        this.resultOutputAction = initialData.outputAction;
+        this.isBuiltin = !!initialData.isBuiltin;
     }
   }
 
@@ -286,29 +251,49 @@ export class AICommandModal extends Modal {
     contentEl.empty();
     contentEl.createEl('h2', { text: this.isEditing ? t('editAICommand') : t('addAICommand') });
 
-    // Template Selection
     new Setting(contentEl)
-      .setName(t('selectTemplateId'))
-      .addDropdown(dropdown => {
-        this.templates.forEach(template => {
-          dropdown.addOption(template.id, template.name);
-        });
-        dropdown.setValue(this.selectedTemplateId);
-        dropdown.onChange(value => {
-          this.selectedTemplateId = value;
-        });
+      .setName(t('commandName'))
+      .setDesc(t('commandNameDesc'))
+      .addText(text => text
+        .setValue(this.resultName)
+        .setPlaceholder(t('command_ai_translate'))
+        .onChange(value => this.resultName = value));
+
+    new Setting(contentEl)
+      .setName(t('prompt'))
+      .setDesc(t('promptDesc'))
+      .addTextArea(text => {
+        text
+          .setValue(this.resultPrompt)
+          .setPlaceholder(t('promptTranslatePlaceholder'))
+          .onChange(value => this.resultPrompt = value);
+        text.inputEl.rows = 6;
+        text.inputEl.addClass('smartpick-full-width');
       });
 
-    // Icon Input
+    new Setting(contentEl)
+      .setName(t('outputAction'))
+      .setDesc(t('outputActionDesc'))
+      .addDropdown(dropdown => {
+        dropdown
+          .addOption('replace', t('outputReplaceSelection'))
+          .addOption('insert', t('outputInsertBelowSelection'))
+          .addOption('clipboard', t('outputCopyToClipboard'))
+          .setValue(this.resultOutputAction)
+          .onChange(value => {
+            this.resultOutputAction = value as 'replace' | 'insert' | 'clipboard';
+          });
+      });
+
     let iconText: TextComponent;
 
-
     const iconSetting = new Setting(contentEl)
-      .setName(t('enterIconName'))
+      .setName(t('commandIcon'))
+      .setDesc(t('commandIconDesc'))
       .addText(text => {
         iconText = text;
         text.setValue(this.resultIcon)
-            .setPlaceholder('`sparkles`')
+            .setPlaceholder('sparkles')
             .onChange(value => {
               this.resultIcon = value;
               updateIconPreview(value);
@@ -332,16 +317,23 @@ export class AICommandModal extends Modal {
     };
     updateIconPreview(this.resultIcon);
 
-    // Buttons
     const buttons = new Setting(contentEl);
 
-    if (this.isEditing && this.onDelete) {
+    if (this.isEditing && !this.isBuiltin && this.onDelete) {
          buttons.addButton(btn => btn
             .setButtonText(t('delete'))
             .setWarning()
             .onClick(() => {
-                 this.onDelete?.();
-                 this.close();
+              new ConfirmModal(
+                this.app,
+                t('deleteAICommand'),
+                t('deleteAICommandDesc'),
+                () => {
+                  this.onDelete?.();
+                  this.close();
+                },
+                t('delete')
+              ).open();
             }));
     }
 
@@ -350,15 +342,15 @@ export class AICommandModal extends Modal {
         .setButtonText(t('cancel'))
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText(this.isEditing ? t('save') : t('addAICommand'))
+        .setButtonText(this.isEditing ? t('save') : t('add'))
         .setCta()
         .onClick(() => {
-          if (!this.selectedTemplateId) {
-            new Notice(t('templateNotFound'));
+          if (!this.resultName || !this.resultPrompt) {
+            new Notice(t('notice_aiCommandRequired'));
             return;
           }
           this.close();
-          this.onSubmit(this.selectedTemplateId, this.resultIcon);
+          this.onSubmit(this.resultName, this.resultPrompt, this.resultIcon, this.resultOutputAction);
         }));
   }
 

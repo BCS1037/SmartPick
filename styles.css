@@ -182,14 +182,41 @@ button.smartpick-toolbar-button {
 
 /* Settings Styles */
 .smartpick-settings {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   padding-bottom: 32px;
+  gap: 16px;
 }
 
 /* Declarative Settings bridge (Obsidian 1.13.0+) */
+.setting-item.smartpick-declarative-root,
 .smartpick-declarative-root {
   display: block;
   width: 100%;
   padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+}
+
+body .modal.mod-settings .vertical-tab-content:has(.setting-item.smartpick-declarative-root.smartpick-settings) {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.setting-item.smartpick-declarative-root {
+  border: none;
+  box-shadow: none;
+}
+
+.setting-group .setting-item.smartpick-declarative-root:not(.setting-item-heading),
+.setting-group .setting-item.smartpick-declarative-root.smartpick-settings:not(.setting-item-heading) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding: 0 0 32px 0;
   margin: 0;
   border: none;
   background: none;
@@ -202,23 +229,27 @@ button.smartpick-toolbar-button {
 /* Settings Tabs */
 .smartpick-settings-tabs {
   display: flex;
-  gap: 12px;
+  gap: 4px;
+  background-color: var(--background-secondary-alt);
+  padding: 4px;
+  border-radius: 8px;
   margin-bottom: 24px;
-  border-bottom: 1px solid var(--background-modifier-border);
-  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .smartpick-settings-tab {
+  flex: 1;
   padding: 8px 16px;
-  border-radius: 6px 6px 0 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--text-muted);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
-  border: 1px solid transparent;
-  border-bottom: none;
-  margin-bottom: -1px;
+  border: none;
+  margin-bottom: 0;
+  box-shadow: none;
+  text-align: center;
 }
 
 .smartpick-settings-tab:hover {
@@ -229,12 +260,13 @@ button.smartpick-toolbar-button {
 .smartpick-settings-tab.active {
   background: var(--background-primary);
   color: var(--text-normal);
-  border-color: var(--background-modifier-border);
-  border-bottom-color: var(--background-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-s);
 }
 
 .smartpick-settings-tab-content {
   animation: fadeIn 0.2s ease;
+  width: 100%;
 }
 
 @keyframes fadeIn {
@@ -614,10 +646,400 @@ button.smartpick-toolbar-button {
   align-self: center;
 }
 
+.smartpick-choice-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.smartpick-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.smartpick-choice-card:hover {
+  border-color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+  transform: translateY(-1px);
+}
+
+.smartpick-choice-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--interactive-accent);
+}
+
+.smartpick-choice-card-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.smartpick-choice-card strong {
+  color: var(--text-normal);
+  font-size: var(--font-ui-medium);
+}
+
+.smartpick-choice-card span:not(.smartpick-choice-card-icon) {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.35;
+}
+
+@media (max-width: 520px) {
+  .smartpick-choice-container {
+    grid-template-columns: 1fr;
+  }
+}
+
 .smartpick-settings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* SmartPick toolbar overflow and drag sorting */
+.smartpick-toolbar-container {
+  overflow: visible;
+}
+
+.smartpick-toolbar {
+  position: relative;
+  overflow: visible;
+}
+
+button.smartpick-toolbar-button {
+  position: relative;
+  overflow: visible;
+}
+
+.smartpick-toolbar-button[draggable="true"] {
+  cursor: grab;
+}
+
+.smartpick-toolbar-button.smartpick-toolbar-dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.smartpick-toolbar-button.smartpick-toolbar-drop-before::before,
+.smartpick-toolbar-button.smartpick-toolbar-drop-after::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+}
+
+.smartpick-toolbar-button.smartpick-toolbar-drop-before::before {
+  left: -2px;
+}
+
+.smartpick-toolbar-button.smartpick-toolbar-drop-after::before {
+  right: -2px;
+}
+
+.smartpick-toolbar-more-button.is-open {
+  background: var(--background-modifier-hover);
+}
+
+.smartpick-toolbar-more-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  max-width: min(260px, 80vw);
+  max-height: 280px;
+  padding: 4px;
+  overflow-y: auto;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  z-index: 1;
+}
+
+.smartpick-toolbar-more-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: none;
+}
+
+.smartpick-toolbar-more-item[draggable="true"] {
+  cursor: grab;
+}
+
+.smartpick-toolbar-more-item.smartpick-toolbar-dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.smartpick-toolbar-more-item.smartpick-toolbar-drop-before,
+.smartpick-toolbar-more-item.smartpick-toolbar-drop-after {
+  position: relative;
+}
+
+.smartpick-toolbar-more-item.smartpick-toolbar-drop-before::before,
+.smartpick-toolbar-more-item.smartpick-toolbar-drop-after::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+}
+
+.smartpick-toolbar-more-item.smartpick-toolbar-drop-before::before {
+  top: -2px;
+}
+
+.smartpick-toolbar-more-item.smartpick-toolbar-drop-after::before {
+  bottom: -2px;
+}
+
+.smartpick-toolbar-more-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smartpick-toolbar-more-item-disabled {
+  opacity: 0.45;
+}
+
+.smartpick-toolbar-more-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.smartpick-toolbar-more-item-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.smartpick-toolbar-more-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.smartpick-toolbar-more-item-ai .smartpick-toolbar-more-item-icon {
+  color: var(--interactive-accent);
+}
+
+.smartpick-toolbar-more-settings-item {
+  margin-top: 4px;
+  border-top: 1px solid var(--background-modifier-border);
+  border-radius: 0 0 5px 5px;
+  padding-top: 8px;
+  color: var(--text-muted);
+}
+
+.smartpick-toolbar-more-settings-item:hover {
+  color: var(--text-normal);
+}
+
+/* Settings cards and command grids */
+.smartpick-card {
+  margin: 0 0 16px 0;
+  padding: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.smartpick-card-title {
+  margin: 0 0 12px 0;
+  padding-left: 0;
+  padding-right: 0;
+  font-size: 1em;
+  line-height: 1.3;
+}
+
+body .modal.mod-settings .smartpick-settings .smartpick-card > h3.smartpick-card-title {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.smartpick-card .smartpick-settings-buttons {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.smartpick-command-desc {
+  margin: 0 0 12px 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.45;
+}
+
+.smartpick-command-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-auto-rows: 30px;
+  gap: 10px;
+  align-content: start;
+  width: 100%;
+  min-height: 30px;
+  padding: 8px;
+  border: 1px dashed var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary-alt);
+}
+
+.smartpick-command-grid.is-empty {
+  height: 52px;
+}
+
+.smartpick-command-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 30px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 7px;
+  cursor: grab;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.smartpick-command-tile:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--interactive-accent);
+  transform: translateY(-1px);
+}
+
+.smartpick-command-tile.is-disabled {
+  opacity: 0.35;
+}
+
+.smartpick-command-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-normal);
+}
+
+.smartpick-command-tile-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.smartpick-command-tile-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 16px;
+  height: 13px;
+  padding: 0 4px;
+  font-size: 9px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 4px;
+  font-weight: 800;
+  line-height: 13px;
+  text-align: center;
+}
+
+.smartpick-command-tile-actions {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.smartpick-command-tile:hover .smartpick-command-tile-actions,
+.smartpick-command-tile:focus-within .smartpick-command-tile-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.smartpick-command-tile-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.smartpick-command-tile-action svg {
+  width: 11px;
+  height: 11px;
+}
+
+.smartpick-command-tile-action:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.smartpick-command-tile-delete:hover {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
+.smartpick-command-grid.smartpick-drag-over {
+  background: var(--background-modifier-hover);
+  border: 1px dashed var(--interactive-accent);
+}
+
+.smartpick-command-tile.smartpick-drag-over-item {
+  border-color: var(--interactive-accent);
+  box-shadow: inset 0 0 0 1px var(--interactive-accent);
+}
+
+@media (max-width: 720px) {
+  .smartpick-command-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .smartpick-item-actions {

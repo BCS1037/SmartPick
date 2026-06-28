@@ -2,7 +2,7 @@
 
 import { App, Editor, Modal, MarkdownRenderer, Component, setIcon, setTooltip } from 'obsidian';
 import type SmartPickPlugin from '../main';
-import { PromptTemplate } from '../settings';
+import { OutputAction } from '../settings';
 import { 
   AIProvider, 
   ChatMessage, 
@@ -16,9 +16,18 @@ import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
 import { t, I18nStrings } from '../i18n';
 
+interface AICommandTemplate {
+  id?: string;
+  name: string;
+  prompt: string;
+  outputAction?: OutputAction;
+  model?: string;
+  isBuiltin?: boolean;
+}
+
 export class PreviewModal extends Modal {
   private plugin: SmartPickPlugin;
-  private template: PromptTemplate;
+  private template: AICommandTemplate;
   private selectedText: string;
   private editor: Editor | null;
   private responseEl: HTMLElement | null = null;
@@ -30,7 +39,7 @@ export class PreviewModal extends Modal {
   constructor(
     app: App,
     plugin: SmartPickPlugin,
-    template: PromptTemplate,
+    template: AICommandTemplate,
     selection: string,
     editor: Editor | null
   ) {
@@ -48,7 +57,7 @@ export class PreviewModal extends Modal {
 
     // Title - Use localized template name for built-in templates, or stored name for custom ones
     let titleText = this.template.name;
-    if (this.template.isBuiltin) {
+    if (this.template.isBuiltin && this.template.id) {
       const i18nKey = `template_${this.template.id.replace(/-/g, '_')}` as keyof I18nStrings;
       const localizedName = t(i18nKey);
       if (localizedName && localizedName !== i18nKey) {

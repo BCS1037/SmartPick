@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.4] - 2026-06-28
+
+### Added
+
+- **Inline AI commands**: AI prompts are now stored directly on toolbar commands. AI commands can be edited in place, including name, prompt, icon, and output behavior.
+- **Unified command creation**: The Add command flow now opens a command-type picker for Obsidian commands, AI commands, web links, and keyboard shortcuts.
+- **More menu**: The selection toolbar shows the first 8 enabled commands and moves the rest into a More menu, with a direct SmartPick settings shortcut at the bottom.
+
+### Changed
+
+- **Prompt architecture migration**: Removed the standalone prompt templates tab. Existing custom prompt templates are migrated into custom AI commands, and legacy AI commands are backfilled with inline prompts.
+- **Toolbar command management**: Settings now separate custom commands and built-in commands into compact icon grids with enable/disable controls and drag sorting.
+- **Default command set**: Reduced the default enabled toolbar commands to keep the toolbar shorter and move less common actions behind user opt-in.
+
+### Fixed
+
+- **Settings alignment**: Fixed SmartPick settings alignment in Obsidian's settings modal, including host content padding, declarative setting-row padding, and inherited `h3` title padding inside command cards.
+- **Settings tab refresh**: Fixed unstable settings tab refresh behavior under Obsidian 1.13+ declarative settings.
+
 ## [0.7.0] - 2026-05-27
 
 ### Added

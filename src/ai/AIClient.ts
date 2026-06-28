@@ -1,6 +1,6 @@
 // SmartPick AI Client - Unified AI API interface
 
-import { AIConfig, PromptTemplate } from '../settings';
+import { AIConfig } from '../settings';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -57,7 +57,7 @@ export function trimHistory(maxTurns: number): void {
 
 // Parse template variables
 export function parsePromptTemplate(
-  template: PromptTemplate,
+  template: { prompt: string },
   selection: string,
   context: {
     title?: string;

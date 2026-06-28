@@ -30,6 +30,7 @@ export interface I18nStrings {
   toolbarHorizontalOffset: string;
   toolbarHorizontalOffsetDesc: string;
   addCommand: string;
+  add: string;
   addAICommand: string;
   addUrlCommand: string;
   addShortcutCommand: string;
@@ -62,6 +63,31 @@ export interface I18nStrings {
   defaultIcon: string;
   enableCommand: string;
   disableCommand: string;
+  modal_chooseCommandType: string;
+  choice_builtinCommand: string;
+  choice_builtinCommandDesc: string;
+  choice_aiCommand: string;
+  choice_aiCommandDesc: string;
+  choice_urlCommand: string;
+  choice_urlCommandDesc: string;
+  choice_shortcutCommand: string;
+  choice_shortcutCommandDesc: string;
+  commandName: string;
+  commandNameDesc: string;
+  prompt: string;
+  promptDesc: string;
+  promptTranslatePlaceholder: string;
+  outputAction: string;
+  outputActionDesc: string;
+  outputReplaceSelection: string;
+  outputInsertBelowSelection: string;
+  outputCopyToClipboard: string;
+  commandIcon: string;
+  commandIconDesc: string;
+  deleteAICommand: string;
+  deleteAICommandDesc: string;
+  notice_aiCommandRequired: string;
+  notice_builtinCommandReadonly: string;
   
   // AI Settings
   apiProvider: string;
@@ -121,6 +147,10 @@ export interface I18nStrings {
   command_ai_translate: string;
   command_ai_summarize: string;
   command_ai_explain: string;
+  command_ai_improve_writing: string;
+  command_ai_fix_grammar: string;
+  command_ai_expand: string;
+  command_ai_simplify: string;
   
   group_format: string;
   group_ai: string;
@@ -162,6 +192,10 @@ export interface I18nStrings {
   command_paste_url_into_selection: string;
   command_copy_note: string;
   command_copy_note_file: string;
+  command_quote: string;
+  command_footnote: string;
+  command_toggle_todo: string;
+  openSmartPickSettings: string;
 }
 
 const zh: I18nStrings = {
@@ -189,6 +223,7 @@ const zh: I18nStrings = {
   toolbarHorizontalOffset: '工具栏水平偏移',
   toolbarHorizontalOffsetDesc: '水平偏移距离（像素）',
   addCommand: '添加命令',
+  add: '添加',
   addAICommand: '添加 AI 命令',
   addUrlCommand: '添加链接/快捷指令',
   addShortcutCommand: '添加键盘快捷键',
@@ -221,6 +256,31 @@ const zh: I18nStrings = {
   defaultIcon: '默认图标',
   enableCommand: '启用',
   disableCommand: '禁用',
+  modal_chooseCommandType: '选择命令类型',
+  choice_builtinCommand: 'Obsidian 命令',
+  choice_builtinCommandDesc: '调用 Obsidian 或插件已注册命令',
+  choice_aiCommand: 'AI 命令',
+  choice_aiCommandDesc: '用自定义提示词处理选中文本',
+  choice_urlCommand: '网页链接',
+  choice_urlCommandDesc: '把选中文本填入搜索或网页 URL',
+  choice_shortcutCommand: '键盘快捷键',
+  choice_shortcutCommandDesc: '触发 macOS 系统级快捷键',
+  commandName: '命令名称',
+  commandNameDesc: '显示在工具栏 tooltip 和设置中的名称',
+  prompt: '提示词',
+  promptDesc: '执行 AI 请求的 Prompt 内容，使用 {{selection}} 作为选中文本占位符',
+  promptTranslatePlaceholder: '请将以下内容翻译成中文：\n\n{{selection}}',
+  outputAction: '输出处理',
+  outputActionDesc: 'AI 返回结果的处理方式',
+  outputReplaceSelection: '替换选中文本',
+  outputInsertBelowSelection: '插入到选区后',
+  outputCopyToClipboard: '复制到剪贴板',
+  commandIcon: '命令图标',
+  commandIconDesc: 'Lucide 图标名称',
+  deleteAICommand: '删除 AI 命令',
+  deleteAICommandDesc: '确认要删除这个自定义 AI 命令吗？此操作无法撤销。',
+  notice_aiCommandRequired: '命令名称和提示词不能为空',
+  notice_builtinCommandReadonly: '内置普通命令只能启用、禁用或排序',
   
   // AI Settings
   apiProvider: 'API 提供商',
@@ -280,6 +340,10 @@ const zh: I18nStrings = {
   command_ai_translate: '翻译',
   command_ai_summarize: '总结',
   command_ai_explain: '解释',
+  command_ai_improve_writing: '改进写作',
+  command_ai_fix_grammar: '修正语法',
+  command_ai_expand: '扩展内容',
+  command_ai_simplify: '简化',
   
   group_format: '格式',
   group_ai: 'AI',
@@ -321,6 +385,10 @@ const zh: I18nStrings = {
   command_paste_url_into_selection: '粘贴链接到选区',
   command_copy_note: '拷贝当前笔记内容',
   command_copy_note_file: '拷贝当前笔记文件 (作为附件)',
+  command_quote: '引用',
+  command_footnote: '脚注',
+  command_toggle_todo: '切换待办',
+  openSmartPickSettings: '打开 SmartPick 设置',
 };
 
 const en: I18nStrings = {
@@ -348,6 +416,7 @@ const en: I18nStrings = {
   toolbarHorizontalOffset: 'Toolbar horizontal offset',
   toolbarHorizontalOffsetDesc: 'Horizontal shift (pixels)',
   addCommand: 'Add command',
+  add: 'Add',
   addAICommand: 'Add AI command',
   addUrlCommand: 'Add link/shortcut',
   addShortcutCommand: 'Add keyboard shortcut',
@@ -380,6 +449,31 @@ const en: I18nStrings = {
   defaultIcon: 'Default icon',
   enableCommand: 'Enable',
   disableCommand: 'Disable',
+  modal_chooseCommandType: 'Choose command type',
+  choice_builtinCommand: 'Obsidian command',
+  choice_builtinCommandDesc: 'Run a command registered by Obsidian or a plugin',
+  choice_aiCommand: 'AI command',
+  choice_aiCommandDesc: 'Process selected text with a custom AI prompt',
+  choice_urlCommand: 'Web link',
+  choice_urlCommandDesc: 'Insert selected text into a search or web URL',
+  choice_shortcutCommand: 'Keyboard shortcut',
+  choice_shortcutCommandDesc: 'Trigger a macOS system shortcut',
+  commandName: 'Command name',
+  commandNameDesc: 'Name shown in toolbar tooltip and settings',
+  prompt: 'Prompt',
+  promptDesc: 'AI prompt content. Use {{selection}} as the selected text placeholder.',
+  promptTranslatePlaceholder: 'Please translate the following text into Chinese:\n\n{{selection}}',
+  outputAction: 'Output action',
+  outputActionDesc: 'How to handle AI output',
+  outputReplaceSelection: 'Replace selection',
+  outputInsertBelowSelection: 'Insert after selection',
+  outputCopyToClipboard: 'Copy to clipboard',
+  commandIcon: 'Command icon',
+  commandIconDesc: 'Lucide icon name',
+  deleteAICommand: 'Delete AI command',
+  deleteAICommandDesc: 'Are you sure you want to delete this custom AI command? This action cannot be undone.',
+  notice_aiCommandRequired: 'Command name and prompt are required',
+  notice_builtinCommandReadonly: 'Built-in non-AI commands can only be enabled, disabled, or reordered',
   
   // AI Settings
   apiProvider: 'API provider',
@@ -439,6 +533,10 @@ const en: I18nStrings = {
   command_ai_translate: 'Translate',
   command_ai_summarize: 'Summarize',
   command_ai_explain: 'Explain',
+  command_ai_improve_writing: 'Improve writing',
+  command_ai_fix_grammar: 'Fix grammar',
+  command_ai_expand: 'Expand',
+  command_ai_simplify: 'Simplify',
   
   group_format: 'Format',
   group_ai: 'AI',
@@ -480,6 +578,10 @@ const en: I18nStrings = {
   command_paste_url_into_selection: 'Paste URL into Selection',
   command_copy_note: 'Copy Current Note Content',
   command_copy_note_file: 'Copy Current Note File (as Attachment)',
+  command_quote: 'Quote',
+  command_footnote: 'Footnote',
+  command_toggle_todo: 'Toggle todo',
+  openSmartPickSettings: 'Open SmartPick settings',
 };
 
 const translations: Record<Language, I18nStrings> = { zh, en };
@@ -506,4 +608,40 @@ export function t(key: keyof I18nStrings): string {
 
 export function initI18n(): void {
   setLanguage(detectLanguage());
+}
+
+export function localize(zhText: string, enText: string): string {
+  return getLanguage() === 'zh' ? zhText : enText;
+}
+
+const builtinToolbarItemKeys: Record<string, keyof I18nStrings> = {
+  highlight: 'command_highlight',
+  superscript: 'command_superscript',
+  subscript: 'command_subscript',
+  quote: 'command_quote',
+  footnote: 'command_footnote',
+  callout: 'command_callout',
+  copy: 'command_copy',
+  paste: 'command_paste',
+  cut: 'command_cut',
+  'inline-code': 'command_inline_code',
+  'code-block': 'command_code_block',
+  table: 'command_table',
+  'clear-formatting': 'command_clear_formatting',
+  'paste-url-into-selection': 'command_paste_url_into_selection',
+  'copy-note': 'command_copy_note',
+  'copy-note-file': 'command_copy_note_file',
+  'ai-translate': 'command_ai_translate',
+  'ai-summarize': 'command_ai_summarize',
+  'ai-explain': 'command_ai_explain',
+  'ai-improve-writing': 'command_ai_improve_writing',
+  'ai-fix-grammar': 'command_ai_fix_grammar',
+  'ai-expand': 'command_ai_expand',
+  'ai-simplify': 'command_ai_simplify',
+  'shortcut-todo': 'command_toggle_todo',
+};
+
+export function getBuiltinToolbarItemLabel(id: string, fallback: string): string {
+  const key = builtinToolbarItemKeys[id];
+  return key ? t(key) : fallback;
 }

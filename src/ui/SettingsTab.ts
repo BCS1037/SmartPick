@@ -1,26 +1,24 @@
 // SmartPick Settings Tab - Plugin settings UI
 
-import { App, PluginSettingTab, Setting, setIcon, Notice, ButtonComponent } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon, setTooltip, Notice, ButtonComponent } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { 
   ToolbarItem, 
-  PromptTemplate, 
-  CommandGroup,
   generateId,
   AIProvider
 } from '../settings';
-import { t, detectLanguage, setLanguage, I18nStrings } from '../i18n';
+import { t, detectLanguage, setLanguage, getBuiltinToolbarItemLabel, localize } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
-import { CommandModal, AICommandModal, AddGroupModal, EditTemplateModal, UrlCommandModal, ShortcutModal } from './Modals';
-import { ConfirmModal } from './ConfirmModal';
+import { CommandModal, AICommandModal, UrlCommandModal, ShortcutModal, AddCommandChoiceModal } from './Modals';
 
-type TabId = 'toolbar' | 'ai' | 'templates';
+type TabId = 'toolbar' | 'ai';
 
 export class SmartPickSettingTab extends PluginSettingTab {
   plugin: SmartPickPlugin;
   activeTab: TabId = 'toolbar';
+  private settingsRootEl: HTMLElement | null = null;
 
   constructor(app: App, plugin: SmartPickPlugin) {
     super(app, plugin);
@@ -32,6 +30,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     if (!containerEl) return;
     containerEl.empty();
+    this.settingsRootEl = containerEl;
     this.renderFullSettings(containerEl);
   }
 
@@ -48,6 +47,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
           // Remove default Setting row layout (name/desc/control columns)
           el.empty();
           el.classList.add('smartpick-declarative-root');
+          this.settingsRootEl = el;
 
           this.renderFullSettings(el);
         }
@@ -57,6 +57,13 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
   // Version-adaptive refresh: update() on 1.13+, display() on older
   refresh(): void {
+    if (this.settingsRootEl?.isConnected) {
+      this.settingsRootEl.empty();
+      this.settingsRootEl.classList.add('smartpick-declarative-root');
+      this.renderFullSettings(this.settingsRootEl);
+      return;
+    }
+
     const tab = this as PluginSettingTab & { update?: () => void };
     if (typeof tab.update === 'function') {
       tab.update();
@@ -78,7 +85,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
     const tabsContainer = containerEl.createDiv('smartpick-settings-tabs');
     this.renderCustomTab(tabsContainer, 'toolbar', t('toolbarSettings'));
     this.renderCustomTab(tabsContainer, 'ai', t('aiSettings'));
-    this.renderCustomTab(tabsContainer, 'templates', t('promptTemplates'));
 
     // Render Content based on active tab
     const contentContainer = containerEl.createDiv('smartpick-settings-tab-content');
@@ -90,15 +96,15 @@ export class SmartPickSettingTab extends PluginSettingTab {
       case 'ai':
         this.renderAISettings(contentContainer);
         break;
-      case 'templates':
-        this.renderPromptTemplates(contentContainer);
-        break;
     }
   }
 
   private renderCustomTab(container: HTMLElement, id: TabId, label: string): void {
-    const tab = container.createDiv('smartpick-settings-tab');
-    tab.setText(label);
+    const tab = container.createEl('button', {
+      cls: 'smartpick-settings-tab',
+      text: label,
+    });
+    tab.type = 'button';
     if (this.activeTab === id) {
       tab.addClass('active');
     }
@@ -202,254 +208,178 @@ export class SmartPickSettingTab extends PluginSettingTab {
         });
     }
 
-    // Toolbar Horizontal Offset - Removed (Smart positioning)
+    const customCard = containerEl.createDiv('smartpick-card');
+    customCard.createEl('h3', { text: localize('自定义命令', 'Custom commands'), cls: 'smartpick-card-title' });
 
-    // Buttons
-    const buttonsContainer = containerEl.createDiv('smartpick-settings-buttons');
+    const buttonsContainer = customCard.createDiv('smartpick-settings-buttons');
 
     new ButtonComponent(buttonsContainer)
       .setButtonText(t('addCommand'))
       .setCta()
-      .onClick(() => this.showAddCommandModal());
+      .onClick(() => {
+        new AddCommandChoiceModal(this.plugin.app, (choice) => {
+          if (choice === 'command') {
+            this.showAddCommandModal();
+          } else if (choice === 'ai') {
+            this.showAddAICommandModal();
+          } else if (choice === 'url') {
+            this.showAddUrlCommandModal();
+          } else if (choice === 'shortcut') {
+            this.showAddShortcutModal();
+          }
+        }).open();
+      });
 
-    new ButtonComponent(buttonsContainer)
-      .setButtonText(t('addAICommand'))
-      .onClick(() => this.showAddAICommandModal());
+    const customItemsContainer = customCard.createDiv({
+      cls: 'smartpick-command-grid smartpick-custom-grid',
+    });
+    const customItems = this.plugin.settings.toolbarItems
+      .filter((item) => !item.isBuiltin && item.type !== 'separator')
+      .sort((a, b) => a.order - b.order);
+    this.renderCommandGrid(customItemsContainer, customItems, false);
 
-    new ButtonComponent(buttonsContainer)
-      .setButtonText(t('addUrlCommand'))
-      .onClick(() => this.showAddUrlCommandModal());
+    const builtinCard = containerEl.createDiv('smartpick-card');
+    builtinCard.createEl('h3', { text: localize('内置命令', 'Built-in commands'), cls: 'smartpick-card-title' });
+    const builtinDesc = builtinCard.createEl('p', { cls: 'smartpick-command-desc' });
+    builtinDesc.setText(localize(
+      '插件预设命令可启用、禁用和拖拽排序；前 8 个启用命令显示在工具栏，其余进入“更多”。',
+      'Preset commands can be enabled, disabled, and reordered. AI commands can be clicked to edit prompts.'
+    ));
 
-    new ButtonComponent(buttonsContainer)
-      .setButtonText(t('addShortcutCommand'))
-      .onClick(() => this.showAddShortcutModal());
-
-    new ButtonComponent(buttonsContainer)
-      .setButtonText(t('newGroup'))
-      .onClick(() => this.addNewGroup());
-
-    // Toolbar items list
-    const itemsContainer = containerEl.createDiv('smartpick-toolbar-items');
-    
-    // Group items by group
-    const groups = new Map<string, ToolbarItem[]>();
-    for (const item of this.plugin.settings.toolbarItems) {
-      const groupId = item.group || 'ungrouped';
-      if (!groups.has(groupId)) {
-        groups.set(groupId, []);
-      }
-      groups.get(groupId)!.push(item);
-    }
-
-    // Render each group
-    for (const group of this.plugin.settings.commandGroups) {
-      const items = groups.get(group.id) || [];
-      this.renderToolbarGroup(itemsContainer, group, items);
-    }
-
-    // Render ungrouped items
-    const ungroupedItems = groups.get('ungrouped') || [];
-    this.renderToolbarGroup(
-      itemsContainer, 
-      { id: 'ungrouped', name: t('group_ungrouped_name'), order: 999 },
-      ungroupedItems
-    );
-
-
+    const builtinItemsContainer = builtinCard.createDiv({
+      cls: 'smartpick-command-grid smartpick-builtin-grid',
+    });
+    const builtinItems = this.plugin.settings.toolbarItems
+      .filter((item) => item.isBuiltin && item.type !== 'separator')
+      .sort((a, b) => a.order - b.order);
+    this.renderCommandGrid(builtinItemsContainer, builtinItems, true);
   }
 
-  private renderToolbarGroup(
-    container: HTMLElement, 
-    group: CommandGroup, 
-    items: ToolbarItem[]
+  private renderCommandGrid(
+    container: HTMLElement,
+    items: ToolbarItem[],
+    isBuiltinList: boolean
   ): void {
-    const groupEl = container.createDiv('smartpick-toolbar-group');
-    // const header = groupEl.createDiv('smartpick-toolbar-group-header'); // Removed custom header div
-    
-    const isBuiltinGroup = ['format', 'ai', 'ungrouped', 'link', 'shortcut'].includes(group.id);
-    const groupName = isBuiltinGroup ? t(('group_' + group.id) as keyof I18nStrings) || group.name : group.name;
-    
-    // new Setting(containerEl).setName(...).setHeading()
-    // We render into groupEl, not container directly, to keep the group wrapper
-    const headerSetting = new Setting(groupEl)
-        .setName(groupName)
-        .setHeading();
+    container.toggleClass('is-empty', items.length === 0);
 
-    if (group.id !== 'ungrouped') {
-        headerSetting.addExtraButton(btn => {
-            btn.setIcon('trash-2')
-               .setTooltip('Delete group')
-               .onClick(() => {
-                   new ConfirmModal(
-                       this.plugin.app,
-                       'Delete group',
-                       `Delete group "${group.name}"? Items will be moved to ungrouped.`,
-                       () => {
-                           void this.removeGroup(group.id);
-                       },
-                       'Delete'
-                   ).open();
-               });
-        });
-    }
-
-    const listEl = groupEl.createDiv('smartpick-toolbar-group-items');
-    
-    // Add drag-over handler to the list container to allow dropping into empty groups or at end
-    listEl.addEventListener('dragover', (e) => {
+    container.addEventListener('dragover', (e) => {
       e.preventDefault();
-      e.dataTransfer!.dropEffect = 'move';
-      listEl.addClass('smartpick-drag-over');
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+      container.addClass('smartpick-drag-over');
     });
 
-    listEl.addEventListener('dragleave', (_e) => {
-      listEl.removeClass('smartpick-drag-over');
+    container.addEventListener('dragleave', () => {
+      container.removeClass('smartpick-drag-over');
     });
 
-    listEl.addEventListener('drop', (e) => {
+    container.addEventListener('drop', (e) => {
       e.preventDefault();
-      listEl.removeClass('smartpick-drag-over');
-      const draggedId = e.dataTransfer!.getData('text/plain');
-      const draggedItem = this.plugin.settings.toolbarItems.find(i => i.id === draggedId);
-      
+      container.removeClass('smartpick-drag-over');
+      const draggedId = e.dataTransfer?.getData('text/plain');
+      if (!draggedId) return;
+
+      const draggedItem = this.plugin.settings.toolbarItems.find((item) => item.id === draggedId);
       if (!draggedItem) return;
 
-      // If dropped directly on list (not on an item), move to this group at the end
-      if (e.target === listEl) {
-        draggedItem.group = group.id;
-        // Recalculate orders
-        this.reorderItems();
-        void this.plugin.saveSettings().then(() => {
-            this.refresh();
-        });
+      const isDraggedBuiltin = !!draggedItem.isBuiltin;
+      if (isDraggedBuiltin !== isBuiltinList) {
+        new Notice(localize('无法在内置与自定义命令之间拖拽', 'Cannot drag between built-in and custom commands'));
+        return;
+      }
+
+      if (e.target === container) {
+        void (async () => {
+          this.moveToolbarItem(draggedId, isBuiltinList, 'end');
+          await this.plugin.saveSettings();
+          this.refresh();
+        })();
       }
     });
-    
-    for (const item of items.sort((a, b) => a.order - b.order)) {
-      if (item.type === 'separator') continue;
 
-      const itemEl = listEl.createDiv('smartpick-toolbar-item');
-      itemEl.setAttribute('draggable', 'true');
-      
-      // Drag Start
-      itemEl.addEventListener('dragstart', (e) => {
-        e.dataTransfer!.setData('text/plain', item.id);
-        itemEl.addClass('smartpick-sortable-drag');
-        // setTimeout to hide the element but keep it in DOM for drag image
-        window.setTimeout(() => itemEl.addClass('smartpick-sortable-ghost'), 0);
-      });
+    for (const item of items) {
+      const tile = container.createDiv('smartpick-command-tile');
+      tile.setAttribute('draggable', 'true');
+      tile.addClass(isBuiltinList ? 'is-builtin' : 'is-custom');
+      if (item.enabled === false) {
+        tile.addClass('is-disabled');
+      }
 
-      // Drag End
-      itemEl.addEventListener('dragend', (_e) => {
-        itemEl.removeClass('smartpick-sortable-drag');
-        itemEl.removeClass('smartpick-sortable-ghost');
-        activeDocument.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
-      });
-      
-      // Click to Edit (ignore clicks on buttons)
-      itemEl.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('button')) return;
+      tile.addEventListener('click', () => {
         this.showEditToolbarItemModal(item);
       });
 
-      // Drag Over (Item level)
-      itemEl.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation(); // Handle drop on item vs list
-        itemEl.addClass('smartpick-drag-over-item');
+      tile.addEventListener('dragstart', (e) => {
+        e.dataTransfer?.setData('text/plain', item.id);
+        tile.addClass('smartpick-sortable-drag');
       });
 
-      // Drag Leave
-      itemEl.addEventListener('dragleave', (_e) => {
-        itemEl.removeClass('smartpick-drag-over-item');
+      tile.addEventListener('dragend', () => {
+        tile.removeClass('smartpick-sortable-drag');
+        activeDocument.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
       });
 
-      // Drop on Item
-      itemEl.addEventListener('drop', (e) => {
+      tile.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        itemEl.removeClass('smartpick-drag-over-item');
-        
-        const draggedId = e.dataTransfer!.getData('text/plain');
-        if (draggedId === item.id) return;
-
-        const allItems = this.plugin.settings.toolbarItems;
-        const draggedItem = allItems.find(i => i.id === draggedId);
-        
-        if (draggedItem) {
-            // Move dragged item to this group info
-            draggedItem.group = group.id;
-            
-            // Reorder: insert dragged item before the drop target
-            // Variables below are kept for potential future use but prefixed with underscore
-            const _groupItems = allItems.filter(i => i.group === group.id).sort((a, b) => a.order - b.order);
-            void _groupItems; // Suppress unused variable warning
-            
-            // Remove from old position (if in same group logic) 
-            // Actually it's easier to just rebuild the array or use logic
-            
-            // Simple logic: Assign new orders based on position
-            // But dragging across groups complicates "index".
-            
-            // Strategy: 
-            // 1. Remove draggedItem from allItems logic reference (conceptually)
-            // 2. Insert it at targetIndex in this group
-            
-            // Let's rely on simple reordering:
-            // We want draggedItem to have an order just before targetItem
-            
-            // Let's set the order of draggedItem to targetItem.order - 0.5 temporarily and sort?
-            // Or better, just re-process the list.
-            
-            draggedItem.order = item.order - 0.5; 
-            
-            // Normalize orders
-            this.reorderItems();
-            
-            void this.plugin.saveSettings().then(() => {
-                this.refresh();
-            });
-        }
+        tile.addClass('smartpick-drag-over-item');
       });
-      
-      // Icon
-      const iconEl = itemEl.createSpan('smartpick-toolbar-item-icon');
+
+      tile.addEventListener('dragleave', () => {
+        tile.removeClass('smartpick-drag-over-item');
+      });
+
+      tile.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        tile.removeClass('smartpick-drag-over-item');
+
+        const draggedId = e.dataTransfer?.getData('text/plain');
+        if (!draggedId || draggedId === item.id) return;
+
+        const draggedItem = this.plugin.settings.toolbarItems.find((candidate) => candidate.id === draggedId);
+        if (!draggedItem) return;
+
+        const isDraggedBuiltin = !!draggedItem.isBuiltin;
+        if (isDraggedBuiltin !== isBuiltinList) {
+          new Notice(localize('无法在内置与自定义命令之间拖拽', 'Cannot drag between built-in and custom commands'));
+          return;
+        }
+
+        void (async () => {
+          this.moveToolbarItem(draggedId, isBuiltinList, item.id, e);
+          await this.plugin.saveSettings();
+          this.refresh();
+        })();
+      });
+
+      const iconEl = tile.createDiv('smartpick-command-tile-icon');
       if (item.icon) {
         setIcon(iconEl, item.icon);
       }
 
-      // Name
-      let tooltip = item.tooltip;
-      // Identify built-in commands by ID pattern or hardcoded check
-      // Commands: bold, italic, highlight
-      // AI: ai-translate, ai-summarize, ai-explain
-      if (['bold', 'italic', 'highlight'].includes(item.id)) {
-        tooltip = t(('command_' + item.id) as keyof I18nStrings);
-      } else if (['ai-translate', 'ai-summarize', 'ai-explain'].includes(item.id)) {
-        tooltip = t(('command_' + item.id.replace('-', '_')) as keyof I18nStrings);
-      }
-
-      itemEl.createSpan({ text: tooltip, cls: 'smartpick-toolbar-item-name' });
-
-      // Type badge
       if (item.type === 'ai') {
-        itemEl.createSpan({ text: 'AI', cls: 'smartpick-toolbar-item-badge' });
+        tile.createSpan({ text: 'AI', cls: 'smartpick-command-tile-badge' });
       }
 
-      // Add disabled state class
-      if (item.enabled === false) {
-        itemEl.addClass('is-disabled');
-      }
+      const tooltip = item.isBuiltin
+        ? getBuiltinToolbarItemLabel(item.id, item.tooltip)
+        : item.tooltip;
+      tile.setAttribute('aria-label', tooltip);
+      tile.setAttribute('data-tooltip', tooltip);
+      tile.setAttribute('title', tooltip);
+      setTooltip(tile, tooltip, { placement: 'top', delay: 80 });
 
-      // Action Buttons Container
-      const actionsEl = itemEl.createDiv('smartpick-item-actions');
-
-      // Toggle enable/disable button
-      const toggleBtn = actionsEl.createEl('button', { 
-        cls: 'smartpick-toggle-btn',
-        attr: { 'aria-label': item.enabled !== false ? t('disableCommand') : t('enableCommand') }
+      const actionsEl = tile.createDiv('smartpick-command-tile-actions');
+      const toggleBtn = actionsEl.createEl('button', {
+        cls: 'smartpick-command-tile-action',
+        attr: {
+          'aria-label': item.enabled !== false ? t('disableCommand') : t('enableCommand'),
+        },
       });
       setIcon(toggleBtn, item.enabled !== false ? 'eye' : 'eye-off');
+      setTooltip(toggleBtn, item.enabled !== false ? t('disableCommand') : t('enableCommand'), { placement: 'top', delay: 80 });
       toggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         void (async () => {
@@ -459,7 +389,74 @@ export class SmartPickSettingTab extends PluginSettingTab {
         })();
       });
 
+      if (!isBuiltinList) {
+        const editBtn = actionsEl.createEl('button', {
+          cls: 'smartpick-command-tile-action',
+          attr: {
+            'aria-label': t('editCommand'),
+          },
+        });
+        setIcon(editBtn, 'pencil');
+        setTooltip(editBtn, t('editCommand'), { placement: 'top', delay: 80 });
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.showEditToolbarItemModal(item);
+        });
+
+        const deleteBtn = actionsEl.createEl('button', {
+          cls: 'smartpick-command-tile-action smartpick-command-tile-delete',
+          attr: {
+            'aria-label': t('delete'),
+          },
+        });
+        setIcon(deleteBtn, 'trash-2');
+        setTooltip(deleteBtn, t('delete'), { placement: 'top', delay: 80 });
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          void this.removeToolbarItem(item.id);
+        });
+      }
     }
+  }
+
+  private moveToolbarItem(
+    draggedId: string,
+    isBuiltinList: boolean,
+    targetId: string,
+    event?: DragEvent
+  ): void {
+    const items = [...this.plugin.settings.toolbarItems]
+      .filter((item) => item.type !== 'separator')
+      .sort((a, b) => a.order - b.order);
+    const draggedIndex = items.findIndex((item) => item.id === draggedId);
+    if (draggedIndex < 0) return;
+
+    const [draggedItem] = items.splice(draggedIndex, 1);
+    const targetIsBuiltin = !!draggedItem.isBuiltin;
+    if (targetIsBuiltin !== isBuiltinList) return;
+
+    if (targetId === 'end') {
+      let lastSameGroupIndex = -1;
+      for (let index = items.length - 1; index >= 0; index--) {
+        if (!!items[index].isBuiltin === isBuiltinList) {
+          lastSameGroupIndex = index;
+          break;
+        }
+      }
+      items.splice(lastSameGroupIndex + 1, 0, draggedItem);
+    } else {
+      const targetIndex = items.findIndex((item) => item.id === targetId);
+      if (targetIndex < 0) return;
+
+      const targetEl = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+      const rect = targetEl?.getBoundingClientRect();
+      const insertAfter = rect && event ? event.clientX > rect.left + rect.width / 2 : false;
+      items.splice(insertAfter ? targetIndex + 1 : targetIndex, 0, draggedItem);
+    }
+
+    items.forEach((item, index) => {
+      item.order = index;
+    });
   }
 
   private showEditToolbarItemModal(item: ToolbarItem): void {
@@ -468,6 +465,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
              await this.removeToolbarItem(item.id);
          })();
     };
+
+    if (item.isBuiltin && item.type !== 'ai') {
+      new Notice(t('notice_builtinCommandReadonly'));
+      return;
+    }
 
     if (item.type === 'command') {
       new CommandModal(
@@ -487,21 +489,24 @@ export class SmartPickSettingTab extends PluginSettingTab {
     } else if (item.type === 'ai') {
       new AICommandModal(
         this.plugin.app,
-        this.plugin.settings.promptTemplates,
-        { templateId: item.promptTemplateId || '', icon: item.icon },
-        (templateId, icon) => {
+        {
+          name: item.tooltip,
+          prompt: item.prompt || '',
+          icon: item.icon,
+          outputAction: item.outputAction || 'replace',
+          isBuiltin: item.isBuiltin,
+        },
+        (name, prompt, icon, outputAction) => {
             void (async () => {
-                const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
-                if (template) {
-                    item.promptTemplateId = templateId;
-                    item.icon = icon;
-                    item.tooltip = template.name;
-                    await this.plugin.saveSettings();
-                    this.refresh();
-                }
+                item.tooltip = name;
+                item.prompt = prompt;
+                item.icon = icon;
+                item.outputAction = outputAction;
+                await this.plugin.saveSettings();
+                this.refresh();
             })();
         },
-        onDelete
+        item.isBuiltin ? undefined : onDelete
       ).open();
     } else if (item.type === 'url') {
       new UrlCommandModal(
@@ -534,21 +539,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
         onDelete
       ).open();
     }
-  }
-
-  private reorderItems() {
-      // Group items, sort by order, then re-assign integer orders
-      const groups = new Set(this.plugin.settings.toolbarItems.map(i => i.group));
-      const items = this.plugin.settings.toolbarItems;
-      
-      // Process each group
-      groups.forEach(groupId => {
-          const groupItems = items.filter(i => i.group === groupId);
-          groupItems.sort((a, b) => a.order - b.order);
-          groupItems.forEach((item, index) => {
-              item.order = index;
-          });
-      });
   }
 
   private renderAISettings(containerEl: HTMLElement): void {
@@ -681,7 +671,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
           dataList.id = listId;
         }
         
-        dataList.innerHTML = '';
+        dataList.empty();
         for (const model of aiConfig.availableModels) {
           const option = dataList.createEl('option');
           option.value = model;
@@ -731,76 +721,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
       );
   }
 
-  private renderPromptTemplates(containerEl: HTMLElement): void {
-    // containerEl.createEl('h2', { text: t('promptTemplates') }); // Removed redundant header
-
-    // Add template button
-    new Setting(containerEl)
-      .setName(t('addNewTemplate'))
-      .addButton(button => {
-        button.setButtonText(t('addTemplate'));
-        button.setCta();
-        button.onClick(() => this.showEditTemplateModal());
-      });
-
-    // Built-in templates
-    new Setting(containerEl)
-        .setName(t('defaultTemplates'))
-        .setHeading();
-    const builtinList = containerEl.createDiv('smartpick-template-list');
-    
-    for (const template of this.plugin.settings.promptTemplates.filter(t => t.isBuiltin)) {
-      this.renderTemplateItem(builtinList, template, false);
-    }
-
-    // Custom templates
-    new Setting(containerEl)
-        .setName(t('customTemplates'))
-        .setHeading();
-    const customList = containerEl.createDiv('smartpick-template-list');
-    
-    for (const template of this.plugin.settings.promptTemplates.filter(t => !t.isBuiltin)) {
-      this.renderTemplateItem(customList, template, true);
-    }
-  }
-
-  private renderTemplateItem(
-    container: HTMLElement, 
-    template: PromptTemplate, 
-    editable: boolean
-  ): void {
-    const itemEl = container.createDiv('smartpick-template-item');
-    
-    // Name and category
-    const infoEl = itemEl.createDiv('smartpick-template-info');
-    
-    let templateName = template.name;
-    if (template.isBuiltin) {
-        // Map template ID to translation key
-        // IDs: translate, summarize, explain, improve-writing, fix-grammar, expand, simplify
-        const key = 'template_' + template.id.replace(/-/g, '_');
-        templateName = t(key as keyof I18nStrings) || template.name;
-    }
-
-    infoEl.createSpan({ text: templateName, cls: 'smartpick-template-name' });
-    infoEl.createSpan({ text: template.category, cls: 'smartpick-template-category' });
-
-    // Actions
-    const actionsEl = itemEl.createDiv('smartpick-template-actions');
-    
-    const editBtn = actionsEl.createEl('button');
-    setIcon(editBtn, editable ? 'pencil' : 'eye');
-    editBtn.setAttribute('aria-label', editable ? t('editTemplate') : 'View Template');
-    editBtn.addEventListener('click', () => this.showEditTemplateModal(template));
-
-    if (editable) {
-      const deleteBtn = actionsEl.createEl('button');
-      setIcon(deleteBtn, 'trash-2');
-      deleteBtn.setAttribute('aria-label', t('deleteTemplate'));
-      deleteBtn.addEventListener('click', () => this.removeTemplate(template.id));
-    }
-  }
-
   private getProvider() {
     const providerType = this.plugin.settings.aiConfig.provider;
     switch (providerType) {
@@ -823,8 +743,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
             tooltip: tooltip,
             enabled: true,
             commandId: id,
-            group: 'ungrouped',
-            order: this.plugin.settings.toolbarItems.length,
+            group: 'custom',
+            order: this.getNextToolbarOrder(),
           };
 
           this.plugin.settings.toolbarItems.push(newItem);
@@ -835,23 +755,19 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private showAddAICommandModal(): void {
-    new AICommandModal(this.plugin.app, this.plugin.settings.promptTemplates, undefined, (templateId, icon) => {
+    new AICommandModal(this.plugin.app, null, (name, prompt, icon, outputAction) => {
       void (async () => {
-          const template = this.plugin.settings.promptTemplates.find(t => t.id === templateId);
-          if (!template) {
-            new Notice(t('templateNotFound'));
-            return;
-          }
-
           const newItem: ToolbarItem = {
             id: generateId(),
             type: 'ai',
             icon: icon || 'sparkles',
-            tooltip: template.name,
+            tooltip: name,
             enabled: true,
-            promptTemplateId: templateId,
-            group: 'ai',
-            order: this.plugin.settings.toolbarItems.length,
+            prompt,
+            outputAction,
+            isBuiltin: false,
+            group: 'custom',
+            order: this.getNextToolbarOrder(),
           };
 
           this.plugin.settings.toolbarItems.push(newItem);
@@ -871,8 +787,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
             tooltip: name,
             enabled: true,
             url: url,
-            group: 'ungrouped',
-            order: this.plugin.settings.toolbarItems.length,
+            group: 'custom',
+            order: this.getNextToolbarOrder(),
           };
 
           this.plugin.settings.toolbarItems.push(newItem);
@@ -892,8 +808,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
             tooltip: name,
             enabled: true,
             shortcutKeys: keys,
-            group: 'ungrouped',
-            order: this.plugin.settings.toolbarItems.length,
+            group: 'custom',
+            order: this.getNextToolbarOrder(),
           };
 
           this.plugin.settings.toolbarItems.push(newItem);
@@ -903,20 +819,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }).open();
   }
 
-  private addNewGroup(): void {
-    new AddGroupModal(this.plugin.app, (name) => {
-      void (async () => {
-          const newGroup: CommandGroup = {
-            id: generateId(),
-            name: name,
-            order: this.plugin.settings.commandGroups.length,
-          };
-
-          this.plugin.settings.commandGroups.push(newGroup);
-          await this.plugin.saveSettings();
-          this.refresh();
-      })();
-    }).open();
+  private getNextToolbarOrder(): number {
+    return Math.max(-1, ...this.plugin.settings.toolbarItems.map((item) => item.order)) + 1;
   }
 
   private async removeToolbarItem(id: string): Promise<void> {
@@ -927,69 +831,4 @@ export class SmartPickSettingTab extends PluginSettingTab {
     this.refresh();
   }
 
-  private showEditTemplateModal(template?: PromptTemplate): void {
-    const isNew = !template;
-    const isBuiltin = template?.isBuiltin;
-    
-    if (isBuiltin) {
-      new Notice(t('cantEditBuiltin'));
-      return; 
-    }
-
-    new EditTemplateModal(this.plugin.app, template, (name, category, prompt) => {
-      void (async () => {
-          if (isNew) {
-              const newTemplate: PromptTemplate = {
-                  id: generateId(),
-                  name: name,
-                  category: category || 'Custom',
-                  prompt: prompt,
-                  outputAction: 'replace',
-                  isBuiltin: false,
-              };
-              this.plugin.settings.promptTemplates.push(newTemplate);
-              await this.plugin.saveSettings(); // Ensure we await
-              this.refresh();
-          } else if (template) {
-              template.name = name;
-              template.category = category;
-              template.prompt = prompt;
-              await this.plugin.saveSettings(); // Ensure we await
-              this.refresh();
-          }
-      })();
-    }).open();
-  }
-
-  private removeTemplate(id: string): void {
-    new ConfirmModal(
-        this.plugin.app,
-        t('deleteTemplate'),
-        t('deleteTemplate') + '?',
-        () => {
-            this.plugin.settings.promptTemplates = this.plugin.settings.promptTemplates.filter(
-                tpl => tpl.id !== id
-            );
-            void this.plugin.saveSettings().then(() => {
-                this.refresh();
-            });
-        },
-        t('delete')
-    ).open();
-  }
-
-  private async removeGroup(groupId: string): Promise<void> {
-    // Move items to ungrouped
-    this.plugin.settings.toolbarItems.forEach(item => {
-        if (item.group === groupId) {
-            item.group = 'ungrouped';
-        }
-    });
-
-    // Remove group
-    this.plugin.settings.commandGroups = this.plugin.settings.commandGroups.filter(g => g.id !== groupId);
-    
-    await this.plugin.saveSettings();
-    this.refresh();
-  }
 }
