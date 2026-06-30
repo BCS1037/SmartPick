@@ -66,12 +66,11 @@ export class ToolbarUI {
     this.containerEl.className = 'smartpick-toolbar-container';
     this.containerEl.toggleClass('smartpick-toolbar-container-mobile', Platform.isMobile);
     
-    // Vertical positioning: Always above the selection with 0 offset (standard)
-    // We assume the toolbar height is about 40px, plus some padding (e.g. 10px) = 50px
-    // But since we want "standard 0 offset" from the top of the selection line, we position it at pos.top
-    // and rely on CSS transform: translateY(-100%) and some margin-bottom in CSS/JS to lift it up.
-    // Let's set it to pos.top + user setting (default 26px)
+    // Vertical positioning: keep toolbar above selection, with a small mobile nudge down.
     let top = pos.top + this.plugin.settings.toolbarVerticalOffset;
+    if (Platform.isMobile) {
+        top += 12;
+    }
 
     // Fix for "Select All" / off-screen selection start:
     // If the calculated top is above the viewport (negative or very small), clamp it to a minimum safe padding.
@@ -95,11 +94,11 @@ export class ToolbarUI {
     const centerPoint = (pos.left + pos.right) / 2;
     const centerPercent = centerPoint / containerWidth;
 
-    if (isMultiLine) {
-        // Center align relative to the editor width
-        left = containerWidth / 2;
+    if (Platform.isMobile) {
+        left = centerPoint;
         transform += ' translateX(-50%)';
-    } else if (Platform.isMobile) {
+    } else if (isMultiLine) {
+        // Center align relative to the editor width
         left = containerWidth / 2;
         transform += ' translateX(-50%)';
     } else {
@@ -121,12 +120,6 @@ export class ToolbarUI {
     this.containerEl.style.left = `${left}px`;
     this.containerEl.style.transform = transform;
     
-    // Ensure it doesn't overflow screen edges (basic clamping)
-    // Note: Since we use transforms, simple clamping on 'left' isn't perfect but helps.
-    // A more robust solution involves measuring toolbar width after render, but that causes flickering.
-    // For now, we trust the alignment logic to keep it generally safe, 
-    // and maybe add max-width/overflow handling in CSS.
-
     // Create toolbar
     this.toolbarEl = this.containerEl.createDiv();
     this.toolbarEl.className = 'smartpick-toolbar';
@@ -153,9 +146,30 @@ export class ToolbarUI {
     const viewWindow = view.contentEl.ownerDocument.defaultView ?? activeWindow;
     viewWindow.requestAnimationFrame(() => {
       if (this.toolbarEl) {
+        this.clampMobileToolbarPosition(view.contentEl);
         this.toolbarEl.classList.add('smartpick-toolbar-visible');
       }
     });
+  }
+
+  private clampMobileToolbarPosition(viewContentEl: HTMLElement): void {
+    if (!Platform.isMobile || !this.containerEl || !this.toolbarEl) return;
+
+    const padding = 8;
+    const containerWidth = viewContentEl.getBoundingClientRect().width;
+    const toolbarWidth = this.toolbarEl.getBoundingClientRect().width;
+    const left = Number.parseFloat(this.containerEl.style.left || '0');
+
+    if (toolbarWidth >= containerWidth - padding * 2) {
+      this.containerEl.style.left = `${padding}px`;
+      this.containerEl.style.transform = 'translateY(-100%)';
+      return;
+    }
+
+    const minCenter = toolbarWidth / 2 + padding;
+    const maxCenter = containerWidth - toolbarWidth / 2 - padding;
+    const clampedLeft = Math.min(Math.max(left, minCenter), maxCenter);
+    this.containerEl.style.left = `${clampedLeft}px`;
   }
 
   private renderButton(item: ToolbarItem, hasSelection: boolean = true): void {
