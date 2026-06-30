@@ -1,6 +1,6 @@
 // SmartPick Settings Tab - Plugin settings UI
 
-import { App, PluginSettingTab, Setting, setIcon, setTooltip, Notice, ButtonComponent } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon, setTooltip, Notice, ButtonComponent, Platform } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { 
   ToolbarItem, 
@@ -257,84 +257,28 @@ export class SmartPickSettingTab extends PluginSettingTab {
     isBuiltinList: boolean
   ): void {
     container.toggleClass('is-empty', items.length === 0);
+    container.toggleClass('smartpick-command-grid-mobile', Platform.isMobile);
 
-    container.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      if (e.dataTransfer) {
-        e.dataTransfer.dropEffect = 'move';
-      }
-      container.addClass('smartpick-drag-over');
-    });
-
-    container.addEventListener('dragleave', () => {
-      container.removeClass('smartpick-drag-over');
-    });
-
-    container.addEventListener('drop', (e) => {
-      e.preventDefault();
-      container.removeClass('smartpick-drag-over');
-      const draggedId = e.dataTransfer?.getData('text/plain');
-      if (!draggedId) return;
-
-      const draggedItem = this.plugin.settings.toolbarItems.find((item) => item.id === draggedId);
-      if (!draggedItem) return;
-
-      const isDraggedBuiltin = !!draggedItem.isBuiltin;
-      if (isDraggedBuiltin !== isBuiltinList) {
-        new Notice(localize('无法在内置与自定义命令之间拖拽', 'Cannot drag between built-in and custom commands'));
-        return;
-      }
-
-      if (e.target === container) {
-        void (async () => {
-          this.moveToolbarItem(draggedId, isBuiltinList, 'end');
-          await this.plugin.saveSettings();
-          this.refresh();
-        })();
-      }
-    });
-
-    for (const item of items) {
-      const tile = container.createDiv('smartpick-command-tile');
-      tile.setAttribute('draggable', 'true');
-      tile.addClass(isBuiltinList ? 'is-builtin' : 'is-custom');
-      if (item.enabled === false) {
-        tile.addClass('is-disabled');
-      }
-
-      tile.addEventListener('click', () => {
-        this.showEditToolbarItemModal(item);
-      });
-
-      tile.addEventListener('dragstart', (e) => {
-        e.dataTransfer?.setData('text/plain', item.id);
-        tile.addClass('smartpick-sortable-drag');
-      });
-
-      tile.addEventListener('dragend', () => {
-        tile.removeClass('smartpick-sortable-drag');
-        activeDocument.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
-      });
-
-      tile.addEventListener('dragover', (e) => {
+    if (!Platform.isMobile) {
+      container.addEventListener('dragover', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        tile.addClass('smartpick-drag-over-item');
+        if (e.dataTransfer) {
+          e.dataTransfer.dropEffect = 'move';
+        }
+        container.addClass('smartpick-drag-over');
       });
 
-      tile.addEventListener('dragleave', () => {
-        tile.removeClass('smartpick-drag-over-item');
+      container.addEventListener('dragleave', () => {
+        container.removeClass('smartpick-drag-over');
       });
 
-      tile.addEventListener('drop', (e) => {
+      container.addEventListener('drop', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        tile.removeClass('smartpick-drag-over-item');
-
+        container.removeClass('smartpick-drag-over');
         const draggedId = e.dataTransfer?.getData('text/plain');
-        if (!draggedId || draggedId === item.id) return;
+        if (!draggedId) return;
 
-        const draggedItem = this.plugin.settings.toolbarItems.find((candidate) => candidate.id === draggedId);
+        const draggedItem = this.plugin.settings.toolbarItems.find((item) => item.id === draggedId);
         if (!draggedItem) return;
 
         const isDraggedBuiltin = !!draggedItem.isBuiltin;
@@ -343,12 +287,76 @@ export class SmartPickSettingTab extends PluginSettingTab {
           return;
         }
 
-        void (async () => {
-          this.moveToolbarItem(draggedId, isBuiltinList, item.id, e);
-          await this.plugin.saveSettings();
-          this.refresh();
-        })();
+        if (e.target === container) {
+          void (async () => {
+            this.moveToolbarItem(draggedId, isBuiltinList, 'end');
+            await this.plugin.saveSettings();
+            this.refresh();
+          })();
+        }
       });
+    }
+
+    for (const [index, item] of items.entries()) {
+      const tile = container.createDiv('smartpick-command-tile');
+      if (!Platform.isMobile) {
+        tile.setAttribute('draggable', 'true');
+      }
+      tile.addClass(isBuiltinList ? 'is-builtin' : 'is-custom');
+      tile.toggleClass('is-mobile', Platform.isMobile);
+      if (item.enabled === false) {
+        tile.addClass('is-disabled');
+      }
+
+      tile.addEventListener('click', () => {
+        this.showEditToolbarItemModal(item);
+      });
+
+      if (!Platform.isMobile) {
+        tile.addEventListener('dragstart', (e) => {
+          e.dataTransfer?.setData('text/plain', item.id);
+          tile.addClass('smartpick-sortable-drag');
+        });
+
+        tile.addEventListener('dragend', () => {
+          tile.removeClass('smartpick-sortable-drag');
+          activeDocument.querySelectorAll('.smartpick-drag-over').forEach(el => el.removeClass('smartpick-drag-over'));
+        });
+
+        tile.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          tile.addClass('smartpick-drag-over-item');
+        });
+
+        tile.addEventListener('dragleave', () => {
+          tile.removeClass('smartpick-drag-over-item');
+        });
+
+        tile.addEventListener('drop', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          tile.removeClass('smartpick-drag-over-item');
+
+          const draggedId = e.dataTransfer?.getData('text/plain');
+          if (!draggedId || draggedId === item.id) return;
+
+          const draggedItem = this.plugin.settings.toolbarItems.find((candidate) => candidate.id === draggedId);
+          if (!draggedItem) return;
+
+          const isDraggedBuiltin = !!draggedItem.isBuiltin;
+          if (isDraggedBuiltin !== isBuiltinList) {
+            new Notice(localize('无法在内置与自定义命令之间拖拽', 'Cannot drag between built-in and custom commands'));
+            return;
+          }
+
+          void (async () => {
+            this.moveToolbarItem(draggedId, isBuiltinList, item.id, e);
+            await this.plugin.saveSettings();
+            this.refresh();
+          })();
+        });
+      }
 
       const iconEl = tile.createDiv('smartpick-command-tile-icon');
       if (item.icon) {
@@ -368,6 +376,43 @@ export class SmartPickSettingTab extends PluginSettingTab {
       setTooltip(tile, tooltip, { placement: 'top', delay: 80 });
 
       const actionsEl = tile.createDiv('smartpick-command-tile-actions');
+      if (Platform.isMobile) {
+        const moveUpBtn = actionsEl.createEl('button', {
+          cls: 'smartpick-command-tile-action',
+          attr: {
+            'aria-label': localize('上移', 'Move up'),
+          },
+        });
+        moveUpBtn.disabled = index === 0;
+        setIcon(moveUpBtn, 'chevron-up');
+        setTooltip(moveUpBtn, localize('上移', 'Move up'), { placement: 'top', delay: 80 });
+        moveUpBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          void (async () => {
+            this.moveToolbarItemByOffset(item.id, isBuiltinList, -1);
+            await this.plugin.saveSettings();
+            this.refresh();
+          })();
+        });
+
+        const moveDownBtn = actionsEl.createEl('button', {
+          cls: 'smartpick-command-tile-action',
+          attr: {
+            'aria-label': localize('下移', 'Move down'),
+          },
+        });
+        moveDownBtn.disabled = index === items.length - 1;
+        setIcon(moveDownBtn, 'chevron-down');
+        setTooltip(moveDownBtn, localize('下移', 'Move down'), { placement: 'top', delay: 80 });
+        moveDownBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          void (async () => {
+            this.moveToolbarItemByOffset(item.id, isBuiltinList, 1);
+            await this.plugin.saveSettings();
+            this.refresh();
+          })();
+        });
+      }
       const toggleBtn = actionsEl.createEl('button', {
         cls: 'smartpick-command-tile-action',
         attr: {
@@ -451,6 +496,29 @@ export class SmartPickSettingTab extends PluginSettingTab {
     }
 
     items.forEach((item, index) => {
+      item.order = index;
+    });
+  }
+
+  private moveToolbarItemByOffset(itemId: string, isBuiltinList: boolean, offset: -1 | 1): void {
+    const items = [...this.plugin.settings.toolbarItems]
+      .filter((item) => item.type !== 'separator')
+      .sort((a, b) => a.order - b.order);
+    const groupItems = items.filter((item) => !!item.isBuiltin === isBuiltinList);
+    const groupIndex = groupItems.findIndex((item) => item.id === itemId);
+    const targetIndex = groupIndex + offset;
+    if (groupIndex < 0 || targetIndex < 0 || targetIndex >= groupItems.length) return;
+
+    const [movedItem] = groupItems.splice(groupIndex, 1);
+    groupItems.splice(targetIndex, 0, movedItem);
+
+    let nextGroupIndex = 0;
+    const reorderedItems = items.map((item) => {
+      if (!!item.isBuiltin !== isBuiltinList) return item;
+      return groupItems[nextGroupIndex++];
+    });
+
+    reorderedItems.forEach((item, index) => {
       item.order = index;
     });
   }

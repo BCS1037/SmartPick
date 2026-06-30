@@ -6,5 +6,5 @@
 	"description": "Smart text selection toolbar with custom commands and AI features.",
 	"author": "BCS",
 	"authorUrl": "https://github.com/BCS1037",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }

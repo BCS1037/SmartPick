@@ -1,9 +1,9 @@
 // SmartPick - Obsidian Plugin Main Entry
 // 智能划词工具栏 - 选中文本自动弹出工具栏，支持自定义命令和AI功能
 
-import { Plugin, Notice, Editor, FileSystemAdapter, Platform } from 'obsidian';
+import { Plugin, Notice, Editor, FileSystemAdapter, Platform, TFile } from 'obsidian';
 import { SmartPickSettings, DEFAULT_SETTINGS, OutputAction } from './settings';
-import { initI18n, setLanguage } from './i18n';
+import { initI18n, localize, setLanguage } from './i18n';
 import { Toolbar } from './toolbar/Toolbar';
 import { SmartPickSettingTab } from './ui/SettingsTab';
 import { CommandManager } from './commands/CommandManager';
@@ -346,6 +346,11 @@ export default class SmartPickPlugin extends Plugin {
                 new Notice('No active file');
                 return;
             }
+
+            if (Platform.isMobileApp) {
+                await this.shareCurrentNoteFileOnMobile(activeFile);
+                return;
+            }
             
             try {
                 // Get absolute path
@@ -409,6 +414,35 @@ export default class SmartPickPlugin extends Plugin {
             }
         }
     });
+  }
+
+  private async shareCurrentNoteFileOnMobile(activeFile: TFile): Promise<void> {
+    try {
+      const content = await this.app.vault.read(activeFile);
+      const file = new File([content], activeFile.name, { type: 'text/markdown' });
+      const shareData: ShareData = {
+        files: [file],
+        title: activeFile.name,
+        text: activeFile.path,
+      };
+
+      // 移动端没有 Electron 文件剪贴板，改用系统分享面板传递 Markdown 文件。
+      if (navigator.canShare?.(shareData) && navigator.share) {
+        await navigator.share(shareData);
+        new Notice(localize('已打开系统分享面板', 'System share sheet opened'));
+        return;
+      }
+
+      await navigator.clipboard.writeText(content);
+      new Notice(localize(
+        '当前设备不支持文件分享，已复制笔记内容',
+        'File sharing is not supported; note content copied'
+      ));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      new Notice(`${localize('分享笔记文件失败', 'Failed to share note file')}: ${msg}`);
+      console.error('SmartPick Mobile Share Error:', err);
+    }
   }
 
   /**

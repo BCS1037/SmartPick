@@ -1,7 +1,7 @@
 // SmartPick i18n - Internationalization support
 // Supports Chinese and English
 
-import { getLanguage as getObsidianLanguage } from 'obsidian';
+import { getLanguage as getObsidianLanguage, Platform } from 'obsidian';
 
 export type Language = 'zh' | 'en';
 
@@ -642,6 +642,10 @@ const builtinToolbarItemKeys: Record<string, keyof I18nStrings> = {
 };
 
 export function getBuiltinToolbarItemLabel(id: string, fallback: string): string {
+  if (id === 'copy-note-file' && Platform.isMobile) {
+    return localize('分享当前笔记文件', 'Share Current Note File');
+  }
+
   const key = builtinToolbarItemKeys[id];
   return key ? t(key) : fallback;
 }

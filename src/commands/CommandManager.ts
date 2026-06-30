@@ -1,8 +1,7 @@
 // SmartPick Command Manager - Manages custom commands and hotkeys
 
 import type SmartPickPlugin from '../main';
-import { execFile } from 'child_process';
-import { Editor, App } from 'obsidian';
+import { Editor, App, Platform } from 'obsidian';
 import { ToolbarItem } from '../settings';
 
 interface AppWithCommands extends App {
@@ -10,6 +9,18 @@ interface AppWithCommands extends App {
     executeCommandById(id: string): void;
     commands: Record<string, { name: string }>;
   };
+}
+
+interface NodeRequireWindow extends Window {
+  require?: (moduleName: string) => unknown;
+}
+
+interface ChildProcessModule {
+  execFile(
+    file: string,
+    args: string[],
+    callback: (error: Error | null) => void
+  ): void;
 }
 
 export class CommandManager {
@@ -78,8 +89,15 @@ export class CommandManager {
   }
 
   public executeShortcut(keys: string): void {
-    if (process.platform !== 'darwin') {
+    if (!Platform.isDesktopApp || !Platform.isMacOS) {
       console.warn('Shortcuts are only supported on macOS');
+      return;
+    }
+
+    const req = (window as NodeRequireWindow).require;
+    const childProcess = req?.('child_process') as ChildProcessModule | undefined;
+    if (!childProcess?.execFile) {
+      console.warn('Shortcuts are only supported in the Obsidian desktop app');
       return;
     }
 
@@ -100,7 +118,7 @@ export class CommandManager {
 
     const usingClause = modifiers.length > 0 ? ` using {${modifiers.join(', ')}}` : '';
     const script = `tell application "System Events" to keystroke "${key}"${usingClause}`;
-    execFile('osascript', ['-e', script], (error) => {
+    childProcess.execFile('osascript', ['-e', script], (error) => {
       if (error) {
         console.error('Failed to execute shortcut:', error);
       }

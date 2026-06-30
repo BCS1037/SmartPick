@@ -13,6 +13,9 @@ export class Toolbar {
   private currentSelection: string = '';
   private watchedEditorEl: HTMLElement | null = null;
   private hasSelection: boolean = false;
+  private touchStartX: number = 0;
+  private touchStartY: number = 0;
+  private touchMoved: boolean = false;
 
   constructor(plugin: SmartPickPlugin) {
     this.plugin = plugin;
@@ -36,6 +39,11 @@ export class Toolbar {
 
     // Click outside listener
     activeDocument.addEventListener('mousedown', this.handleClickOutside);
+
+    if (Platform.isMobile) {
+      activeDocument.addEventListener('selectionchange', this.handleDocumentSelectionChange);
+      activeDocument.addEventListener('touchstart', this.handleTouchOutside, { passive: true });
+    }
   }
 
   private attachEditorListeners(): void {
@@ -44,6 +52,9 @@ export class Toolbar {
       this.watchedEditorEl.removeEventListener('mouseup', this.handleSelectionChange);
       this.watchedEditorEl.removeEventListener('keyup', this.handleSelectionChange);
       this.watchedEditorEl.removeEventListener('dblclick', this.handleDoubleClick);
+      this.watchedEditorEl.removeEventListener('touchstart', this.handleTouchStart);
+      this.watchedEditorEl.removeEventListener('touchmove', this.handleTouchMove);
+      this.watchedEditorEl.removeEventListener('touchend', this.handleTouchEnd);
       this.watchedEditorEl = null;
     }
 
@@ -60,6 +71,11 @@ export class Toolbar {
       this.watchedEditorEl.addEventListener('mouseup', this.handleSelectionChange);
       this.watchedEditorEl.addEventListener('keyup', this.handleSelectionChange);
       this.watchedEditorEl.addEventListener('dblclick', this.handleDoubleClick);
+      if (Platform.isMobile) {
+        this.watchedEditorEl.addEventListener('touchstart', this.handleTouchStart, { passive: true });
+        this.watchedEditorEl.addEventListener('touchmove', this.handleTouchMove, { passive: true });
+        this.watchedEditorEl.addEventListener('touchend', this.handleTouchEnd);
+      }
     }
   }
 
@@ -74,9 +90,46 @@ export class Toolbar {
     }
 
     // Fixed 200ms delay as requested
+    this.scheduleSelectionCheck(modifierActive, 200);
+  };
+
+  private scheduleSelectionCheck(modifierActive: boolean = false, delay: number = 200): void {
+    if (this.debounceTimer) {
+      window.clearTimeout(this.debounceTimer);
+    }
+
     this.debounceTimer = window.setTimeout(() => {
       this.checkSelection(modifierActive);
-    }, 200);
+    }, delay);
+  }
+
+  private handleTouchStart = (e: TouchEvent): void => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.touchMoved = false;
+  };
+
+  private handleTouchMove = (e: TouchEvent): void => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    const deltaX = Math.abs(touch.clientX - this.touchStartX);
+    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+    if (deltaX > 8 || deltaY > 8) {
+      this.touchMoved = true;
+    }
+  };
+
+  private handleTouchEnd = (): void => {
+    if (this.touchMoved) return;
+    this.scheduleSelectionCheck(false, 250);
+  };
+
+  private handleDocumentSelectionChange = (): void => {
+    const selection = activeDocument.getSelection();
+    if (!selection || selection.toString().trim().length === 0) return;
+    this.scheduleSelectionCheck(false, 250);
   };
 
   private handleDoubleClick = (e: MouseEvent): void => {
@@ -138,7 +191,7 @@ export class Toolbar {
       this.currentSelection = selection.toString();
       this.hasSelection = true;
       
-      if (this.plugin.settings.enableModifierKeyTrigger) {
+      if (this.plugin.settings.enableModifierKeyTrigger && !Platform.isMobile) {
         if (modifierActive) {
           this.show(editor, view);
         } else {
@@ -285,6 +338,15 @@ export class Toolbar {
     }
   };
 
+  private handleTouchOutside = (e: TouchEvent): void => {
+    if (!this.isVisible) return;
+
+    const target = e.target as HTMLElement;
+    if (!target.closest('.smartpick-toolbar')) {
+      this.hide();
+    }
+  };
+
   getCurrentSelection(): string {
     return this.currentSelection;
   }
@@ -302,10 +364,15 @@ export class Toolbar {
       this.watchedEditorEl.removeEventListener('mouseup', this.handleSelectionChange);
       this.watchedEditorEl.removeEventListener('keyup', this.handleSelectionChange);
       this.watchedEditorEl.removeEventListener('dblclick', this.handleDoubleClick);
+      this.watchedEditorEl.removeEventListener('touchstart', this.handleTouchStart);
+      this.watchedEditorEl.removeEventListener('touchmove', this.handleTouchMove);
+      this.watchedEditorEl.removeEventListener('touchend', this.handleTouchEnd);
       this.watchedEditorEl = null;
     }
     activeDocument.removeEventListener('keydown', this.handleKeyDown);
     activeDocument.removeEventListener('mousedown', this.handleClickOutside);
+    activeDocument.removeEventListener('selectionchange', this.handleDocumentSelectionChange);
+    activeDocument.removeEventListener('touchstart', this.handleTouchOutside);
     this.ui.destroy();
   }
 }

@@ -1,12 +1,13 @@
 // SmartPick Toolbar UI - DOM rendering and button handling
 
-import { setIcon, setTooltip, MarkdownView } from 'obsidian';
+import { setIcon, setTooltip, MarkdownView, Platform } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import type { Toolbar } from './Toolbar';
 import type { ToolbarItem } from '../settings';
 import { getBuiltinToolbarItemLabel, localize, t } from '../i18n';
 
-const MAX_VISIBLE_TOOLBAR_BUTTONS = 8;
+const DESKTOP_VISIBLE_TOOLBAR_BUTTONS = 8;
+const MOBILE_VISIBLE_TOOLBAR_BUTTONS = 5;
 
 interface AppWithCommands {
   commands: {
@@ -63,6 +64,7 @@ export class ToolbarUI {
     // Create container
     this.containerEl = view.contentEl.createDiv();
     this.containerEl.className = 'smartpick-toolbar-container';
+    this.containerEl.toggleClass('smartpick-toolbar-container-mobile', Platform.isMobile);
     
     // Vertical positioning: Always above the selection with 0 offset (standard)
     // We assume the toolbar height is about 40px, plus some padding (e.g. 10px) = 50px
@@ -97,6 +99,9 @@ export class ToolbarUI {
         // Center align relative to the editor width
         left = containerWidth / 2;
         transform += ' translateX(-50%)';
+    } else if (Platform.isMobile) {
+        left = containerWidth / 2;
+        transform += ' translateX(-50%)';
     } else {
         if (centerPercent < 0.4) {
             // Left align with selection start
@@ -125,12 +130,16 @@ export class ToolbarUI {
     // Create toolbar
     this.toolbarEl = this.containerEl.createDiv();
     this.toolbarEl.className = 'smartpick-toolbar';
+    this.toolbarEl.toggleClass('smartpick-toolbar-mobile', Platform.isMobile);
 
     const enabledItems = this.getSortedToolbarItems().filter(
       (item) => item.type !== 'separator' && item.enabled !== false
     );
-    const visibleItems = enabledItems.slice(0, MAX_VISIBLE_TOOLBAR_BUTTONS);
-    const overflowItems = enabledItems.slice(MAX_VISIBLE_TOOLBAR_BUTTONS);
+    const maxVisibleItems = Platform.isMobile
+      ? MOBILE_VISIBLE_TOOLBAR_BUTTONS
+      : DESKTOP_VISIBLE_TOOLBAR_BUTTONS;
+    const visibleItems = enabledItems.slice(0, maxVisibleItems);
+    const overflowItems = enabledItems.slice(maxVisibleItems);
 
     for (const item of visibleItems) {
       this.renderButton(item, this.hasSelection);
@@ -182,9 +191,11 @@ export class ToolbarUI {
     }
 
     // Click handler
-    button.setAttribute('draggable', 'true');
     button.setAttribute('data-smartpick-toolbar-item-id', item.id);
-    this.attachToolbarItemDragHandlers(button, item.id);
+    if (!Platform.isMobile) {
+      button.setAttribute('draggable', 'true');
+      this.attachToolbarItemDragHandlers(button, item.id);
+    }
 
     button.addEventListener('click', (e) => {
       e.preventDefault();
@@ -262,9 +273,11 @@ export class ToolbarUI {
       button.classList.add('smartpick-toolbar-more-item-ai');
     }
 
-    button.setAttribute('draggable', 'true');
     button.setAttribute('data-smartpick-toolbar-item-id', item.id);
-    this.attachToolbarItemDragHandlers(button, item.id);
+    if (!Platform.isMobile) {
+      button.setAttribute('draggable', 'true');
+      this.attachToolbarItemDragHandlers(button, item.id);
+    }
 
     button.addEventListener('click', (event) => {
       event.preventDefault();
