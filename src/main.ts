@@ -1,7 +1,7 @@
 // SmartPick - Obsidian Plugin Main Entry
 // 智能划词工具栏 - 选中文本自动弹出工具栏，支持自定义命令和AI功能
 
-import { Plugin, Notice, Editor, FileSystemAdapter, Platform, TFile } from 'obsidian';
+import { Plugin, Notice, Editor, FileSystemAdapter, Platform, TFile, normalizePath } from 'obsidian';
 import { SmartPickSettings, DEFAULT_SETTINGS, OutputAction } from './settings';
 import { initI18n, localize, setLanguage } from './i18n';
 import { Toolbar } from './toolbar/Toolbar';
@@ -83,7 +83,18 @@ export default class SmartPickPlugin extends Plugin {
     const legacyPromptTemplates = Array.isArray(data?.promptTemplates) ? data.promptTemplates : [];
     const defaultToolbarItems = [...DEFAULT_SETTINGS.toolbarItems];
     const defaultToolbarItemMap = new Map(defaultToolbarItems.map((item) => [item.id, item]));
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+    if (data && migrationVersion < CURRENT_MIGRATION_VERSION) {
+      await this.backupSettings('before-migration', data);
+    }
+
+    this.settings = {
+      ...DEFAULT_SETTINGS,
+      ...data,
+      aiConfig: {
+        ...DEFAULT_SETTINGS.aiConfig,
+        ...(data?.aiConfig ?? {}),
+      },
+    };
     let shouldSaveSettings = false;
 
     if (!Array.isArray(this.settings.toolbarItems) || this.settings.toolbarItems.length === 0) {
@@ -135,18 +146,26 @@ export default class SmartPickPlugin extends Plugin {
         for (const item of this.settings.toolbarItems) {
             const defaultItem = defaultToolbarItemMap.get(item.id);
             if (defaultItem) {
+                const userEnabled = item.enabled;
+                const userOrder = item.order;
+                const userPrompt = item.prompt;
+                const userOutputAction = item.outputAction;
+                const userAiIcon = item.type === 'ai' ? item.icon : undefined;
                 item.isBuiltin = true;
                 item.type = defaultItem.type;
                 item.icon = defaultItem.icon;
                 item.tooltip = defaultItem.tooltip;
-                item.enabled = defaultItem.enabled;
+                item.enabled = typeof userEnabled === 'boolean' ? userEnabled : defaultItem.enabled;
                 item.commandId = defaultItem.commandId;
-                item.prompt = defaultItem.prompt;
-                item.outputAction = defaultItem.outputAction;
+                item.prompt = userPrompt || defaultItem.prompt;
+                item.outputAction = userOutputAction || defaultItem.outputAction;
                 item.url = defaultItem.url;
                 item.shortcutKeys = defaultItem.shortcutKeys;
                 item.group = 'builtin';
-                item.order = defaultItem.order;
+                item.order = Number.isFinite(userOrder) ? userOrder : defaultItem.order;
+                if (defaultItem.type === 'ai' && userAiIcon) {
+                    item.icon = userAiIcon;
+                }
             } else if (!item.group || ['format', 'ai', 'link', 'shortcut', 'ungrouped'].includes(item.group)) {
                 item.group = 'custom';
                 item.isBuiltin = false;
@@ -192,6 +211,31 @@ export default class SmartPickPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+  }
+
+  async backupSettings(reason: string, sourceData: unknown = this.settings): Promise<void> {
+    const pluginDir = this.manifest.dir || `.obsidian/plugins/${this.manifest.id}`;
+    const backupDir = normalizePath(`${pluginDir}/settings-backups`);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const safeReason = reason.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
+    const backupPath = normalizePath(`${backupDir}/smartpick-settings-${timestamp}-${safeReason}.json`);
+
+    try {
+      if (!await this.app.vault.adapter.exists(backupDir)) {
+        await this.app.vault.adapter.mkdir(backupDir);
+      }
+
+      await this.app.vault.adapter.write(backupPath, JSON.stringify({
+        schemaVersion: 1,
+        pluginId: this.manifest.id,
+        pluginVersion: this.manifest.version,
+        reason,
+        backedUpAt: new Date().toISOString(),
+        settings: sourceData,
+      }, null, 2));
+    } catch (err) {
+      console.error('SmartPick settings backup failed:', err);
+    }
   }
 
   private registerStyles(): void {

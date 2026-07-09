@@ -399,7 +399,7 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   enableModifierKeyTrigger: false,
   modifierKey: 'CmdOrCtrl',
 
-  migrationVersion: 2,
+  migrationVersion: 3,
 };
 
 // Generate unique ID

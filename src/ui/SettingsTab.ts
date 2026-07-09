@@ -1,11 +1,13 @@
 // SmartPick Settings Tab - Plugin settings UI
 
-import { App, PluginSettingTab, Setting, setIcon, setTooltip, Notice, ButtonComponent, Platform } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon, setTooltip, Notice, ButtonComponent, Platform, Modal } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { 
   ToolbarItem, 
   generateId,
-  AIProvider
+  AIProvider,
+  SmartPickSettings,
+  DEFAULT_SETTINGS
 } from '../settings';
 import { t, detectLanguage, setLanguage, getBuiltinToolbarItemLabel, localize } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
@@ -15,10 +17,25 @@ import { CommandModal, AICommandModal, UrlCommandModal, ShortcutModal, AddComman
 
 type TabId = 'toolbar' | 'ai';
 
+interface SmartPickSettingsExport {
+  schemaVersion: number;
+  pluginId: string;
+  pluginVersion: string;
+  exportedAt: string;
+  includesApiKey: boolean;
+  settings: SmartPickSettings;
+}
+
+interface ParsedSettingsImport {
+  settings: SmartPickSettings;
+  includesApiKey: boolean | null;
+}
+
 export class SmartPickSettingTab extends PluginSettingTab {
   plugin: SmartPickPlugin;
   activeTab: TabId = 'toolbar';
   private settingsRootEl: HTMLElement | null = null;
+  private exportIncludesApiKey = false;
 
   constructor(app: App, plugin: SmartPickPlugin) {
     super(app, plugin);
@@ -779,6 +796,170 @@ export class SmartPickSettingTab extends PluginSettingTab {
            })();
         })
       );
+
+    this.renderSettingsBackupSection(containerEl);
+  }
+
+  private renderSettingsBackupSection(containerEl: HTMLElement): void {
+    const backupCard = containerEl.createDiv('smartpick-card');
+    new Setting(backupCard)
+      .setName(localize('配置备份', 'Settings backup'))
+      .setHeading()
+      .settingEl.classList.add('smartpick-card-title');
+
+    const desc = backupCard.createEl('p', { cls: 'smartpick-command-desc' });
+    desc.setText(localize(
+      '导出当前工具栏、AI 命令和 AI 服务配置。默认不导出 API 密钥，导入前会自动备份当前配置。',
+      'Export toolbar, AI commands, and AI provider settings. API keys are excluded by default. Current settings are backed up before import.'
+    ));
+
+    new Setting(backupCard)
+      .setName(localize('导出 API 密钥', 'Include API keys'))
+      .setDesc(localize(
+        '开启后导出的 JSON 会包含密钥，请只保存在可信位置。',
+        'When enabled, exported JSON includes secrets. Store it only in trusted locations.'
+      ))
+      .addToggle(toggle => toggle
+        .setValue(this.exportIncludesApiKey)
+        .onChange((value) => {
+          this.exportIncludesApiKey = value;
+        })
+      );
+
+    const buttonsContainer = backupCard.createDiv('smartpick-settings-buttons');
+
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(localize('导出配置', 'Export settings'))
+      .setCta()
+      .onClick(() => {
+        this.exportSettingsToFile();
+      });
+
+    new ButtonComponent(buttonsContainer)
+      .setButtonText(localize('导入配置', 'Import settings'))
+      .onClick(() => {
+        this.chooseSettingsImportFile();
+      });
+  }
+
+  private exportSettingsToFile(): void {
+    const exportedSettings = this.cloneSettings(this.plugin.settings);
+    if (!this.exportIncludesApiKey) {
+      exportedSettings.aiConfig.apiKey = '';
+    }
+
+    const payload: SmartPickSettingsExport = {
+      schemaVersion: 1,
+      pluginId: this.plugin.manifest.id,
+      pluginVersion: this.plugin.manifest.version,
+      exportedAt: new Date().toISOString(),
+      includesApiKey: this.exportIncludesApiKey,
+      settings: exportedSettings,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const urlApi = activeWindow as Window & { URL: typeof URL };
+    const url = urlApi.URL.createObjectURL(blob);
+    const link = activeDocument.body.createEl('a', {
+      attr: {
+        href: url,
+        download: `smartpick-settings-${this.createTimestamp()}.json`,
+      },
+    });
+
+    link.click();
+    link.remove();
+    urlApi.URL.revokeObjectURL(url);
+    new Notice(localize('配置已导出', 'Settings exported'));
+  }
+
+  private chooseSettingsImportFile(): void {
+    const input = activeDocument.body.createEl('input', {
+      attr: {
+        type: 'file',
+        accept: 'application/json,.json',
+      },
+    });
+    input.addClass('smartpick-hidden-file-input');
+    input.style.display = 'none';
+
+    input.addEventListener('change', () => {
+      void (async () => {
+        const file = input.files?.[0];
+        input.remove();
+        if (!file) return;
+        await this.readSettingsImportFile(file);
+      })();
+    });
+
+    input.click();
+  }
+
+  private async readSettingsImportFile(file: File): Promise<void> {
+    try {
+      const parsed = this.parseImportedSettings(JSON.parse(await file.text()) as unknown);
+      new ImportSettingsConfirmModal(this.app, file.name, async () => {
+        await this.applyImportedSettings(parsed);
+      }).open();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      new Notice(`${localize('导入失败', 'Import failed')}: ${message}`);
+    }
+  }
+
+  private async applyImportedSettings(parsed: ParsedSettingsImport): Promise<void> {
+    const settings = parsed.settings;
+    if (parsed.includesApiKey === false) {
+      settings.aiConfig.apiKey = this.plugin.settings.aiConfig.apiKey;
+    }
+
+    await this.plugin.backupSettings('before-import');
+    this.plugin.settings = settings;
+    await this.plugin.saveSettings();
+    await this.plugin.loadSettings();
+    this.refresh();
+    new Notice(localize('配置已导入', 'Settings imported'));
+  }
+
+  private parseImportedSettings(raw: unknown): ParsedSettingsImport {
+    if (!this.isRecord(raw)) {
+      throw new Error(localize('文件不是有效的 JSON 对象', 'File is not a valid JSON object'));
+    }
+
+    const includesApiKey = typeof raw.includesApiKey === 'boolean' ? raw.includesApiKey : null;
+    const candidate = this.isRecord(raw.settings) ? raw.settings : raw;
+    if (!Array.isArray(candidate.toolbarItems) && !this.isRecord(candidate.aiConfig)) {
+      throw new Error(localize('未找到 SmartPick 配置字段', 'SmartPick settings fields were not found'));
+    }
+
+    const defaults = this.cloneSettings(DEFAULT_SETTINGS);
+    const imported = candidate as Partial<SmartPickSettings>;
+    const importedAiConfig = this.isRecord(candidate.aiConfig) ? imported.aiConfig : undefined;
+
+    return {
+      includesApiKey,
+      settings: {
+        ...defaults,
+        ...imported,
+        toolbarItems: Array.isArray(imported.toolbarItems) ? imported.toolbarItems : defaults.toolbarItems,
+        aiConfig: {
+          ...defaults.aiConfig,
+          ...(importedAiConfig ?? {}),
+        },
+      },
+    };
+  }
+
+  private cloneSettings(settings: SmartPickSettings): SmartPickSettings {
+    return JSON.parse(JSON.stringify(settings)) as SmartPickSettings;
+  }
+
+  private createTimestamp(): string {
+    return new Date().toISOString().replace(/[:.]/g, '-');
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
   }
 
   private getProvider() {
@@ -790,8 +971,8 @@ export class SmartPickSettingTab extends PluginSettingTab {
         return new OllamaProvider();
       default:
         return new OpenAIProvider();
-    }
   }
+}
 
   private showAddCommandModal(): void {
     new CommandModal(this.plugin.app, undefined, (id, tooltip, icon) => {
@@ -891,4 +1072,52 @@ export class SmartPickSettingTab extends PluginSettingTab {
     this.refresh();
   }
 
+}
+
+class ImportSettingsConfirmModal extends Modal {
+  private fileName: string;
+  private onConfirmImport: () => Promise<void>;
+
+  constructor(app: App, fileName: string, onConfirmImport: () => Promise<void>) {
+    super(app);
+    this.fileName = fileName;
+    this.onConfirmImport = onConfirmImport;
+  }
+
+  onOpen(): void {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('smartpick-confirm-modal');
+
+    contentEl.createEl('h2', { text: localize('导入 SmartPick 配置？', 'Import SmartPick settings?') });
+    contentEl.createEl('p', {
+      text: localize(
+        `将导入 ${this.fileName}。当前配置会先自动备份，然后被导入内容覆盖。`,
+        `This will import ${this.fileName}. Current settings will be backed up first, then replaced.`
+      ),
+    });
+
+    const buttonContainer = contentEl.createDiv('smartpick-confirm-buttons');
+
+    new ButtonComponent(buttonContainer)
+      .setButtonText(localize('取消', 'Cancel'))
+      .onClick(() => {
+        this.close();
+      });
+
+    const importButton = new ButtonComponent(buttonContainer)
+      .setButtonText(localize('导入', 'Import'))
+      .setCta()
+      .onClick(() => {
+        void (async () => {
+          importButton.setDisabled(true);
+          await this.onConfirmImport();
+          this.close();
+        })();
+      });
+  }
+
+  onClose(): void {
+    this.contentEl.empty();
+  }
 }

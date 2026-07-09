@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0] - 2026-07-09
+
+### Added
+
+- **Mobile support**: SmartPick can now load on Obsidian mobile with touch selection detection, mobile toolbar sizing, and mobile-friendly command ordering controls.
+- **Mobile note sharing**: Copy current note file now opens the system share sheet on mobile and falls back to copying note content when file sharing is unavailable.
+- **Settings import/export**: Added JSON export and import from the AI settings tab. Exports include toolbar commands, AI commands, provider settings, model settings, and behavior options.
+- **Optional API key export**: API keys are excluded by default. Users can explicitly include them when creating a trusted local backup.
+- **Automatic settings backups**: SmartPick now writes a backup in the plugin directory before settings migration or import.
+
+### Fixed
+
+- **Mobile toolbar positioning**: Mobile toolbar placement now anchors to the selected text center and clamps to the viewport to avoid drifting off target.
+- **Settings migration preservation**: Future migrations now preserve existing AI configuration and user-customized built-in AI command prompts/output behavior instead of resetting them to defaults.
+
 ## [0.7.5] - 2026-06-28
 
 ### Fixed
