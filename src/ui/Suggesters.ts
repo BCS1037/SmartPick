@@ -7,7 +7,7 @@ interface CommandItem {
   icon?: string;
 }
 
-interface AppWithCommands extends App {
+interface AppWithCommands {
   commands: {
     commands: Record<string, unknown>;
   };

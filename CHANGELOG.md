@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.3] - 2026-07-11
+
+### Fixed
+- **Store warning cleanup**: Replaced `eslint-plugin-import` with `eslint-plugin-import-x` and separated internal command registry types from Obsidian's untyped command registry.
+
 ## [0.8.2] - 2026-07-11
 
 ### Fixed

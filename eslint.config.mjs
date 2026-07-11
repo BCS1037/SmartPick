@@ -1,5 +1,5 @@
 import globals from 'globals';
-import importPlugin from 'eslint-plugin-import';
+import { importX } from 'eslint-plugin-import-x';
 import obsidianPlugin from 'eslint-plugin-obsidianmd';
 import tseslint from 'typescript-eslint';
 
@@ -19,7 +19,7 @@ export default tseslint.config(
       },
     },
     plugins: {
-      import: importPlugin,
+      'import-x': importX,
       obsidianmd: obsidianPlugin,
     },
     rules: {
@@ -30,7 +30,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-return': 'error',
-      'import/no-nodejs-modules': 'error',
+      'import-x/no-nodejs-modules': 'error',
       'no-restricted-globals': ['error', {
         name: 'fetch',
         message: 'Use requestUrl for network requests in Obsidian.',
