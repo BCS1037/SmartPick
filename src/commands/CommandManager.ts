@@ -7,8 +7,17 @@ import { ToolbarItem } from '../settings';
 interface AppWithCommands extends App {
   commands: {
     executeCommandById(id: string): void;
-    commands: Record<string, { name: string }>;
+    commands: Record<string, unknown>;
   };
+}
+
+interface RegisteredCommand {
+  name: string;
+}
+
+function isRegisteredCommand(value: unknown): value is RegisteredCommand {
+  return typeof value === 'object' && value !== null &&
+    'name' in value && typeof value.name === 'string';
 }
 
 interface NodeRequireWindow extends Window {
@@ -126,17 +135,23 @@ export class CommandManager {
   }
 
   getAllObsidianCommands(): Array<{ id: string; name: string }> {
-    const app = this.plugin.app as AppWithCommands;
-    return Object.entries(app.commands.commands).map(([id, cmd]) => ({
-      id,
-      name: cmd.name,
-    }));
+    const app = this.plugin.app as unknown as AppWithCommands;
+    const commands: Array<{ id: string; name: string }> = [];
+
+    for (const [id, command] of Object.entries(app.commands.commands)) {
+      if (isRegisteredCommand(command)) {
+        commands.push({ id, name: command.name });
+      }
+    }
+
+    return commands;
   }
 
   getCommandById(id: string): { id: string; name: string } | undefined {
-    const cmd = (this.plugin.app as AppWithCommands).commands.commands[id];
-    if (cmd) {
-      return { id, name: cmd.name };
+    const app = this.plugin.app as unknown as AppWithCommands;
+    const command = app.commands.commands[id];
+    if (isRegisteredCommand(command)) {
+      return { id, name: command.name };
     }
     return undefined;
   }

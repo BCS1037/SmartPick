@@ -1,16 +1,21 @@
 // Anthropic Provider for Claude API
 
-import { AIConfig } from '../../settings';
-import { AIProvider, AIResponse, ChatMessage } from '../AIClient';
 import { requestUrl } from 'obsidian';
-import * as https from 'https';
-import * as http from 'http';
+import type { AIConfig } from '../../settings';
+import type { AIProvider, AIResponse, ChatMessage } from '../AIClient';
+import {
+  getJsonArray,
+  getJsonRecord,
+  getJsonString,
+  isJsonRecord,
+  parseJsonRecord,
+  requireJsonRecord,
+} from '../json';
 
 export class AnthropicProvider implements AIProvider {
   name = 'Anthropic';
 
-  fetchModels(_config: AIConfig): Promise<string[]> {
-    // Anthropic doesn't have a models endpoint, return hardcoded list
+  fetchModels(): Promise<string[]> {
     return Promise.resolve([
       'claude-3-5-sonnet-20241022',
       'claude-3-5-haiku-20241022',
@@ -20,30 +25,30 @@ export class AnthropicProvider implements AIProvider {
     ]);
   }
 
-  private convertMessages(messages: ChatMessage[]): { 
-    system: string; 
-    messages: Array<{ role: 'user' | 'assistant'; content: string }> 
+  private convertMessages(messages: ChatMessage[]): {
+    system: string;
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>;
   } {
-    const systemMessages = messages.filter(m => m.role === 'system');
-    const otherMessages = messages.filter(m => m.role !== 'system');
-    
+    const systemMessages = messages.filter((message) => message.role === 'system');
+    const otherMessages = messages.filter(
+      (message): message is ChatMessage & { role: 'user' | 'assistant' } => message.role !== 'system'
+    );
+
     return {
-      system: systemMessages.map(m => m.content).join('\n'),
-      messages: otherMessages.map(m => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
+      system: systemMessages.map((message) => message.content).join('\n'),
+      messages: otherMessages.map((message) => ({
+        role: message.role,
+        content: message.content,
       })),
     };
   }
 
   async chat(messages: ChatMessage[], config: AIConfig, model?: string): Promise<AIResponse> {
-    const url = `${config.apiUrl}/messages`;
-    const useModel = model || config.defaultModel || 'claude-3-5-sonnet-20241022';
     const { system, messages: anthropicMessages } = this.convertMessages(messages);
 
     try {
       const response = await requestUrl({
-        url,
+        url: `${config.apiUrl}/messages`,
         method: 'POST',
         headers: {
           'x-api-key': config.apiKey,
@@ -51,27 +56,23 @@ export class AnthropicProvider implements AIProvider {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: useModel,
+          model: model || config.defaultModel || 'claude-3-5-sonnet-20241022',
           max_tokens: config.maxTokens,
           system,
           messages: anthropicMessages,
         }),
       });
-
-interface AnthropicResponse {
-  content: Array<{ type: string; text?: string }>;
-  stop_reason: string;
-}
-
-      const data = response.json as AnthropicResponse;
-      const content = data.content
-        .filter((block) => block.type === 'text' && block.text)
-        .map((block) => block.text!)
+      const data = requireJsonRecord(response.json as unknown, 'Anthropic chat response');
+      const content = getJsonArray(data, 'content')
+        .filter(isJsonRecord)
+        .filter((block) => getJsonString(block, 'type') === 'text')
+        .map((block) => getJsonString(block, 'text'))
+        .filter((text): text is string => text !== undefined)
         .join('');
 
       return {
         content,
-        finishReason: data.stop_reason,
+        finishReason: getJsonString(data, 'stop_reason'),
       };
     } catch (error) {
       console.error('Anthropic chat request failed:', error);
@@ -85,74 +86,34 @@ interface AnthropicResponse {
     onChunk: (chunk: string) => void,
     model?: string
   ): Promise<void> {
-    const useModel = model || config.defaultModel || 'claude-3-5-sonnet-20241022';
     const { system, messages: anthropicMessages } = this.convertMessages(messages);
-
-    const urlObj = new URL(`${config.apiUrl}/messages`);
-    const isHttps = urlObj.protocol === 'https:';
-    const requestModule = isHttps ? https : http;
-
-    return new Promise((resolve, reject) => {
-      const req = requestModule.request(urlObj, {
-        method: 'POST',
-        headers: {
-          'x-api-key': config.apiKey,
-          'anthropic-version': '2023-06-01',
-          'Content-Type': 'application/json',
-        },
-      }, (res: http.IncomingMessage) => {
-         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-           let errorBody = '';
-           res.on('data', (chunk: Buffer) => errorBody += chunk.toString());
-           res.on('end', () => reject(new Error(`HTTP error! status: ${res.statusCode}, body: ${errorBody}`)));
-           return;
-        }
-
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        res.on('data', (chunk: Buffer) => {
-          const chunkText = decoder.decode(chunk, { stream: true });
-          buffer += chunkText;
-          
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6).trim();
-              
-              try {
-                interface AnthropicStreamEvent {
-                  type: string;
-                  delta?: { text: string };
-                }
-                const parsed = JSON.parse(data) as AnthropicStreamEvent;
-                if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-                  onChunk(parsed.delta.text);
-                }
-              } catch {
-                // Ignore JSON parse errors
-              }
-            }
-          }
-        });
-
-        res.on('end', () => resolve());
-        res.on('error', (err: Error) => reject(err));
-      });
-
-      req.on('error', (err: Error) => reject(err));
-
-      req.write(JSON.stringify({
-        model: useModel,
+    const response = await requestUrl({
+      url: `${config.apiUrl}/messages`,
+      method: 'POST',
+      headers: {
+        'x-api-key': config.apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || config.defaultModel || 'claude-3-5-sonnet-20241022',
         max_tokens: config.maxTokens,
         system,
         messages: anthropicMessages,
         stream: true,
-      }));
-      
-      req.end();
+      }),
     });
+
+    for (const line of response.text.split(/\r?\n/)) {
+      const data = line.trim();
+      if (!data.startsWith('data: ')) continue;
+
+      const event = parseJsonRecord(data.slice(6).trim());
+      if (!event || getJsonString(event, 'type') !== 'content_block_delta') continue;
+
+      const delta = getJsonRecord(event, 'delta');
+      const text = delta ? getJsonString(delta, 'text') : undefined;
+      if (text) onChunk(text);
+    }
   }
 }

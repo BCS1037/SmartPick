@@ -94,7 +94,7 @@ export class Toolbar {
     if (this.shouldIgnoreSelectionChange()) return;
 
     if (this.debounceTimer) {
-      activeWindow.clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
 
     let modifierActive = false;
@@ -107,10 +107,10 @@ export class Toolbar {
 
   private scheduleSelectionCheck(modifierActive: boolean = false): void {
     if (this.debounceTimer) {
-      activeWindow.clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
 
-    this.debounceTimer = activeWindow.setTimeout(() => {
+    this.debounceTimer = window.setTimeout(() => {
       this.checkSelection(modifierActive);
     }, TOOLBAR_DELAY_MS);
   }
@@ -164,11 +164,11 @@ export class Toolbar {
 
     // Cancel any pending selection check to avoid conflict
     if (this.debounceTimer) {
-      activeWindow.clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
 
     // Use a short delay to let the browser's native double-click selection complete
-    activeWindow.setTimeout(() => {
+    window.setTimeout(() => {
       this.showAtCurrentPosition();
     }, 50);
   };
@@ -245,7 +245,7 @@ export class Toolbar {
 
   hide(): void {
     if (this.debounceTimer) {
-      activeWindow.clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
     }
 

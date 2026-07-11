@@ -102,13 +102,7 @@ export class CommandModal extends Modal {
           new CommandSuggester(this.app, (command) => {
             this.resultId = command.id;
             this.resultTooltip = command.name;
-            // Interface for Obsidian Command with optional icon
-            interface CommandWithIcon {
-              id: string;
-              name: string;
-              icon?: string;
-            }
-            this.resultIcon = (command as CommandWithIcon).icon || 'command';
+            this.resultIcon = command.icon || 'command';
             
             // Update UI
             commandIdText.setValue(this.resultId);

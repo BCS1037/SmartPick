@@ -1,31 +1,44 @@
-import { App, FuzzySuggestModal, Command, setIcon } from 'obsidian';
+import { App, FuzzySuggestModal, setIcon } from 'obsidian';
 import { getIconIds, FuzzyMatch } from 'obsidian';
 
-// Interface for accessing Obsidian's internal commands registry
+interface CommandItem {
+  id: string;
+  name: string;
+  icon?: string;
+}
+
 interface AppWithCommands extends App {
   commands: {
-    commands: Record<string, Command>;
+    commands: Record<string, unknown>;
   };
 }
 
-export class CommandSuggester extends FuzzySuggestModal<Command> {
-  private onChoose: (command: Command) => void;
+function isCommandItem(value: unknown): value is CommandItem {
+  return typeof value === 'object' && value !== null &&
+    'id' in value && typeof value.id === 'string' &&
+    'name' in value && typeof value.name === 'string' &&
+    (!('icon' in value) || value.icon === undefined || typeof value.icon === 'string');
+}
 
-  constructor(app: App, onChoose: (command: Command) => void) {
+export class CommandSuggester extends FuzzySuggestModal<CommandItem> {
+  private onChoose: (command: CommandItem) => void;
+
+  constructor(app: App, onChoose: (command: CommandItem) => void) {
     super(app);
     this.onChoose = onChoose;
     this.setPlaceholder('Search commands...');
   }
 
-  getItems(): Command[] {
-    return Object.values((this.app as AppWithCommands).commands.commands);
+  getItems(): CommandItem[] {
+    const app = this.app as unknown as AppWithCommands;
+    return Object.values(app.commands.commands).filter(isCommandItem);
   }
 
-  getItemText(item: Command): string {
+  getItemText(item: CommandItem): string {
     return item.name;
   }
 
-  onChooseItem(item: Command, _evt: MouseEvent | KeyboardEvent): void {
+  onChooseItem(item: CommandItem): void {
     this.onChoose(item);
   }
 }
@@ -54,7 +67,7 @@ export class IconSuggester extends FuzzySuggestModal<string> {
     el.createSpan({ text: item.item });
   }
 
-  onChooseItem(item: string, _evt: MouseEvent | KeyboardEvent): void {
+  onChooseItem(item: string): void {
     this.onChoose(item);
   }
 }

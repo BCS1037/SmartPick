@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.2] - 2026-07-11
+
+### Fixed
+- **Store scanner compliance**: Replaced direct static style assignments with Obsidian CSS APIs and classes, removed Node.js HTTP imports, and added strict runtime validation for provider responses and command registry data.
+- **Timer compatibility**: Replaced `activeWindow` timer calls with `window` timer calls required by the store scanner.
+
+### Changed
+- **AI response transport**: AI providers now use Obsidian's `requestUrl` API for both desktop and mobile compatibility, then parse returned SSE or NDJSON protocol events into response chunks.
+- **Store linting**: Added `npm run lint:store` with ESLint 9 and type-aware rules matching the store findings.
+
 ## [0.8.1] - 2026-07-11
 
 ### Changed

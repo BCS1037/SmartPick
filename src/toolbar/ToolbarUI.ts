@@ -88,9 +88,11 @@ export class ToolbarUI {
     this.containerEl = view.contentEl.createDiv();
     this.containerEl.className = 'smartpick-toolbar-container';
     this.containerEl.toggleClass('smartpick-toolbar-container-mobile', Platform.isMobile);
-    this.containerEl.style.top = '0px';
-    this.containerEl.style.left = '0px';
-    this.containerEl.style.visibility = 'hidden';
+    this.containerEl.setCssProps({
+      top: '0px',
+      left: '0px',
+      visibility: 'hidden',
+    });
 
     const contentBounds = this.getContentBoundsInOffsetParent(view.contentEl);
 
@@ -129,8 +131,10 @@ export class ToolbarUI {
         }
     }
 
-    this.containerEl.style.left = `${left}px`;
-    this.containerEl.style.transform = transform;
+    this.containerEl.setCssProps({
+      left: `${left}px`,
+      transform,
+    });
     
     // Create toolbar
     this.toolbarEl = this.containerEl.createDiv();
@@ -166,7 +170,7 @@ export class ToolbarUI {
         }
         this.toolbarEl.classList.add('smartpick-toolbar-visible');
         if (this.containerEl) {
-          this.containerEl.style.visibility = 'visible';
+          this.containerEl.setCssProps({ visibility: 'visible' });
         }
       }
     });
@@ -210,7 +214,7 @@ export class ToolbarUI {
     this.currentPlacement = placement;
     this.containerEl.toggleClass('smartpick-toolbar-placement-above', placement === 'above');
     this.containerEl.toggleClass('smartpick-toolbar-placement-below', placement === 'below');
-    this.containerEl.style.top = `${preferredTop}px`;
+    this.containerEl.setCssProps({ top: `${preferredTop}px` });
     return true;
   }
 
@@ -234,15 +238,19 @@ export class ToolbarUI {
     const availableWidth = Math.max(0, contentRect.width - padding * 2);
     const top = Math.max(headerBottom, contentRect.top, visualTop) + padding - originTop;
 
-    this.containerEl.style.top = `${top}px`;
+    this.containerEl.setCssProps({ top: `${top}px` });
     if (toolbarWidth >= availableWidth) {
-      this.containerEl.style.left = `${contentRect.left + padding - originLeft}px`;
-      this.containerEl.style.transform = 'none';
+      this.containerEl.setCssProps({
+        left: `${contentRect.left + padding - originLeft}px`,
+        transform: 'none',
+      });
       return;
     }
 
-    this.containerEl.style.left = `${contentRect.left + contentRect.width / 2 - originLeft}px`;
-    this.containerEl.style.transform = 'translateX(-50%)';
+    this.containerEl.setCssProps({
+      left: `${contentRect.left + contentRect.width / 2 - originLeft}px`,
+      transform: 'translateX(-50%)',
+    });
   }
 
   private getContentBoundsInOffsetParent(viewContentEl: HTMLElement): ContentBounds {
@@ -351,9 +359,9 @@ export class ToolbarUI {
       event.stopPropagation();
       suppressGeneratedMobileClick = true;
       if (clearMobileClickGuardTimer) {
-        activeWindow.clearTimeout(clearMobileClickGuardTimer);
+        window.clearTimeout(clearMobileClickGuardTimer);
       }
-      clearMobileClickGuardTimer = activeWindow.setTimeout(() => {
+      clearMobileClickGuardTimer = window.setTimeout(() => {
         suppressGeneratedMobileClick = false;
         clearMobileClickGuardTimer = null;
       }, 500);
@@ -367,7 +375,7 @@ export class ToolbarUI {
       if (Platform.isMobile && suppressGeneratedMobileClick) {
         suppressGeneratedMobileClick = false;
         if (clearMobileClickGuardTimer) {
-          activeWindow.clearTimeout(clearMobileClickGuardTimer);
+          window.clearTimeout(clearMobileClickGuardTimer);
           clearMobileClickGuardTimer = null;
         }
         return;
@@ -427,7 +435,9 @@ export class ToolbarUI {
     }
 
     this.renderMobileOverflowSettingsButton(this.overflowToolbarEl);
-    this.overflowToolbarEl.style.width = `${this.toolbarEl.getBoundingClientRect().width}px`;
+    this.overflowToolbarEl.setCssProps({
+      width: `${this.toolbarEl.getBoundingClientRect().width}px`,
+    });
     this.overflowToolbarEl.classList.add('smartpick-toolbar-visible');
   }
 
@@ -489,10 +499,9 @@ export class ToolbarUI {
         Number.parseFloat(computedStyle.paddingBottom) +
         Number.parseFloat(computedStyle.borderTopWidth) +
         Number.parseFloat(computedStyle.borderBottomWidth);
-      this.moreMenuEl.style.setProperty(
-        '--smartpick-toolbar-more-menu-max-height',
-        `${Math.max(0, Math.floor(availableSpace - verticalChrome))}px`
-      );
+      this.moreMenuEl.setCssProps({
+        '--smartpick-toolbar-more-menu-max-height': `${Math.max(0, Math.floor(availableSpace - verticalChrome))}px`,
+      });
     }
   }
 
@@ -604,7 +613,7 @@ export class ToolbarUI {
     element.addEventListener('dragend', () => {
       element.classList.remove('smartpick-toolbar-dragging');
       this.clearAllToolbarDropIndicators();
-      activeWindow.setTimeout(() => {
+      window.setTimeout(() => {
         this.suppressToolbarClick = false;
       }, 0);
     });

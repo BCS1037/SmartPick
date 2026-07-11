@@ -898,7 +898,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
       },
     });
     input.addClass('smartpick-hidden-file-input');
-    input.style.display = 'none';
 
     input.addEventListener('change', () => {
       void (async () => {

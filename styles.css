@@ -213,6 +213,10 @@ button.smartpick-toolbar-button {
 }
 
 /* Settings Styles */
+.smartpick-hidden-file-input {
+  display: none;
+}
+
 .smartpick-settings {
   width: 100%;
 }
