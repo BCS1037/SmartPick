@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.1] - 2026-07-11
+
+### Changed
+- **Mobile toolbar placement**: The selection toolbar now appears below the Obsidian page header, keeping page-header actions reachable and avoiding the native selection menu and keyboard.
+- **Mobile More actions**: Tapping `...` opens a same-width, horizontally scrollable second toolbar row. Desktop keeps the vertical More menu.
+- **Toolbar timing**: Removed the configurable delay and mobile minimum wait. Selection checks now use a fixed 200 ms delay.
+- **Settings layout**: Settings content now uses a centered 700 px column, and tab buttons size to their labels.
+
+### Fixed
+- **Mobile selection preservation**: Tapping `...` keeps the active CodeMirror selection, so overflow actions apply to the selected text.
+- **Desktop More menu placement**: The menu now chooses available space above or below its toolbar and becomes scrollable when space is limited.
+- **Desktop dismissal**: Outside clicks are captured before CodeMirror can stop propagation, closing both the toolbar and More menu without reopening from the same mouse gesture.
+- **Settings review compliance**: Replaced the broad CSS `:has()` selector with an explicit settings-host class.
+
 ## [0.8.0] - 2026-07-09
 
 ### Added

@@ -23,8 +23,6 @@ export interface I18nStrings {
   promptTemplates: string;
   
   // Toolbar Settings
-  toolbarDelay: string;
-  toolbarDelayDesc: string;
   toolbarVerticalOffset: string;
   toolbarVerticalOffsetDesc: string;
   toolbarHorizontalOffset: string;
@@ -216,10 +214,8 @@ const zh: I18nStrings = {
   promptTemplates: '提示词模板',
   
   // Toolbar Settings
-  toolbarDelay: '工具栏延迟',
-  toolbarDelayDesc: '选中文本后工具栏弹出的延迟时间（毫秒）',
   toolbarVerticalOffset: '工具栏垂直偏移',
-  toolbarVerticalOffsetDesc: '距离文本的垂直距离（像素）',
+  toolbarVerticalOffsetDesc: '桌面端在一行实际文本高度的安全间距基础上追加的垂直距离（像素）；0 也不会覆盖选中行',
   toolbarHorizontalOffset: '工具栏水平偏移',
   toolbarHorizontalOffsetDesc: '水平偏移距离（像素）',
   addCommand: '添加命令',
@@ -409,10 +405,8 @@ const en: I18nStrings = {
   promptTemplates: 'Prompt templates',
   
   // Toolbar Settings
-  toolbarDelay: 'Toolbar delay',
-  toolbarDelayDesc: 'Delay before toolbar appears after selection (ms)',
   toolbarVerticalOffset: 'Toolbar vertical offset',
-  toolbarVerticalOffsetDesc: 'Vertical distance from text (pixels)',
+  toolbarVerticalOffsetDesc: 'Desktop extra vertical distance beyond one line-height of safe space; 0 still avoids the selected line',
   toolbarHorizontalOffset: 'Toolbar horizontal offset',
   toolbarHorizontalOffsetDesc: 'Horizontal shift (pixels)',
   addCommand: 'Add command',

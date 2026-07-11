@@ -8,6 +8,10 @@
 }
 
 .smartpick-toolbar-container-mobile {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: calc(100% - 16px);
 }
 
@@ -37,6 +41,12 @@
 .smartpick-toolbar-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.smartpick-toolbar-overflow {
+  box-sizing: border-box;
+  margin-top: 4px;
+  min-width: 0;
 }
 
 /* Toolbar Button */
@@ -204,9 +214,14 @@ button.smartpick-toolbar-button {
 
 /* Settings Styles */
 .smartpick-settings {
+  width: 100%;
+}
+
+.smartpick-settings-content {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: min(700px, calc(100% - 32px));
+  align-self: center;
   padding-bottom: 32px;
   gap: 16px;
 }
@@ -222,7 +237,7 @@ button.smartpick-toolbar-button {
   background: none;
 }
 
-body .modal.mod-settings .vertical-tab-content:has(.setting-item.smartpick-declarative-root.smartpick-settings) {
+body .modal.mod-settings .vertical-tab-content.smartpick-settings-host {
   padding-left: 0;
   padding-right: 0;
 }
@@ -250,7 +265,10 @@ body .modal.mod-settings .vertical-tab-content:has(.setting-item.smartpick-decla
 
 /* Settings Tabs */
 .smartpick-settings-tabs {
-  display: flex;
+  display: inline-flex;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
   gap: 4px;
   background-color: var(--background-secondary-alt);
   padding: 4px;
@@ -260,7 +278,7 @@ body .modal.mod-settings .vertical-tab-content:has(.setting-item.smartpick-decla
 }
 
 .smartpick-settings-tab {
-  flex: 1;
+  flex: 0 0 auto;
   padding: 8px 16px;
   border-radius: 6px;
   background: transparent;
@@ -789,7 +807,7 @@ button.smartpick-toolbar-button {
   gap: 2px;
   min-width: 180px;
   max-width: min(260px, 80vw);
-  max-height: 280px;
+  max-height: var(--smartpick-toolbar-more-menu-max-height, 280px);
   padding: 4px;
   overflow-y: auto;
   background: var(--background-secondary);
@@ -817,7 +835,17 @@ button.smartpick-toolbar-button {
 
 .smartpick-toolbar-mobile .smartpick-toolbar-more-menu {
   min-width: min(260px, calc(100vw - 32px));
-  max-height: min(360px, 60vh);
+  max-height: var(--smartpick-toolbar-more-menu-max-height, min(360px, 60vh));
+}
+
+.smartpick-toolbar-more-menu-above {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+.smartpick-toolbar-more-menu-below {
+  top: calc(100% + 4px);
+  bottom: auto;
 }
 
 .smartpick-toolbar-mobile .smartpick-toolbar-more-item {

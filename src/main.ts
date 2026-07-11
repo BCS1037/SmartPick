@@ -76,9 +76,11 @@ export default class SmartPickPlugin extends Plugin {
     type LegacySettings = Partial<SmartPickSettings> & {
       promptTemplates?: LegacyPromptTemplate[];
       commandGroups?: unknown;
+      toolbarDelay?: unknown;
     };
 
     const data = await this.loadData() as LegacySettings | null;
+    const hasLegacyToolbarDelay = data !== null && 'toolbarDelay' in data;
     const migrationVersion = data?.migrationVersion ?? 0;
     const legacyPromptTemplates = Array.isArray(data?.promptTemplates) ? data.promptTemplates : [];
     const defaultToolbarItems = [...DEFAULT_SETTINGS.toolbarItems];
@@ -96,6 +98,12 @@ export default class SmartPickPlugin extends Plugin {
       },
     };
     let shouldSaveSettings = false;
+
+    if (hasLegacyToolbarDelay) {
+      const migratedSettings = this.settings as SmartPickSettings & LegacySettings;
+      delete migratedSettings.toolbarDelay;
+      shouldSaveSettings = true;
+    }
 
     if (!Array.isArray(this.settings.toolbarItems) || this.settings.toolbarItems.length === 0) {
       this.settings.toolbarItems = defaultToolbarItems.map((item) => ({ ...item }));

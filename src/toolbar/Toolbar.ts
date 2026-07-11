@@ -1,8 +1,17 @@
 // SmartPick Toolbar - Main toolbar controller
 
 import { Editor, MarkdownView, Platform } from 'obsidian';
+import type { EditorPosition } from 'obsidian';
 import type SmartPickPlugin from '../main';
 import { ToolbarUI } from './ToolbarUI';
+
+const TOOLBAR_DELAY_MS = 200;
+const OUTSIDE_DISMISS_GUARD_MS = TOOLBAR_DELAY_MS + 50;
+
+interface SavedSelectionRange {
+  anchor: EditorPosition;
+  head: EditorPosition;
+}
 
 export class Toolbar {
   private plugin: SmartPickPlugin;
@@ -11,11 +20,13 @@ export class Toolbar {
   private debounceTimer: number | null = null;
   private currentEditor: Editor | null = null;
   private currentSelection: string = '';
+  private currentSelectionRange: SavedSelectionRange | null = null;
   private watchedEditorEl: HTMLElement | null = null;
   private hasSelection: boolean = false;
   private touchStartX: number = 0;
   private touchStartY: number = 0;
   private touchMoved: boolean = false;
+  private ignoreSelectionChangeUntil: number = 0;
 
   constructor(plugin: SmartPickPlugin) {
     this.plugin = plugin;
@@ -37,8 +48,8 @@ export class Toolbar {
     // Global ESC listener
     activeDocument.addEventListener('keydown', this.handleKeyDown);
 
-    // Click outside listener
-    activeDocument.addEventListener('mousedown', this.handleClickOutside);
+    // 在捕获阶段处理编辑器外点击，避免 CodeMirror 停止冒泡后无法关闭工具栏。
+    activeDocument.addEventListener('mousedown', this.handleClickOutside, true);
 
     if (Platform.isMobile) {
       activeDocument.addEventListener('selectionchange', this.handleDocumentSelectionChange);
@@ -80,8 +91,10 @@ export class Toolbar {
   }
 
   private handleSelectionChange = (e: MouseEvent | KeyboardEvent): void => {
+    if (this.shouldIgnoreSelectionChange()) return;
+
     if (this.debounceTimer) {
-      window.clearTimeout(this.debounceTimer);
+      activeWindow.clearTimeout(this.debounceTimer);
     }
 
     let modifierActive = false;
@@ -89,18 +102,17 @@ export class Toolbar {
       modifierActive = this.checkEventModifier(e);
     }
 
-    // Fixed 200ms delay as requested
-    this.scheduleSelectionCheck(modifierActive, 200);
+    this.scheduleSelectionCheck(modifierActive);
   };
 
-  private scheduleSelectionCheck(modifierActive: boolean = false, delay: number = 200): void {
+  private scheduleSelectionCheck(modifierActive: boolean = false): void {
     if (this.debounceTimer) {
-      window.clearTimeout(this.debounceTimer);
+      activeWindow.clearTimeout(this.debounceTimer);
     }
 
-    this.debounceTimer = window.setTimeout(() => {
+    this.debounceTimer = activeWindow.setTimeout(() => {
       this.checkSelection(modifierActive);
-    }, delay);
+    }, TOOLBAR_DELAY_MS);
   }
 
   private handleTouchStart = (e: TouchEvent): void => {
@@ -122,17 +134,27 @@ export class Toolbar {
   };
 
   private handleTouchEnd = (): void => {
+    if (this.ui.isMenuLocked()) return;
+    if (this.shouldIgnoreSelectionChange()) return;
     if (this.touchMoved) return;
-    this.scheduleSelectionCheck(false, 250);
+    this.scheduleSelectionCheck(false);
   };
 
   private handleDocumentSelectionChange = (): void => {
-    const selection = activeDocument.getSelection();
+    if (this.ui.isMenuLocked()) return;
+    if (this.shouldIgnoreSelectionChange()) return;
+
+    const activeElement = activeDocument.activeElement;
+    if (activeElement?.closest('.smartpick-toolbar')) return;
+
+    const selection = activeWindow.getSelection();
     if (!selection || selection.toString().trim().length === 0) return;
-    this.scheduleSelectionCheck(false, 250);
+    this.scheduleSelectionCheck(false);
   };
 
   private handleDoubleClick = (e: MouseEvent): void => {
+    if (this.shouldIgnoreSelectionChange()) return;
+
     // Check if double-click trigger is enabled
     if (!this.plugin.settings.enableDoubleClickTrigger) return;
 
@@ -142,11 +164,11 @@ export class Toolbar {
 
     // Cancel any pending selection check to avoid conflict
     if (this.debounceTimer) {
-      window.clearTimeout(this.debounceTimer);
+      activeWindow.clearTimeout(this.debounceTimer);
     }
 
     // Use a short delay to let the browser's native double-click selection complete
-    window.setTimeout(() => {
+    activeWindow.setTimeout(() => {
       this.showAtCurrentPosition();
     }, 50);
   };
@@ -177,6 +199,8 @@ export class Toolbar {
   }
 
   private checkSelection(modifierActive?: boolean): void {
+    if (this.ui.isMenuLocked()) return;
+
     const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) {
       this.hide();
@@ -206,15 +230,25 @@ export class Toolbar {
   }
 
   private show(editor: Editor, view: MarkdownView): void {
+    if (this.ui.isMenuLocked()) return;
+
+    this.saveCurrentSelectionRange(editor);
+
     const pos = this.getSelectionCoords(editor, view);
-    
     if (pos) {
       this.ui.show(pos, true);
       this.isVisible = true;
+    } else {
+      this.hide();
     }
   }
 
   hide(): void {
+    if (this.debounceTimer) {
+      activeWindow.clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+
     if (this.isVisible) {
       this.ui.hide();
       this.isVisible = false;
@@ -240,24 +274,21 @@ export class Toolbar {
       if (!selection) return null;
 
       const headOffset = editor.posToOffset(selection.head);
-      const anchorOffset = editor.posToOffset(selection.anchor);
-      
-      const startOffset = Math.min(headOffset, anchorOffset);
-      const endOffset = Math.max(headOffset, anchorOffset);
-
-      const startCoords = cmEditor.coordsAtPos(startOffset);
-      const endCoords = cmEditor.coordsAtPos(endOffset, -1);
-      
-      if (!startCoords || !endCoords) return null;
+      const headCoords = cmEditor.coordsAtPos(headOffset);
+      if (!headCoords) return null;
 
       const containerRect = view.contentEl.getBoundingClientRect();
-      
-      // Calculate relative coordinates
+
+      // 多行选区跟随用户最后拖动且当前可见的活动端点。
+      if (headCoords.bottom <= containerRect.top || headCoords.top >= containerRect.bottom) {
+        return null;
+      }
+
       return {
-        left: startCoords.left - containerRect.left,
-        top: startCoords.top - containerRect.top,
-        right: endCoords.right - containerRect.left,
-        bottom: endCoords.bottom - containerRect.top,
+        left: headCoords.left - containerRect.left,
+        top: headCoords.top - containerRect.top,
+        right: headCoords.right - containerRect.left,
+        bottom: headCoords.bottom - containerRect.top,
         width: containerRect.width
       };
     } catch {
@@ -333,19 +364,58 @@ export class Toolbar {
     if (!this.isVisible) return;
     
     const target = e.target as HTMLElement;
-    if (!target.closest('.smartpick-toolbar')) {
-      this.hide();
-    }
+    if (this.markToolbarInteraction(target)) return;
+
+    this.dismissAfterOutsideInteraction();
   };
 
   private handleTouchOutside = (e: TouchEvent): void => {
     if (!this.isVisible) return;
 
     const target = e.target as HTMLElement;
-    if (!target.closest('.smartpick-toolbar')) {
-      this.hide();
-    }
+    if (this.markToolbarInteraction(target)) return;
+
+    this.dismissAfterOutsideInteraction();
   };
+
+  private dismissAfterOutsideInteraction(): void {
+    // 忽略同一次点击随后触发的 mouseup/touchend，避免隐藏后立刻重开。
+    this.ignoreSelectionChangeUntil = activeWindow.performance.now() + OUTSIDE_DISMISS_GUARD_MS;
+    this.hide();
+  }
+
+  private markToolbarInteraction(target: HTMLElement): boolean {
+    if (!target.closest('.smartpick-toolbar')) return false;
+
+    // iOS 点浮动按钮会触发 selectionchange；短暂忽略，避免更多菜单刚打开又被重渲染收起。
+    this.ignoreSelectionChangeUntil = activeWindow.performance.now() + 500;
+    return true;
+  }
+
+  private shouldIgnoreSelectionChange(): boolean {
+    return activeWindow.performance.now() < this.ignoreSelectionChangeUntil;
+  }
+
+  private saveCurrentSelectionRange(editor: Editor): void {
+    const selection = editor.listSelections()[0];
+    if (!selection) return;
+
+    this.currentSelectionRange = {
+      anchor: { ...selection.anchor },
+      head: { ...selection.head },
+    };
+  }
+
+  restoreCurrentSelection(): void {
+    if (!this.currentEditor || !this.currentSelectionRange || !this.currentSelection) return;
+
+    this.ignoreSelectionChangeUntil = activeWindow.performance.now() + 500;
+    this.currentEditor.focus();
+    this.currentEditor.setSelection(
+      this.currentSelectionRange.anchor,
+      this.currentSelectionRange.head
+    );
+  }
 
   getCurrentSelection(): string {
     return this.currentSelection;
@@ -370,7 +440,7 @@ export class Toolbar {
       this.watchedEditorEl = null;
     }
     activeDocument.removeEventListener('keydown', this.handleKeyDown);
-    activeDocument.removeEventListener('mousedown', this.handleClickOutside);
+    activeDocument.removeEventListener('mousedown', this.handleClickOutside, true);
     activeDocument.removeEventListener('selectionchange', this.handleDocumentSelectionChange);
     activeDocument.removeEventListener('touchstart', this.handleTouchOutside);
     this.ui.destroy();

@@ -35,6 +35,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
   plugin: SmartPickPlugin;
   activeTab: TabId = 'toolbar';
   private settingsRootEl: HTMLElement | null = null;
+  private settingsHostEl: HTMLElement | null = null;
   private exportIncludesApiKey = false;
 
   constructor(app: App, plugin: SmartPickPlugin) {
@@ -61,6 +62,7 @@ export class SmartPickSettingTab extends PluginSettingTab {
           el.empty();
           el.classList.add('smartpick-declarative-root');
           this.settingsRootEl = el;
+          this.markSettingsHost(el);
 
           this.renderFullSettings(el);
         }
@@ -80,22 +82,39 @@ export class SmartPickSettingTab extends PluginSettingTab {
     ((this as unknown) as PluginSettingTab & { update: () => void }).update();
   }
 
+  hide(): void {
+    this.settingsHostEl?.removeClass('smartpick-settings-host');
+    this.settingsHostEl = null;
+    this.settingsRootEl = null;
+    super.hide();
+  }
+
+  private markSettingsHost(rootEl: HTMLElement): void {
+    const hostEl = rootEl.closest<HTMLElement>('.vertical-tab-content');
+    if (this.settingsHostEl === hostEl) return;
+
+    this.settingsHostEl?.removeClass('smartpick-settings-host');
+    hostEl?.addClass('smartpick-settings-host');
+    this.settingsHostEl = hostEl;
+  }
+
   // Shared rendering core — works with any HTMLElement container
   private renderFullSettings(containerEl: HTMLElement): void {
     containerEl.addClass('smartpick-settings');
+    const contentEl = containerEl.createDiv('smartpick-settings-content');
 
     // Title
-    new Setting(containerEl)
+    new Setting(contentEl)
         .setName(t('settingsTitle'))
         .setHeading();
 
     // Render Tabs
-    const tabsContainer = containerEl.createDiv('smartpick-settings-tabs');
+    const tabsContainer = contentEl.createDiv('smartpick-settings-tabs');
     this.renderCustomTab(tabsContainer, 'toolbar', t('toolbarSettings'));
     this.renderCustomTab(tabsContainer, 'ai', t('aiSettings'));
 
     // Render Content based on active tab
-    const contentContainer = containerEl.createDiv('smartpick-settings-tab-content');
+    const contentContainer = contentEl.createDiv('smartpick-settings-tab-content');
     
     switch (this.activeTab) {
       case 'toolbar':
@@ -146,8 +165,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
           });
       });
 
-    // Toolbar delay setting - Removed (Hardcoded to 200ms)
-    
     // Toolbar Vertical Offset
     new Setting(containerEl)
       .setName(t('toolbarVerticalOffset'))
