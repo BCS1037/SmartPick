@@ -8,7 +8,7 @@ import { getBuiltinToolbarItemLabel, localize, t } from '../i18n';
 
 const DESKTOP_VISIBLE_TOOLBAR_BUTTONS = 8;
 const MOBILE_VISIBLE_TOOLBAR_BUTTONS = 5;
-const DESKTOP_SELECTION_SAFE_GAP = 6;
+const DESKTOP_CENTER_ALIGNMENT_SELECTION_WIDTH_RATIO = 0.35;
 
 type ToolbarPlacement = 'above' | 'below';
 
@@ -18,6 +18,9 @@ interface ToolbarPosition {
   right: number;
   bottom: number;
   width: number;
+  isMultiLine?: boolean;
+  textLeft?: number;
+  textWidth?: number;
 }
 
 interface ContentBounds {
@@ -100,35 +103,33 @@ export class ToolbarUI {
     let left = 0;
     let transform = '';
 
-    // Check if multi-line (simple heuristic: difference in top/bottom is large enough)
+    // 兼容没有显式多行标记的旧调用。
     const lineHeight = 20; // Approx
-    const isMultiLine = (pos.bottom - pos.top) > lineHeight * 1.5;
+    const isMultiLine = pos.isMultiLine ?? (pos.bottom - pos.top) > lineHeight * 1.5;
     
     const containerWidth = pos.width;
     const centerPoint = (pos.left + pos.right) / 2;
-    const centerPercent = centerPoint / containerWidth;
+    const selectionWidth = pos.right - pos.left;
+    const textLeft = pos.textLeft ?? 0;
+    const textWidth = pos.textWidth ?? containerWidth;
+    const selectionCenterPercent = (centerPoint - textLeft) / textWidth;
+    const shouldCenterDesktopToolbar = !Platform.isMobile
+      && (isMultiLine || selectionWidth >= textWidth * DESKTOP_CENTER_ALIGNMENT_SELECTION_WIDTH_RATIO);
 
     if (Platform.isMobile) {
         left = view.contentEl.getBoundingClientRect().left + view.contentEl.getBoundingClientRect().width / 2;
         transform = 'translateX(-50%)';
-    } else if (isMultiLine) {
-        // Center align relative to the editor width
-        left = contentBounds.left + containerWidth / 2;
+    } else if (shouldCenterDesktopToolbar) {
+        // 宽单行或多行选区以选区中心为锚点。
+        left = contentBounds.left + centerPoint;
         transform = 'translateX(-50%)';
+    } else if (selectionCenterPercent > 0.6) {
+        // 靠右的短单行选区与选中文字最右边对齐。
+        left = contentBounds.left + pos.right;
+        transform = 'translateX(-100%)';
     } else {
-        if (centerPercent < 0.4) {
-            // Left align with selection start
-            left = contentBounds.left + pos.left;
-            // No horizontal translate needed
-        } else if (centerPercent > 0.6) {
-            // Right align with selection end
-            left = contentBounds.left + pos.right;
-            transform = 'translateX(-100%)';
-        } else {
-            // Center align with selection center
-            left = contentBounds.left + centerPoint;
-            transform = 'translateX(-50%)';
-        }
+        // 其余短单行选区与选中文字最左边对齐。
+        left = contentBounds.left + pos.left;
     }
 
     this.containerEl.setCssProps({
@@ -182,44 +183,22 @@ export class ToolbarUI {
   ): boolean {
     if (!this.containerEl || !this.toolbarEl) return false;
 
-    const padding = 6;
-    const safeGap = this.getSelectionSafeGap(pos);
-    const verticalOffset = Math.max(0, this.plugin.settings.toolbarVerticalOffset);
-    const gap = safeGap + verticalOffset;
     const contentBounds = this.getContentBoundsInOffsetParent(viewContentEl);
-    const toolbarHeight = this.toolbarEl.getBoundingClientRect().height;
-    const selectionTop = contentBounds.top + pos.top;
-    const selectionBottom = contentBounds.top + pos.bottom;
-    const aboveTop = selectionTop - toolbarHeight - gap;
-    const belowTop = selectionBottom + gap;
-    const minTop = contentBounds.top + padding;
-    const maxTop = contentBounds.bottom - toolbarHeight - padding;
-    const hasRoomAbove = aboveTop >= minTop;
-    const hasRoomBelow = belowTop <= maxTop;
+    const top = Math.max(
+      contentBounds.top + 10,
+      contentBounds.top + pos.top + this.plugin.settings.toolbarVerticalOffset
+    );
 
-    let placement: ToolbarPlacement;
-    if (hasRoomAbove && hasRoomBelow) {
-      placement = this.plugin.settings.toolbarPosition === 'below' ? 'below' : 'above';
-    } else if (hasRoomAbove) {
-      placement = 'above';
-    } else if (hasRoomBelow) {
-      placement = 'below';
-    } else {
-      // 没有足够空间时隐藏，禁止为了显示而压进活动端点行。
-      return false;
-    }
-
-    const preferredTop = placement === 'above' ? aboveTop : belowTop;
-
-    this.currentPlacement = placement;
-    this.containerEl.toggleClass('smartpick-toolbar-placement-above', placement === 'above');
-    this.containerEl.toggleClass('smartpick-toolbar-placement-below', placement === 'below');
-    this.containerEl.setCssProps({ top: `${preferredTop}px` });
+    // 桌面端沿用 WK EditKit 的锚点：以选区顶部为基准向上展开。
+    // 移动端由独立的 positionMobileToolbar() 保持原有定位行为。
+    this.currentPlacement = 'above';
+    this.containerEl.toggleClass('smartpick-toolbar-placement-above', true);
+    this.containerEl.toggleClass('smartpick-toolbar-placement-below', false);
+    this.containerEl.setCssProps({
+      top: `${top}px`,
+      transform: `${this.containerEl.style.transform} translateY(-100%)`.trim(),
+    });
     return true;
-  }
-
-  private getSelectionSafeGap(pos: ToolbarPosition): number {
-    return Math.max(DESKTOP_SELECTION_SAFE_GAP, pos.bottom - pos.top);
   }
 
   private positionMobileToolbar(viewContentEl: HTMLElement): void {

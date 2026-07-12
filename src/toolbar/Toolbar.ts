@@ -22,6 +22,7 @@ export class Toolbar {
   private currentSelection: string = '';
   private currentSelectionRange: SavedSelectionRange | null = null;
   private watchedEditorEl: HTMLElement | null = null;
+  private outsidePointerDocument: Document | null = null;
   private hasSelection: boolean = false;
   private touchStartX: number = 0;
   private touchStartY: number = 0;
@@ -79,6 +80,7 @@ export class Toolbar {
     const editorEl = view.contentEl.querySelector('.cm-content');
     if (editorEl) {
       this.watchedEditorEl = editorEl as HTMLElement;
+      this.bindDesktopOutsidePointerListener(this.watchedEditorEl.ownerDocument);
       this.watchedEditorEl.addEventListener('mouseup', this.handleSelectionChange);
       this.watchedEditorEl.addEventListener('keyup', this.handleSelectionChange);
       this.watchedEditorEl.addEventListener('dblclick', this.handleDoubleClick);
@@ -88,6 +90,14 @@ export class Toolbar {
         this.watchedEditorEl.addEventListener('touchend', this.handleTouchEnd);
       }
     }
+  }
+
+  private bindDesktopOutsidePointerListener(ownerDocument: Document): void {
+    if (Platform.isMobile || this.outsidePointerDocument === ownerDocument) return;
+
+    this.outsidePointerDocument?.removeEventListener('pointerdown', this.handlePointerDownOutside, true);
+    ownerDocument.addEventListener('pointerdown', this.handlePointerDownOutside, true);
+    this.outsidePointerDocument = ownerDocument;
   }
 
   private handleSelectionChange = (e: MouseEvent | KeyboardEvent): void => {
@@ -258,7 +268,16 @@ export class Toolbar {
   private getSelectionCoords(
     editor: Editor, 
     view: MarkdownView
-  ): { left: number; top: number; right: number; bottom: number, width: number } | null {
+  ): {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    isMultiLine: boolean;
+    textLeft: number;
+    textWidth: number;
+  } | null {
     try {
       // Interface for accessing internal CodeMirror 6 editor
       interface EditorWithCM {
@@ -273,11 +292,14 @@ export class Toolbar {
       const selection = editor.listSelections()[0];
       if (!selection) return null;
 
+      const anchorOffset = editor.posToOffset(selection.anchor);
       const headOffset = editor.posToOffset(selection.head);
+      const anchorCoords = cmEditor.coordsAtPos(anchorOffset);
       const headCoords = cmEditor.coordsAtPos(headOffset);
-      if (!headCoords) return null;
+      if (!anchorCoords || !headCoords) return null;
 
       const containerRect = view.contentEl.getBoundingClientRect();
+      const textRect = view.contentEl.querySelector<HTMLElement>('.cm-content')?.getBoundingClientRect();
 
       // 多行选区跟随用户最后拖动且当前可见的活动端点。
       if (headCoords.bottom <= containerRect.top || headCoords.top >= containerRect.bottom) {
@@ -285,11 +307,15 @@ export class Toolbar {
       }
 
       return {
-        left: headCoords.left - containerRect.left,
+        // 水平边界必须覆盖 anchor 和 head，不能只使用活动端点。
+        left: Math.min(anchorCoords.left, headCoords.left) - containerRect.left,
         top: headCoords.top - containerRect.top,
-        right: headCoords.right - containerRect.left,
+        right: Math.max(anchorCoords.right, headCoords.right) - containerRect.left,
         bottom: headCoords.bottom - containerRect.top,
-        width: containerRect.width
+        width: containerRect.width,
+        isMultiLine: anchorCoords.top !== headCoords.top,
+        textLeft: (textRect?.left ?? containerRect.left) - containerRect.left,
+        textWidth: textRect?.width ?? containerRect.width,
       };
     } catch {
       return null;
@@ -363,6 +389,15 @@ export class Toolbar {
   private handleClickOutside = (e: MouseEvent): void => {
     if (!this.isVisible) return;
     
+    const target = e.target as HTMLElement;
+    if (this.markToolbarInteraction(target)) return;
+
+    this.dismissAfterOutsideInteraction();
+  };
+
+  private handlePointerDownOutside = (e: PointerEvent): void => {
+    if (!this.isVisible || e.pointerType !== 'mouse') return;
+
     const target = e.target as HTMLElement;
     if (this.markToolbarInteraction(target)) return;
 
@@ -443,6 +478,8 @@ export class Toolbar {
     activeDocument.removeEventListener('mousedown', this.handleClickOutside, true);
     activeDocument.removeEventListener('selectionchange', this.handleDocumentSelectionChange);
     activeDocument.removeEventListener('touchstart', this.handleTouchOutside);
+    this.outsidePointerDocument?.removeEventListener('pointerdown', this.handlePointerDownOutside, true);
+    this.outsidePointerDocument = null;
     this.ui.destroy();
   }
 }

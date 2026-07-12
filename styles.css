@@ -241,9 +241,11 @@ button.smartpick-toolbar-button {
   background: none;
 }
 
-body .modal.mod-settings .vertical-tab-content.smartpick-settings-host {
+body .vertical-tab-content.smartpick-settings-host,
+body .vertical-tab-content.smartpick-settings-host .setting-group {
   padding-left: 0;
   padding-right: 0;
+  background: var(--background-primary) !important;
 }
 
 .setting-item.smartpick-declarative-root {
@@ -263,33 +265,37 @@ body .modal.mod-settings .vertical-tab-content.smartpick-settings-host {
   background: none;
 }
 
-.smartpick-settings h1 {
-  margin-bottom: 24px;
-}
-
 /* Settings Tabs */
 .smartpick-settings-tabs {
-  display: inline-flex;
-  align-self: flex-start;
-  width: fit-content;
+  display: flex;
+  align-items: flex-end;
+  align-self: stretch;
+  width: 100%;
   max-width: 100%;
-  gap: 4px;
-  background-color: var(--background-secondary-alt);
-  padding: 4px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  border-bottom: none;
+  gap: 28px;
+  padding: 0;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.smartpick-settings-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .smartpick-settings-tab {
+  position: relative;
   flex: 0 0 auto;
-  padding: 8px 16px;
-  border-radius: 6px;
-  background: transparent;
+  padding: 0 0 12px;
+  border-radius: 0;
+  background-color: transparent !important;
   color: var(--text-muted);
   font-weight: 500;
+  font-size: 16px;
+  line-height: 1.4;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
   border: none;
   margin-bottom: 0;
   box-shadow: none;
@@ -298,19 +304,39 @@ body .modal.mod-settings .vertical-tab-content.smartpick-settings-host {
 
 .smartpick-settings-tab:hover {
   color: var(--text-normal);
-  background: var(--background-modifier-hover);
+  background-color: transparent !important;
 }
 
 .smartpick-settings-tab.active {
-  background: var(--background-primary);
+  background-color: transparent !important;
   color: var(--text-normal);
   font-weight: 600;
-  box-shadow: var(--shadow-s);
+  box-shadow: none;
+}
+
+.smartpick-settings-tab.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  background: var(--text-normal);
 }
 
 .smartpick-settings-tab-content {
   animation: fadeIn 0.2s ease;
   width: 100%;
+}
+
+.smartpick-settings-tab-content > .setting-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.smartpick-settings-tab-content > .setting-item .setting-item-info {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 @keyframes fadeIn {

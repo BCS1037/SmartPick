@@ -63,9 +63,6 @@ export interface SmartPickSettings {
   enableMultiTurn: boolean;
   maxHistoryTurns: number;
   
-  // Language
-  language: 'zh' | 'en' | 'auto';
-  
   // Double-click trigger
   enableDoubleClickTrigger: boolean;
 
@@ -391,8 +388,6 @@ export const DEFAULT_SETTINGS: SmartPickSettings = {
   
   enableMultiTurn: false,
   maxHistoryTurns: 5,
-  
-  language: 'auto',
   
   enableDoubleClickTrigger: true,
 

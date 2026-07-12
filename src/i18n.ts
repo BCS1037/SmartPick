@@ -1,5 +1,5 @@
 // SmartPick i18n - Internationalization support
-// Supports Chinese and English
+// Follows Obsidian language settings for Chinese and English
 
 import { getLanguage as getObsidianLanguage, Platform } from 'obsidian';
 
@@ -215,7 +215,7 @@ const zh: I18nStrings = {
   
   // Toolbar Settings
   toolbarVerticalOffset: '工具栏垂直偏移',
-  toolbarVerticalOffsetDesc: '桌面端在一行实际文本高度的安全间距基础上追加的垂直距离（像素）；0 也不会覆盖选中行',
+  toolbarVerticalOffsetDesc: '桌面端工具栏与选区顶部锚点之间的垂直距离（像素）',
   toolbarHorizontalOffset: '工具栏水平偏移',
   toolbarHorizontalOffsetDesc: '水平偏移距离（像素）',
   addCommand: '添加命令',
@@ -406,7 +406,7 @@ const en: I18nStrings = {
   
   // Toolbar Settings
   toolbarVerticalOffset: 'Toolbar vertical offset',
-  toolbarVerticalOffsetDesc: 'Desktop extra vertical distance beyond one line-height of safe space; 0 still avoids the selected line',
+  toolbarVerticalOffsetDesc: 'Desktop vertical distance from the selection-top anchor (pixels)',
   toolbarHorizontalOffset: 'Toolbar horizontal offset',
   toolbarHorizontalOffsetDesc: 'Horizontal shift (pixels)',
   addCommand: 'Add command',
@@ -580,14 +580,8 @@ const en: I18nStrings = {
 
 const translations: Record<Language, I18nStrings> = { zh, en };
 
-let currentLanguage: Language = 'zh';
-
-export function setLanguage(lang: Language): void {
-  currentLanguage = lang;
-}
-
 export function getLanguage(): Language {
-  return currentLanguage;
+  return detectLanguage();
 }
 
 export function detectLanguage(): Language {
@@ -597,11 +591,8 @@ export function detectLanguage(): Language {
 }
 
 export function t(key: keyof I18nStrings): string {
-  return translations[currentLanguage][key] || translations['en'][key] || key;
-}
-
-export function initI18n(): void {
-  setLanguage(detectLanguage());
+  const language = getLanguage();
+  return translations[language][key] || translations['en'][key] || key;
 }
 
 export function localize(zhText: string, enText: string): string {

@@ -9,7 +9,7 @@ import {
   SmartPickSettings,
   DEFAULT_SETTINGS
 } from '../settings';
-import { t, detectLanguage, setLanguage, getBuiltinToolbarItemLabel, localize } from '../i18n';
+import { t, getBuiltinToolbarItemLabel, localize } from '../i18n';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
 import { AnthropicProvider } from '../ai/providers/AnthropicProvider';
 import { OllamaProvider } from '../ai/providers/OllamaProvider';
@@ -103,11 +103,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
     containerEl.addClass('smartpick-settings');
     const contentEl = containerEl.createDiv('smartpick-settings-content');
 
-    // Title
-    new Setting(contentEl)
-        .setName(t('settingsTitle'))
-        .setHeading();
-
     // Render Tabs
     const tabsContainer = contentEl.createDiv('smartpick-settings-tabs');
     this.renderCustomTab(tabsContainer, 'toolbar', t('toolbarSettings'));
@@ -142,29 +137,6 @@ export class SmartPickSettingTab extends PluginSettingTab {
   }
 
   private renderToolbarSettings(containerEl: HTMLElement): void {
-    // Language
-    new Setting(containerEl)
-      .setName(t('language'))
-      .setDesc(t('languageDesc'))
-      .addDropdown(dropdown => {
-        dropdown
-          .addOption('auto', t('auto'))
-          .addOption('zh', t('zh'))
-          .addOption('en', t('en'))
-          .setValue(this.plugin.settings.language)
-          .onChange((value) => {
-            void (async () => {
-              this.plugin.settings.language = value as 'auto' | 'zh' | 'en';
-              await this.plugin.saveSettings();
-              // Reload i18n
-              const lang = value === 'auto' ? detectLanguage() : value;
-              setLanguage(lang as 'en' | 'zh');
-              // Refresh settings
-              this.refresh();
-            })();
-          });
-      });
-
     // Toolbar Vertical Offset
     new Setting(containerEl)
       .setName(t('toolbarVerticalOffset'))

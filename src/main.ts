@@ -3,7 +3,7 @@
 
 import { Plugin, Notice, Editor, FileSystemAdapter, Platform, TFile, normalizePath } from 'obsidian';
 import { SmartPickSettings, DEFAULT_SETTINGS, OutputAction } from './settings';
-import { initI18n, localize, setLanguage } from './i18n';
+import { localize } from './i18n';
 import { Toolbar } from './toolbar/Toolbar';
 import { SmartPickSettingTab } from './ui/SettingsTab';
 import { CommandManager } from './commands/CommandManager';
@@ -29,12 +29,6 @@ export default class SmartPickPlugin extends Plugin {
 
     // Load settings
     await this.loadSettings();
-
-    // Initialize i18n
-    initI18n();
-    if (this.settings.language !== 'auto') {
-      setLanguage(this.settings.language);
-    }
 
     // Initialize toolbar
     this.toolbar = new Toolbar(this);
@@ -77,10 +71,12 @@ export default class SmartPickPlugin extends Plugin {
       promptTemplates?: LegacyPromptTemplate[];
       commandGroups?: unknown;
       toolbarDelay?: unknown;
+      language?: unknown;
     };
 
     const data = await this.loadData() as LegacySettings | null;
     const hasLegacyToolbarDelay = data !== null && 'toolbarDelay' in data;
+    const hasLegacyLanguage = data !== null && 'language' in data;
     const migrationVersion = data?.migrationVersion ?? 0;
     const legacyPromptTemplates = Array.isArray(data?.promptTemplates) ? data.promptTemplates : [];
     const defaultToolbarItems = [...DEFAULT_SETTINGS.toolbarItems];
@@ -98,6 +94,12 @@ export default class SmartPickPlugin extends Plugin {
       },
     };
     let shouldSaveSettings = false;
+
+    if (hasLegacyLanguage) {
+      const migratedSettings = this.settings as SmartPickSettings & LegacySettings;
+      delete migratedSettings.language;
+      shouldSaveSettings = true;
+    }
 
     if (hasLegacyToolbarDelay) {
       const migratedSettings = this.settings as SmartPickSettings & LegacySettings;

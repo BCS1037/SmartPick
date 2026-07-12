@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.5] - 2026-07-13
+
+### Changed
+- **Desktop toolbar placement**: Short selections now align to the left or right selection edge as appropriate; wider and multi-line selections remain centered.
+- **Obsidian language integration**: SmartPick UI text now follows the host Obsidian language setting, and the redundant plugin language setting has been removed.
+- **Settings tabs**: Reworked the tabs into native-style underline navigation, with tighter spacing, left-aligned content, and matching settings background.
+- **Release validation**: The release workflow now checks version consistency and runs the store/source linters before publishing assets.
+
+### Fixed
+- **Desktop More menu dismissal**: Clicking outside the toolbar now reliably closes the More menu.
+
 ## [0.8.4] - 2026-07-12
 
 ### Added

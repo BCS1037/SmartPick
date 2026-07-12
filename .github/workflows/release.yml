@@ -22,10 +22,39 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Build plugin
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate release version
         run: |
-          npm ci
-          npm run build
+          node <<'NODE'
+          const fs = require("fs");
+
+          const tag = process.env.GITHUB_REF_NAME;
+          const packageVersion = require("./package.json").version;
+          const manifestVersion = require("./manifest.json").version;
+          const versions = JSON.parse(fs.readFileSync("versions.json", "utf8"));
+
+          if (!/^\d+\.\d+\.\d+$/.test(tag)) {
+            throw new Error(`Release tag must be plain SemVer without a v prefix: ${tag}`);
+          }
+
+          if (tag !== packageVersion || tag !== manifestVersion) {
+            throw new Error(`Tag/version mismatch: tag=${tag}, package=${packageVersion}, manifest=${manifestVersion}`);
+          }
+
+          if (!(tag in versions)) {
+            throw new Error(`versions.json is missing ${tag}`);
+          }
+          NODE
+
+      - name: Lint source
+        run: |
+          npm run lint:store
+          npm run lint
+
+      - name: Build plugin
+        run: npm run build
 
       - name: Generate artifact attestations for main.js
         uses: actions/attest-build-provenance@v2
