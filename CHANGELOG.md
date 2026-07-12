@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.4] - 2026-07-12
+
+### Added
+- **Development support**: Added an 爱发电 support link to the README.
+
 ## [0.8.3] - 2026-07-11
 
 ### Fixed

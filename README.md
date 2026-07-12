@@ -47,6 +47,10 @@
 
 Contributions are welcome! If you have any ideas or bug reports, please open an issue or submit a pull request.
 
+## ☕ Support
+
+If SmartPick helps your workflow, you can support its development on [爱发电](https://ifdian.net/a/bcs1037).
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
