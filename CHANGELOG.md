@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.6] - 2026-07-13
+
+### Fixed
+- **Android compatibility**: Restored the minimum Obsidian version to `1.8.7`, allowing SmartPick to install and enable on Android public releases while retaining compatibility with Obsidian 1.13 settings.
+
 ## [0.8.5] - 2026-07-13
 
 ### Changed
