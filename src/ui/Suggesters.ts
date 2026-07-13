@@ -7,17 +7,23 @@ interface CommandItem {
   icon?: string;
 }
 
-interface AppWithCommands {
-  commands: {
-    commands: Record<string, unknown>;
-  };
-}
-
 function isCommandItem(value: unknown): value is CommandItem {
   return typeof value === 'object' && value !== null &&
     'id' in value && typeof value.id === 'string' &&
     'name' in value && typeof value.name === 'string' &&
     (!('icon' in value) || value.icon === undefined || typeof value.icon === 'string');
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getCommandRegistry(app: unknown): Record<string, unknown> {
+  if (!isRecord(app)) return {};
+  const commands: unknown = Reflect.get(app, 'commands');
+  if (!isRecord(commands)) return {};
+  const registry: unknown = Reflect.get(commands, 'commands');
+  return isRecord(registry) ? registry : {};
 }
 
 export class CommandSuggester extends FuzzySuggestModal<CommandItem> {
@@ -30,8 +36,7 @@ export class CommandSuggester extends FuzzySuggestModal<CommandItem> {
   }
 
   getItems(): CommandItem[] {
-    const app = this.app as unknown as AppWithCommands;
-    return Object.values(app.commands.commands).filter(isCommandItem);
+    return Object.values(getCommandRegistry(this.app)).filter(isCommandItem);
   }
 
   getItemText(item: CommandItem): string {

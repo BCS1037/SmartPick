@@ -45,7 +45,11 @@ export class SmartPickSettingTab extends PluginSettingTab {
 
   // Obsidian < 1.13.0: called directly by the framework
   display(): void {
-    // Left empty since we use getSettingDefinitions() in 1.13.0+
+    const { containerEl } = this;
+    containerEl.empty();
+    this.settingsRootEl = containerEl;
+    this.markSettingsHost(containerEl);
+    this.renderFullSettings(containerEl);
   }
 
   // Obsidian 1.13.0+: declarative entry point — bypasses display()
@@ -79,7 +83,12 @@ export class SmartPickSettingTab extends PluginSettingTab {
       return;
     }
 
-    ((this as unknown) as PluginSettingTab & { update: () => void }).update();
+    const update: unknown = Reflect.get(this, 'update');
+    if (typeof update === 'function') {
+      Reflect.apply(update, this, []);
+      return;
+    }
+    this.display();
   }
 
   hide(): void {

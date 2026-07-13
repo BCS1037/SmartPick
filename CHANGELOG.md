@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.7] - 2026-07-13
+
+### Fixed
+- **Older Obsidian compatibility**: Removed calls to APIs introduced in Obsidian 1.13 while preserving destructive button styling and settings refresh behavior on newer clients.
+- **Legacy settings rendering**: Restored the imperative settings renderer for Obsidian versions below 1.13.
+- **Store scanner compliance**: Narrowed untyped command registry access through runtime guards, clearing unsafe call, assignment, return, and member-access findings.
+
 ## [0.8.6] - 2026-07-13
 
 ### Fixed

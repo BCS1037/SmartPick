@@ -172,9 +172,10 @@ export class CommandModal extends Modal {
 
     if (this.isEditing && this.onDelete) {
         new Setting(contentEl)
-            .addButton(btn => btn
+            .addButton(btn => {
+              btn.buttonEl.addClass('mod-warning');
+              return btn
                 .setButtonText(t('delete'))
-                .setDestructive()
                 .onClick(() => {
                     new ConfirmModal(
                         this.app,
@@ -186,8 +187,8 @@ export class CommandModal extends Modal {
                         },
                         t('delete')
                     ).open();
-                })
-            );
+                });
+            });
         // Move delete button to start or adjust css? 
         // Logic: The user asked for "same row as Cancel & Save". 
         // The Setting component creates a row. Adding buttons to the SAME new Setting appends them.
@@ -314,9 +315,10 @@ export class AICommandModal extends Modal {
     const buttons = new Setting(contentEl);
 
     if (this.isEditing && !this.isBuiltin && this.onDelete) {
-         buttons.addButton(btn => btn
+         buttons.addButton(btn => {
+           btn.buttonEl.addClass('mod-warning');
+           return btn
             .setButtonText(t('delete'))
-            .setDestructive()
             .onClick(() => {
               new ConfirmModal(
                 this.app,
@@ -328,7 +330,8 @@ export class AICommandModal extends Modal {
                 },
                 t('delete')
               ).open();
-            }));
+            });
+         });
     }
 
     buttons
@@ -493,13 +496,15 @@ export class UrlCommandModal extends Modal {
     const buttons = new Setting(contentEl);
 
     if (this.isEditing && this.onDelete) {
-         buttons.addButton(btn => btn
+         buttons.addButton(btn => {
+           btn.buttonEl.addClass('mod-warning');
+           return btn
             .setButtonText(t('delete'))
-            .setDestructive()
             .onClick(() => {
                  this.onDelete?.();
                  this.close();
-            }));
+            });
+         });
     }
 
     buttons
@@ -650,13 +655,15 @@ export class ShortcutModal extends Modal {
     const buttons = new Setting(contentEl);
 
     if (this.isEditing && this.onDelete) {
-         buttons.addButton(btn => btn
+         buttons.addButton(btn => {
+           btn.buttonEl.addClass('mod-warning');
+           return btn
             .setButtonText(t('delete'))
-            .setDestructive()
             .onClick(() => {
                  this.onDelete?.();
                  this.close();
-            }));
+            });
+         });
     }
 
     buttons

@@ -4,15 +4,34 @@ import type SmartPickPlugin from '../main';
 import { Editor, Platform } from 'obsidian';
 import { ToolbarItem } from '../settings';
 
-interface AppWithCommands {
-  commands: {
-    executeCommandById(id: string): void;
-    commands: Record<string, unknown>;
-  };
-}
-
 interface RegisteredCommand {
   name: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getCommandsApi(app: unknown): Record<string, unknown> | null {
+  if (!isRecord(app)) return null;
+  const commands: unknown = Reflect.get(app, 'commands');
+  return isRecord(commands) ? commands : null;
+}
+
+function getCommandRegistry(app: unknown): Record<string, unknown> | null {
+  const commands = getCommandsApi(app);
+  if (!commands) return null;
+  const registry: unknown = Reflect.get(commands, 'commands');
+  return isRecord(registry) ? registry : null;
+}
+
+function executeCommandById(app: unknown, id: string): void {
+  const commands = getCommandsApi(app);
+  if (!commands) return;
+  const execute: unknown = Reflect.get(commands, 'executeCommandById');
+  if (typeof execute === 'function') {
+    Reflect.apply(execute, commands, [id]);
+  }
 }
 
 function isRegisteredCommand(value: unknown): value is RegisteredCommand {
@@ -55,7 +74,7 @@ export class CommandManager {
             if (!selection) return;
 
             if (item.type === 'command' && item.commandId) {
-              (this.plugin.app as unknown as AppWithCommands).commands.executeCommandById(item.commandId);
+              executeCommandById(this.plugin.app, item.commandId);
             } else if (item.type === 'ai') {
               void this.executeAICommand(item, selection, editor);
             } else if (item.type === 'url' && item.url) {
@@ -135,10 +154,11 @@ export class CommandManager {
   }
 
   getAllObsidianCommands(): Array<{ id: string; name: string }> {
-    const app = this.plugin.app as unknown as AppWithCommands;
+    const registry = getCommandRegistry(this.plugin.app);
     const commands: Array<{ id: string; name: string }> = [];
+    if (!registry) return commands;
 
-    for (const [id, command] of Object.entries(app.commands.commands)) {
+    for (const [id, command] of Object.entries(registry)) {
       if (isRegisteredCommand(command)) {
         commands.push({ id, name: command.name });
       }
@@ -148,8 +168,8 @@ export class CommandManager {
   }
 
   getCommandById(id: string): { id: string; name: string } | undefined {
-    const app = this.plugin.app as unknown as AppWithCommands;
-    const command = app.commands.commands[id];
+    const registry = getCommandRegistry(this.plugin.app);
+    const command = registry?.[id];
     if (isRegisteredCommand(command)) {
       return { id, name: command.name };
     }
